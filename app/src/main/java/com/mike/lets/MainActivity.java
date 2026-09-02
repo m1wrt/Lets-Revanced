@@ -266,15 +266,22 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         binding.mainMenuLayout.textInputDisplay.setText("Text: " + appLiveData.currentText);
                         binding.mainMenuLayout.llmDisplay.setText("LLM: " + appLiveData.llmResponse);
                         
-                        binding.mainMenuLayout.statusTopLeft.setText("NADA");
-                        binding.mainMenuLayout.statusTopRight.setText("NADA");
-                        binding.mainMenuLayout.statusBottomLeft.setText("NADA");
-                        binding.mainMenuLayout.statusBottomRight.setText("NADA");
+                        String[] statusTexts = {"NADA", "NADA", "NADA", "NADA"};
+                        if (appLiveData.predictionsList != null && !appLiveData.predictionsList.isEmpty()) {
+                            for (int i = 0; i < Math.min(4, appLiveData.predictionsList.size()); i++) {
+                                statusTexts[i] = appLiveData.predictionsList.get(i);
+                            }
+                        }
 
-                        if (gazeType == 6) binding.mainMenuLayout.statusTopLeft.setText("ACTIVO");
-                        else if (gazeType == 7) binding.mainMenuLayout.statusTopRight.setText("ACTIVO");
-                        else if (gazeType == 1) binding.mainMenuLayout.statusBottomLeft.setText("ACTIVO");
-                        else if (gazeType == 2) binding.mainMenuLayout.statusBottomRight.setText("ACTIVO");
+                        binding.mainMenuLayout.statusTopLeft.setText(statusTexts[0]);
+                        binding.mainMenuLayout.statusTopRight.setText(statusTexts[1]);
+                        binding.mainMenuLayout.statusBottomLeft.setText(statusTexts[2]);
+                        binding.mainMenuLayout.statusBottomRight.setText(statusTexts[3]);
+
+                        if (gazeType == 6) binding.mainMenuLayout.statusTopLeft.setText(statusTexts[0] + " (ACTIVO)");
+                        else if (gazeType == 7) binding.mainMenuLayout.statusTopRight.setText(statusTexts[1] + " (ACTIVO)");
+                        else if (gazeType == 1) binding.mainMenuLayout.statusBottomLeft.setText(statusTexts[2] + " (ACTIVO)");
+                        else if (gazeType == 2) binding.mainMenuLayout.statusBottomRight.setText(statusTexts[3] + " (ACTIVO)");
                     }
                 }
 

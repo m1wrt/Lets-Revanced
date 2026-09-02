@@ -64,6 +64,7 @@ public class Presenter implements ContractInterface.Presenter {
         userDataManager = (UserDataManager) applicationContext;
 
         model.initialize(mContext, applicationContext); // MVP model initialization
+        textEntryManager.initialize(mContext, "");
 
         appliveData.calibrationInstruction = "Eye Calibration";
 
@@ -193,6 +194,7 @@ public class Presenter implements ContractInterface.Presenter {
         if (Objects.equals(mode, "Menu")) {
             appliveData.currentText = textEntryManager.getCurrentText();
             List<String> predictions = textEntryManager.getPredictions();
+            appliveData.predictionsList = predictions;
             if (!predictions.isEmpty()) {
                 StringBuilder sb = new StringBuilder("Predictions: ");
                 for (int i = 0; i < predictions.size(); i++) {

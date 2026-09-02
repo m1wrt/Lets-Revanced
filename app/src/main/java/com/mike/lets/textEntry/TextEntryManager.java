@@ -13,6 +13,10 @@ public class TextEntryManager {
     public boolean wordModeUI = false;
     public int wordIndex = -1;
 
+    public void initialize(android.content.Context context, String contextText) {
+        blurryInput.initialize(context, contextText);
+    }
+
     public void manageUserInput(int gazeType, boolean isLive) {
         if (gazeType == 0) return; // Straight/Nothing
 

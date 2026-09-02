@@ -15,6 +15,7 @@ public class AppLiveData {
     public boolean isRecording;
     public String currentText = "";
     public String llmResponse = "";
+    public java.util.List<String> predictionsList = new java.util.ArrayList<>();
 
     void setDetectionOutput(DetectionOutput detectionOutput) { this.DetectionOutput = detectionOutput; }
 }
