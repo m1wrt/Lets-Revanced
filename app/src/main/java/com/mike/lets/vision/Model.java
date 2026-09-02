@@ -59,7 +59,7 @@ public class Model implements ContractInterface.Model {
     Integer[] tags = new Integer[]{0, 1, 2, 3, 6, 7}; // matches the calibration order
     Point[] corners = new Point[4]; // left, top, right, down
     double[] leftTemplateError, rightTemplateError;
-
+    //.
     @Override
     public void initialize(Context context, Context applicationContext) throws IOException {
         // Inicializa el modelo de vision y las plantillas usadas para comparar la mirada.
