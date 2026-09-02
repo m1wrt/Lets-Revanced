@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/top_bar"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="@color/top_bar_background"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <ImageButton
+        android:id="@+id/btn_home"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Home"
+        android:src="@drawable/ic_home" />
+
+    <Button
+        android:id="@+id/btn_ajustes"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/button_background"
+        android:text="AJUSTES"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/btn_rapido"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/button_background"
+        android:text="RÁPIDO"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/btn_entrada_texto"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1.5"
+        android:background="@drawable/button_background"
+        android:text="ENTRADA DE TEXTO"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/btn_calibracion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1.5"
+        android:background="@drawable/button_background"
+        android:text="CALIBRACIÓN"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/btn_datos"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/button_background"
+        android:text="DATOS"
+        android:textColor="@color/white" />
+</LinearLayout>
