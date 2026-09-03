@@ -12,6 +12,7 @@ public class TextEntryManager {
     public boolean letterModeUI = true;
     public boolean wordModeUI = false;
     public int wordIndex = -1;
+    public int predictionPage = 0;
 
     public void initialize(android.content.Context context, String contextText) {
         blurryInput.initialize(context, contextText);
@@ -32,11 +33,11 @@ public class TextEntryManager {
         if (gazeType == 6 || gazeType == 7 || gazeType == 1 || gazeType == 2) {
             blurryInput.addGaze(gazeType);
             updatePredictions();
-        } else if (gazeType == 5) { // Closed -> Cambiar a Word Mode if predictions exist
+        } else if (gazeType == 5) { // Closed -> CAMBIAR a Word Mode
             if (!currentPredictions.isEmpty()) {
                 letterModeUI = false;
                 wordModeUI = true;
-                wordIndex = 0;
+                predictionPage = 0;
             }
         } else if (gazeType == 3) { // Up -> Borrar
             blurryInput.deleteLast();
@@ -51,30 +52,45 @@ public class TextEntryManager {
             return;
         }
 
-        // Use Left/Right (1/2) to navigate predictions
-        if (gazeType == 1) { // Left
-            wordIndex = (wordIndex - 1 + currentPredictions.size()) % currentPredictions.size();
-        } else if (gazeType == 2) { // Right
-            wordIndex = (wordIndex + 1) % currentPredictions.size();
-        } else if (gazeType == 5) { // Closed -> Select word
-            selectWord(currentPredictions.get(wordIndex));
-        } else if (gazeType == 3) { // Up -> Back to Letter Mode
+        int wordsInPage = 4;
+        int startIdx = predictionPage * wordsInPage;
+
+        if (gazeType == 5) { // Closed -> CAMBIAR (Girar / Siguiente página)
+            predictionPage++;
+            if (predictionPage * wordsInPage >= currentPredictions.size()) {
+                predictionPage = 0;
+            }
+        } else if (gazeType == 3) { // Up -> COMPLETO / Volver a letras
             letterModeUI = true;
             wordModeUI = false;
+        } else {
+            // Corner selection: 6(TL), 7(TR), 1(BL), 2(BR)
+            int selectedOffset = -1;
+            if (gazeType == 6) selectedOffset = 0;
+            else if (gazeType == 7) selectedOffset = 1;
+            else if (gazeType == 1) selectedOffset = 2;
+            else if (gazeType == 2) selectedOffset = 3;
+
+            if (selectedOffset != -1) {
+                int finalIdx = startIdx + selectedOffset;
+                if (finalIdx < currentPredictions.size()) {
+                    selectWord(currentPredictions.get(finalIdx));
+                }
+            }
         }
     }
 
     private void updatePredictions() {
         currentPredictions = blurryInput.getPredictions();
-        if (currentPredictions.isEmpty()) {
-            wordIndex = -1;
-        } else {
-            wordIndex = 0;
-        }
+        predictionPage = 0;
     }
 
     private void selectWord(String word) {
-        currentSentence += word + " ";
+        if (word.length() == 1) {
+            currentSentence += word; // No space for single letters (spelling mode)
+        } else {
+            currentSentence += word + " "; // Space for full words
+        }
         blurryInput.clear();
         currentPredictions.clear();
         wordIndex = -1;

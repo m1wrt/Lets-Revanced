@@ -14,14 +14,13 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Sistema de busqueda de palabras por rangos de mirada.
- * Grupos: a-f(0), g-m(1), n-t(2), u-z(3)
+ * Sistema de entrada de texto optimizado para "letra por letra" y predicción por grupos.
+ * Mapea códigos de mirada a grupos de letras:
+ * 0: a-f, 1: g-m, 2: n-t, 3: u-z
  */
 public class BlurryInput {
     private static final String TAG = "BlurryInput";
-    private static final int CHARACTER_THRESHOLD = 3;
-
-    // Mapping for legacy addGaze (6:LeftUp, 7:RightUp, 1:Left, 2:Right)
+    // Mapeo de mirada a código interno (6:A-F, 7:G-M, 1:N-T, 2:U-Z)
     private static final Map<Integer, Character> GAZE_TO_CODE = new HashMap<>();
     static {
         GAZE_TO_CODE.put(6, '0'); // a-f
@@ -31,48 +30,42 @@ public class BlurryInput {
     }
 
     private final List<String> wordList = new ArrayList<>();
-    private final List<String> extendedWordList = new ArrayList<>();
     private final Map<String, String> wordToCodeMap = new HashMap<>();
-    private String currentContext = "";
     private final StringBuilder internalInputCode = new StringBuilder();
+    private String currentContext = "";
 
     /**
-     * Inicializa el diccionario y precalcula los codigos de mirada.
-     * @param context Contexto de Android para acceder a assets.
-     * @param contextText Texto de contexto para priorizar predicciones.
+     * Inicializa el sistema, carga el diccionario y asegura que las letras individuales estén presentes.
      */
     public void initialize(Context context, String contextText) {
         this.currentContext = contextText != null ? contextText.toLowerCase() : "";
         wordList.clear();
-        // Requirement 7: Limpia los datos anteriores para evitar duplicados.
-        // Mantenemos extendedWordList si se desea persistencia manual, 
-        // pero la limpiamos aqui para cumplir estrictamente con "Limpia los datos anteriores".
-        extendedWordList.clear();
         wordToCodeMap.clear();
         internalInputCode.setLength(0);
 
+        // 1. Agregar letras individuales para permitir el deletreo letra por letra
+        for (char c = 'a'; c <= 'z'; c++) {
+            String letter = String.valueOf(c);
+            wordList.add(letter);
+            wordToCodeMap.put(letter, encode(letter));
+        }
+
+        // 2. Cargar diccionario principal
         loadWordsFromAssets(context, "SpanishWords.txt");
         
         rebuildCodeMap();
     }
 
     private void rebuildCodeMap() {
-        // Requirement 4: Elimina duplicados entre wordList y extendedWordList.
-        LinkedHashSet<String> uniqueExtended = new LinkedHashSet<>(extendedWordList);
-        extendedWordList.clear();
-        extendedWordList.addAll(uniqueExtended);
-
+        // Eliminar duplicados manteniendo el orden (letras primero)
         LinkedHashSet<String> uniqueWords = new LinkedHashSet<>(wordList);
-        uniqueWords.removeAll(extendedWordList);
         wordList.clear();
         wordList.addAll(uniqueWords);
         
-        // Precompute codes (Requirement 6)
-        for (String word : extendedWordList) {
-            wordToCodeMap.put(word, encode(normalize(word)));
-        }
         for (String word : wordList) {
-            wordToCodeMap.put(word, encode(normalize(word)));
+            if (!wordToCodeMap.containsKey(word)) {
+                wordToCodeMap.put(word, encode(normalize(word)));
+            }
         }
     }
 
@@ -81,18 +74,18 @@ public class BlurryInput {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(context.getAssets().open(fileName)))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String word = line.trim();
+                String word = line.trim().toLowerCase();
                 if (!word.isEmpty()) {
                     wordList.add(word);
                 }
             }
         } catch (IOException e) {
-            Log.e(TAG, "Error loading " + fileName, e);
+            Log.e(TAG, "Error loading dictionary: " + fileName, e);
         }
     }
 
     /**
-     * Normaliza una palabra: minusculas, sin acentos y solo caracteres a-z.
+     * Normaliza una palabra: minúsculas, sin acentos y solo letras a-z.
      */
     public String normalize(String word) {
         if (word == null) return "";
@@ -102,7 +95,7 @@ public class BlurryInput {
     }
 
     /**
-     * Codifica una palabra normalizada a una secuencia de grupos (0-3).
+     * Codifica una palabra normalizada en una secuencia de grupos (0-3).
      */
     public String encode(String normalized) {
         StringBuilder sb = new StringBuilder();
@@ -116,70 +109,51 @@ public class BlurryInput {
     }
 
     /**
-     * Devuelve las palabras que coinciden con el codigo de entrada.
-     * Soporta coincidencia exacta y por prefijo (si len >= 3).
+     * Busca palabras que coincidan con el código de entrada.
+     * Prioriza resultados cortos (letras) para el modo "letra por letra".
      */
     public List<String> getMatchingWords(String inputCode) {
         if (inputCode == null || inputCode.isEmpty()) return new ArrayList<>();
 
-        List<String> contextRelevantExtended = new ArrayList<>();
-        List<String> otherExtended = new ArrayList<>();
-        List<String> normalMatches = new ArrayList<>();
-
-        for (String word : extendedWordList) {
-            if (isCodeMatch(wordToCodeMap.get(word), inputCode)) {
-                if (isContextRelevant(word)) {
-                    contextRelevantExtended.add(word);
-                } else {
-                    otherExtended.add(word);
-                }
-            }
-        }
-
+        List<String> matches = new ArrayList<>();
         for (String word : wordList) {
-            if (isCodeMatch(wordToCodeMap.get(word), inputCode)) {
-                normalMatches.add(word);
+            String code = wordToCodeMap.get(word);
+            // Coincidencia por prefijo desde el primer carácter para feedback inmediato
+            if (code != null && code.startsWith(inputCode)) {
+                matches.add(word);
             }
         }
 
-        List<String> result = new ArrayList<>();
-        result.addAll(contextRelevantExtended);
-        result.addAll(otherExtended);
-        result.addAll(normalMatches);
-        return result;
-    }
+        // Ordenamiento para "letra por letra":
+        // 1. Longitud (letras de 1 char primero, luego palabras cortas)
+        // 2. Relevancia de contexto
+        // 3. Alfabético
+        matches.sort((a, b) -> {
+            if (a.length() != b.length()) {
+                return a.length() - b.length();
+            }
+            
+            boolean aContext = isContextRelevant(a);
+            boolean bContext = isContextRelevant(b);
+            if (aContext != bContext) return aContext ? -1 : 1;
+            
+            return a.compareTo(b);
+        });
 
-    private boolean isCodeMatch(String wordCode, String inputCode) {
-        if (wordCode == null) return false;
-        if (wordCode.length() == inputCode.length()) {
-            return wordCode.equals(inputCode);
-        } else if (inputCode.length() >= CHARACTER_THRESHOLD && wordCode.length() > inputCode.length()) {
-            return wordCode.startsWith(inputCode);
+        // Limitar a un número razonable de predicciones
+        if (matches.size() > 60) {
+            return new ArrayList<>(matches.subList(0, 60));
         }
-        return false;
+        return matches;
     }
 
     private boolean isContextRelevant(String word) {
-        if (currentContext.isEmpty()) return false;
-        String w = word.toLowerCase();
-        return currentContext.contains(w) || w.contains(currentContext);
+        return !currentContext.isEmpty() && (currentContext.contains(word) || word.contains(currentContext));
     }
 
     /**
-     * Gestiona la paginacion de resultados.
+     * Añade un código de mirada al buffer de entrada actual.
      */
-    public List<String> getWordPage(List<String> words, int page, int wordsPerPage) {
-        if (words == null || words.isEmpty() || page < 1 || wordsPerPage <= 0) {
-            return new ArrayList<>();
-        }
-        int start = (page - 1) * wordsPerPage;
-        if (start >= words.size()) return new ArrayList<>();
-        int end = Math.min(start + wordsPerPage, words.size());
-        return new ArrayList<>(words.subList(start, end));
-    }
-
-    // --- Metodos legacy para compatibilidad con TextEntryManager ---
-
     public void addGaze(int gazeType) {
         Character code = GAZE_TO_CODE.get(gazeType);
         if (code != null) {
@@ -187,20 +161,32 @@ public class BlurryInput {
         }
     }
 
+    /**
+     * Limpia el buffer de entrada.
+     */
     public void clear() {
         internalInputCode.setLength(0);
     }
 
+    /**
+     * Borra el último código del buffer.
+     */
     public void deleteLast() {
         if (internalInputCode.length() > 0) {
             internalInputCode.setLength(internalInputCode.length() - 1);
         }
     }
 
+    /**
+     * Obtiene las predicciones actuales basadas en el buffer interno.
+     */
     public List<String> getPredictions() {
         return getMatchingWords(internalInputCode.toString());
     }
 
+    /**
+     * Devuelve una representación legible del buffer de entrada.
+     */
     public String getInputLog() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < internalInputCode.length(); i++) {
@@ -212,22 +198,32 @@ public class BlurryInput {
             else if (code == '3') range = "U-Z";
             
             if (!range.isEmpty()) {
-                sb.append("[").append(range).append("] ");
+                sb.append(range).append(" ");
             }
         }
         return sb.toString().trim();
     }
+
+    /**
+     * Gestiona la paginación de resultados (Legacy support).
+     */
+    public List<String> getWordPage(List<String> words, int page, int wordsPerPage) {
+        if (words == null || words.isEmpty() || page < 1 || wordsPerPage <= 0) {
+            return new ArrayList<>();
+        }
+        int start = (page - 1) * wordsPerPage;
+        if (start >= words.size()) return new ArrayList<>();
+        int end = Math.min(start + wordsPerPage, words.size());
+        return new ArrayList<>(words.subList(start, end));
+    }
     
-    // Metodo para facilitar pruebas sin Context
+    /**
+     * Añade una palabra personalizada al diccionario (Legacy support / Tests).
+     */
     public void addExtendedWord(String word) {
-        if (word != null && !word.isEmpty()) {
-            if (!extendedWordList.contains(word)) {
-                extendedWordList.add(word);
-                // Requirement 6: Aseguramos que el codigo este precalculado
-                wordToCodeMap.put(word, encode(normalize(word)));
-                // Requirement 4: Elimina duplicados entre wordList y extendedWordList
-                wordList.remove(word);
-            }
+        if (word != null && !word.isEmpty() && !wordList.contains(word)) {
+            wordList.add(word);
+            wordToCodeMap.put(word, encode(normalize(word)));
         }
     }
 }

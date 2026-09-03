@@ -16,6 +16,7 @@ public class AppLiveData {
     public String currentText = "";
     public String llmResponse = "";
     public java.util.List<String> predictionsList = new java.util.ArrayList<>();
+    public boolean isWordMode = false;
 
     void setDetectionOutput(DetectionOutput detectionOutput) { this.DetectionOutput = detectionOutput; }
 }

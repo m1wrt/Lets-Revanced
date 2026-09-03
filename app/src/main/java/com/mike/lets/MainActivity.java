@@ -266,22 +266,55 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         binding.mainMenuLayout.textInputDisplay.setText("Text: " + appLiveData.currentText);
                         binding.mainMenuLayout.llmDisplay.setText("LLM: " + appLiveData.llmResponse);
                         
-                        String[] statusTexts = {"NADA", "NADA", "NADA", "NADA"};
+                        String[] groups = {"ABCDEF", "GHIJKLM", "NOPQRST", "UVWXYZ"};
+                        String[] words = {"NADA", "NADA", "NADA", "NADA"};
+                        
                         if (appLiveData.predictionsList != null && !appLiveData.predictionsList.isEmpty()) {
                             for (int i = 0; i < Math.min(4, appLiveData.predictionsList.size()); i++) {
-                                statusTexts[i] = appLiveData.predictionsList.get(i);
+                                words[i] = appLiveData.predictionsList.get(i);
                             }
                         }
 
-                        binding.mainMenuLayout.statusTopLeft.setText(statusTexts[0]);
-                        binding.mainMenuLayout.statusTopRight.setText(statusTexts[1]);
-                        binding.mainMenuLayout.statusBottomLeft.setText(statusTexts[2]);
-                        binding.mainMenuLayout.statusBottomRight.setText(statusTexts[3]);
+                        if (appLiveData.isWordMode) {
+                            // Word Mode: Predictions in large text, groups in small text
+                            binding.mainMenuLayout.textTopLeft.setText(words[0]);
+                            binding.mainMenuLayout.statusTopLeft.setText(groups[0]);
+                            
+                            binding.mainMenuLayout.textTopRight.setText(words[1]);
+                            binding.mainMenuLayout.statusTopRight.setText(groups[1]);
+                            
+                            binding.mainMenuLayout.textBottomLeft.setText(words[2]);
+                            binding.mainMenuLayout.statusBottomLeft.setText(groups[2]);
+                            
+                            binding.mainMenuLayout.textBottomRight.setText(words[3]);
+                            binding.mainMenuLayout.statusBottomRight.setText(groups[3]);
+                            
+                            binding.mainMenuLayout.btnBorrar.setText("COMPLETO");
+                        } else {
+                            // Letter Mode: Groups in large text, predictions in small text
+                            binding.mainMenuLayout.textTopLeft.setText(groups[0]);
+                            binding.mainMenuLayout.statusTopLeft.setText(words[0]);
+                            
+                            binding.mainMenuLayout.textTopRight.setText(groups[1]);
+                            binding.mainMenuLayout.statusTopRight.setText(words[1]);
+                            
+                            binding.mainMenuLayout.textBottomLeft.setText(groups[2]);
+                            binding.mainMenuLayout.statusBottomLeft.setText(words[2]);
+                            
+                            binding.mainMenuLayout.textBottomRight.setText(groups[3]);
+                            binding.mainMenuLayout.statusBottomRight.setText(words[3]);
+                            
+                            binding.mainMenuLayout.btnBorrar.setText("BORRAR");
+                        }
 
-                        if (gazeType == 6) binding.mainMenuLayout.statusTopLeft.setText(statusTexts[0] + " (ACTIVO)");
-                        else if (gazeType == 7) binding.mainMenuLayout.statusTopRight.setText(statusTexts[1] + " (ACTIVO)");
-                        else if (gazeType == 1) binding.mainMenuLayout.statusBottomLeft.setText(statusTexts[2] + " (ACTIVO)");
-                        else if (gazeType == 2) binding.mainMenuLayout.statusBottomRight.setText(statusTexts[3] + " (ACTIVO)");
+                        // Highlight active panel
+                        binding.mainMenuLayout.panelTopLeft.setBackgroundResource(gazeType == 6 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        binding.mainMenuLayout.panelTopRight.setBackgroundResource(gazeType == 7 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        binding.mainMenuLayout.panelBottomLeft.setBackgroundResource(gazeType == 1 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        binding.mainMenuLayout.panelBottomRight.setBackgroundResource(gazeType == 2 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        
+                        binding.mainMenuLayout.btnCambiar.setBackgroundResource(gazeType == 5 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        binding.mainMenuLayout.btnBorrar.setBackgroundResource(gazeType == 3 ? R.drawable.llm_area_background : R.drawable.panel_background);
                     }
                 }
 
