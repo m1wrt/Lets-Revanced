@@ -96,34 +96,29 @@ public class Model implements ContractInterface.Model {
         return gaze.GazeType == 2 || gaze.GazeType == 7;
     }
 
+    private static final int DWELL_THRESHOLD = 6; // Frames to confirm the first selection
+    private static final int REPEAT_INTERVAL = 18; // Frames between repeated selections if gaze is held
+
     @Override
     public void analyzeGazeOutput() {
-        // Combina los resultados de ambos ojos y decide cuÃƒÂ¡l es la mirada final.
-        // Si ambos ojos no estÃƒÂ¡n disponibles, se devuelve el dato disponible mÃƒÂ¡s confiable.
-        if (!detectionOutput.LeftData.Success && !detectionOutput.RightData.Success) { // ambos ojos no detectados
+        // Combina los resultados de ambos ojos y decide cuál es la mirada final.
+        if (!detectionOutput.LeftData.Success && !detectionOutput.RightData.Success) {
             detectionOutput.AnalyzedData = detectionOutput.LeftData;
-
-        } else if (detectionOutput.LeftData.Success && !detectionOutput.RightData.Success) { // only left eye available
+        } else if (detectionOutput.LeftData.Success && !detectionOutput.RightData.Success) {
             detectionOutput.AnalyzedData = detectionOutput.LeftData;
-
-        } else if (!detectionOutput.LeftData.Success) { // only right eye available
+        } else if (!detectionOutput.LeftData.Success) {
             detectionOutput.AnalyzedData = detectionOutput.RightData;
-
-        } else { // if both eyes are successful, add the two loss and take the lowest
-
+        } else {
             GazeData leftGazeData = detectionOutput.LeftData;
             GazeData rightGazeData = detectionOutput.RightData;
 
-            if (leftGazeData.GazeType == 5 && rightGazeData.GazeType == 5) { // eyes closed
+            if (leftGazeData.GazeType == 5 && rightGazeData.GazeType == 5) {
                 detectionOutput.AnalyzedData = rightGazeData;
-
-            } else if (gazingLeft(leftGazeData) && gazingLeft(rightGazeData)) { // eyes looking left, take left eye
+            } else if (gazingLeft(leftGazeData) && gazingLeft(rightGazeData)) {
                 detectionOutput.AnalyzedData = leftGazeData;
-
-            } else if (gazingRight(leftGazeData) && gazingRight(rightGazeData)) { // eyes looking right, take right eye
+            } else if (gazingRight(leftGazeData) && gazingRight(rightGazeData)) {
                 detectionOutput.AnalyzedData = rightGazeData;
-
-            } else { // combine the two losses
+            } else {
                 int index = -1;
                 double minError = 1000000f;
                 for (int i = 0; i < userDataManager.calibrationTemplateNum; i++) {
@@ -133,32 +128,44 @@ public class Model implements ContractInterface.Model {
                         minError = error;
                     }
                 }
-                boolean success = minError <= 0;
+                // Sensitivity threshold for combined MSE
+                boolean success = minError <= (detector.sensitivity * 2.5); 
                 detectionOutput.setEyeData(2, success, tags[index], 1, (float)minError);
             }
-
         }
 
         detectionOutput.gestureOutput = 0;
-        if (detectionOutput.AnalyzedData.Success) { // add the analyzed data into queue
+        if (detectionOutput.AnalyzedData.Success) {
             int type = detectionOutput.AnalyzedData.GazeType;
-            if (type == currentGaze) {
-                length += 1;
-                if (length == 3) { // detected
-                    String gazeType = detectionOutput.AnalyzedData.getTypeString(currentGaze);
-                    if (prevInputs.size() > 25) {
-                        prevInputs.clear();
+            if (type != 0) { // Active gaze (not straight)
+                if (type == currentGaze) {
+                    length += 1;
+                    // Trigger on dwell threshold OR on repeat intervals
+                    boolean isFirstTrigger = (length == DWELL_THRESHOLD);
+                    boolean isRepeatTrigger = (length > DWELL_THRESHOLD && (length - DWELL_THRESHOLD) % REPEAT_INTERVAL == 0);
+
+                    if (isFirstTrigger || isRepeatTrigger) {
+                        String gazeTypeStr = detectionOutput.AnalyzedData.getTypeString(currentGaze);
+                        if (prevInputs.size() > 25) {
+                            prevInputs.clear();
+                        }
+                        prevInputs.add(gazeTypeStr);
+                        detectionOutput.prevInputs = prevInputs;
+                        detectionOutput.gestureOutput = type;
+                        Log.d("Model", "Gaze Selection Triggered: " + type + " (" + gazeTypeStr + ") at length " + length);
                     }
-                    if (!Objects.equals(gazeType, "Straight")) {
-                        prevInputs.add(gazeType);
-                    }
-                    detectionOutput.prevInputs = prevInputs;
-                    detectionOutput.gestureOutput = type;
+                } else {
+                    currentGaze = type;
+                    length = 0;
                 }
             } else {
-                currentGaze = type;
+                // Straight gaze resets everything for responsiveness
+                currentGaze = 0;
                 length = 0;
             }
+        } else {
+            // Reset if confidence is low
+            length = 0;
         }
     }
 

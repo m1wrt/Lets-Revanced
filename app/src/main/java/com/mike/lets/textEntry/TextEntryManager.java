@@ -104,14 +104,15 @@ public class TextEntryManager {
             currentSentence += word + " "; // Space for full words
         }
         blurryInput.clear();
-        currentPredictions.clear();
+        currentPredictions = blurryInput.getPredictions(); // Refresh predictions after clearing input
+        predictionPage = 0;
         wordIndex = -1;
         letterModeUI = true;
         wordModeUI = false;
     }
 
     public String getCurrentText() {
-        return currentSentence + (letterModeUI ? blurryInput.getInputLog() : "");
+        return currentSentence + (letterModeUI ? " " + blurryInput.getInputLog() : "");
     }
     
     public List<String> getPredictions() {
