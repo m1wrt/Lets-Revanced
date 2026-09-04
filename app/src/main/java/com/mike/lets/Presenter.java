@@ -195,21 +195,8 @@ public class Presenter implements ContractInterface.Presenter {
             appliveData.currentText = textEntryManager.getCurrentText();
             List<String> predictions = textEntryManager.getPredictions();
             appliveData.isWordMode = textEntryManager.wordModeUI;
-            
-            if (textEntryManager.wordModeUI) {
-                // Only send the current page of 4 words
-                int wordsInPage = 4;
-                int start = textEntryManager.predictionPage * wordsInPage;
-                List<String> pagePredictions = new java.util.ArrayList<>();
-                for (int i = 0; i < wordsInPage; i++) {
-                    if (start + i < predictions.size()) {
-                        pagePredictions.add(predictions.get(start + i));
-                    }
-                }
-                appliveData.predictionsList = pagePredictions;
-            } else {
-                appliveData.predictionsList = predictions;
-            }
+            appliveData.predictionPage = textEntryManager.predictionPage;
+            appliveData.predictionsList = predictions;
 
             if (!predictions.isEmpty()) {
                 StringBuilder sb = new StringBuilder("Predictions: ");

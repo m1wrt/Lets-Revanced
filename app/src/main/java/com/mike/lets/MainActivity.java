@@ -268,10 +268,48 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         
                         String[] groups = {"ABCDEF", "GHIJKLM", "NOPQRST", "UVWXYZ"};
                         String[] words = {"NADA", "NADA", "NADA", "NADA"};
+                        String brStatus = groups[3];
                         
                         if (appLiveData.predictionsList != null && !appLiveData.predictionsList.isEmpty()) {
-                            for (int i = 0; i < Math.min(4, appLiveData.predictionsList.size()); i++) {
-                                words[i] = appLiveData.predictionsList.get(i);
+                            // En modo palabras, usamos 3 por página para dejar BR para "MÁS"
+                            int pageSize = appLiveData.isWordMode ? 3 : 4;
+                            int start = appLiveData.predictionPage * pageSize;
+                            
+                            for (int i = 0; i < pageSize; i++) {
+                                if (start + i < appLiveData.predictionsList.size()) {
+                                    words[i] = appLiveData.predictionsList.get(start + i);
+                                }
+                            }
+                            
+                            if (appLiveData.isWordMode) {
+                                int nextStart = start + 3;
+                                if (nextStart < appLiveData.predictionsList.size()) {
+                                    words[3] = "MAS PALABRAS";
+                                    StringBuilder sb = new StringBuilder();
+                                    for (int i = 0; i < 3; i++) {
+                                        if (nextStart + i < appLiveData.predictionsList.size()) {
+                                            sb.append(appLiveData.predictionsList.get(nextStart + i)).append(" ");
+                                        }
+                                    }
+                                    if (nextStart + 3 < appLiveData.predictionsList.size()) sb.append("...");
+                                    brStatus = sb.toString().trim();
+                                } else {
+                                    words[3] = "VOLVER A LETRAS";
+                                    brStatus = "FIN DE LISTA";
+                                }
+                            } else {
+                                // En modo letras, mostrar adelanto si hay más
+                                int nextStart = start + 4;
+                                if (nextStart < appLiveData.predictionsList.size()) {
+                                    StringBuilder sb = new StringBuilder();
+                                    for (int i = 0; i < 3; i++) {
+                                        if (nextStart + i < appLiveData.predictionsList.size()) {
+                                            sb.append(appLiveData.predictionsList.get(nextStart + i)).append(" ");
+                                        }
+                                    }
+                                    if (nextStart + 3 < appLiveData.predictionsList.size()) sb.append("...");
+                                    brStatus = sb.toString().trim();
+                                }
                             }
                         }
 
@@ -287,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                             binding.mainMenuLayout.statusBottomLeft.setText(groups[2]);
                             
                             binding.mainMenuLayout.textBottomRight.setText(words[3]);
-                            binding.mainMenuLayout.statusBottomRight.setText(groups[3]);
+                            binding.mainMenuLayout.statusBottomRight.setText(brStatus);
                             
                             binding.mainMenuLayout.btnBorrar.setText("COMPLETO");
                         } else {
@@ -301,8 +339,14 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                             binding.mainMenuLayout.textBottomLeft.setText(groups[2]);
                             binding.mainMenuLayout.statusBottomLeft.setText(words[2]);
                             
-                            binding.mainMenuLayout.textBottomRight.setText(groups[3]);
-                            binding.mainMenuLayout.statusBottomRight.setText(words[3]);
+                            // Si hay predicciones, permitir que BR sea dinámico tmb
+                            if (appLiveData.predictionsList != null && !appLiveData.predictionsList.isEmpty()) {
+                                binding.mainMenuLayout.textBottomRight.setText(groups[3]);
+                                binding.mainMenuLayout.statusBottomRight.setText(brStatus);
+                            } else {
+                                binding.mainMenuLayout.textBottomRight.setText(groups[3]);
+                                binding.mainMenuLayout.statusBottomRight.setText("NADA");
+                            }
                             
                             binding.mainMenuLayout.btnBorrar.setText("BORRAR");
                         }

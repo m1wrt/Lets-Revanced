@@ -30,9 +30,17 @@ public class TextEntryManager {
 
     private void handleLetterMode(int gazeType) {
         // 6, 7, 1, 2 are letter groups
-        if (gazeType == 6 || gazeType == 7 || gazeType == 1 || gazeType == 2) {
+        if (gazeType == 6 || gazeType == 7 || gazeType == 1) {
             blurryInput.addGaze(gazeType);
             updatePredictions();
+        } else if (gazeType == 2) { // BR -> MÁS PALABRAS (in letter mode too)
+            int wordsInPage = 4;
+            int nextStart = (predictionPage + 1) * wordsInPage;
+            if (nextStart < currentPredictions.size()) {
+                predictionPage++;
+            } else {
+                predictionPage = 0; // Cycle back
+            }
         } else if (gazeType == 5) { // Closed -> CAMBIAR a Word Mode
             if (!currentPredictions.isEmpty()) {
                 letterModeUI = false;
@@ -52,24 +60,28 @@ public class TextEntryManager {
             return;
         }
 
-        int wordsInPage = 4;
+        int wordsInPage = 3; // Now using 3 words per page to leave BR for "More Words"
         int startIdx = predictionPage * wordsInPage;
 
-        if (gazeType == 5) { // Closed -> CAMBIAR (Girar / Siguiente página)
-            predictionPage++;
-            if (predictionPage * wordsInPage >= currentPredictions.size()) {
+        if (gazeType == 5 || gazeType == 2) { // Closed (CAMBIAR) or BR (MAS PALABRAS)
+            int nextStart = (predictionPage + 1) * wordsInPage;
+            if (nextStart >= currentPredictions.size()) {
+                // If we reach the end, return to letter mode
+                letterModeUI = true;
+                wordModeUI = false;
                 predictionPage = 0;
+            } else {
+                predictionPage++;
             }
         } else if (gazeType == 3) { // Up -> COMPLETO / Volver a letras
             letterModeUI = true;
             wordModeUI = false;
         } else {
-            // Corner selection: 6(TL), 7(TR), 1(BL), 2(BR)
+            // Corner selection: 6(TL), 7(TR), 1(BL)
             int selectedOffset = -1;
             if (gazeType == 6) selectedOffset = 0;
             else if (gazeType == 7) selectedOffset = 1;
             else if (gazeType == 1) selectedOffset = 2;
-            else if (gazeType == 2) selectedOffset = 3;
 
             if (selectedOffset != -1) {
                 int finalIdx = startIdx + selectedOffset;
