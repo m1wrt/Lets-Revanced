@@ -1,0 +1,45 @@
+# ==========================================
+# CATEGORÍA: Comida, Bebida y Necesidades Básicas
+# ==========================================
+{"input": "hambre, pasta, queso", "output": "Tengo hambre, quiero pasta."}
+{"input": "hambre, sopa", "output": "Tengo hambre, quiero sopa."}
+{"input": "hambre, macarrones, carne", "output": "Tengo hambre, quiero macarrones con carne."}
+{"input": "sed, agua, frío", "output": "Tengo sed, quiero agua fría."}
+{"input": "sueño, cama", "output": "Tengo sueño, quiero ir a la cama."}
+{"input": "comprar, manzana", "output": "Necesito comprar una manzana."}
+
+# ==========================================
+# CATEGORÍA: Mascotas y Vida Hogareña
+# ==========================================
+{"input": "perro, hambre", "output": "el perro tiene hambre."}
+{"input": "perro, parque, jugar", "output": "El perro quiere ir al parque a jugar"}
+{"input": "gato, casa, dormir", "output": "El gato esta durmiendo en su casa"}
+{"input": "música, escuchar, casa", "output": "Quiero escuchar música en casa."}
+{"input": "musica cambiar", "output": "quiero cambiar la música."} 
+{"input": "libro, leer, libro", "output": "Quiero leer un libro."}
+/*
+# ==========================================
+# CATEGORÍA: Trabajo, Estudios y Rutina
+# ==========================================
+{"input": "trabajo, dinero, necesitar", "output": "Necesito trabajar bastante este mes para juntar algo de dinero."}
+{"input": "problema, oficina, ayuda", "output": "Tengo un problema en la oficina y voy a pedir ayuda."}
+{"input": "carta, escribir, mensaje", "output": "Estoy escribiendo una carta para responder a su mensaje."}
+{"input": "puerta, abrir, llave", "output": "No puedo abrir la puerta porque olvidé mi llave adentro."}
+{"input": "coche, rápido, manejar", "output": "No me gusta manejar el coche demasiado rápido por la calle."}
+
+# ==========================================
+# CATEGORÍA: Salud y Sensaciones Corporales
+# ==========================================
+{"input": "frío, chaqueta, salir", "output": "Tengo mucho frío, me pondré una chaqueta antes de salir."}
+{"input": "calor, sol, playa", "output": "Siento mucho calor, me dan ganas de irme a la playa a nadar."}
+{"input": "dolor, cabeza, médico", "output": "Siento un fuerte dolor de cabeza, así que iré a ver al médico."}
+{"input": "cansado, descansar, fin de semana", "output": "Estoy muy cansado, solo quiero descansar este fin de semana."}
+
+# ==========================================
+# CATEGORÍA: Planes, Viajes y Social
+# ==========================================
+{"input": "película, ver, amigos", "output": "Quedé con mis amigos para ver una película en la noche."}
+{"input": "tiempo, viaje, ciudad", "output": "Llevo tiempo planeando un viaje a una nueva ciudad."}
+{"input": "fiesta, noche, bailar", "output": "Esta noche iré a una fiesta y voy a bailar mucho."}
+{"input": "nosotros, comida, preparar", "output": "Nosotros vamos a preparar la cena para toda la familia."}
+{"input": "nosotros, parque, caminar", "output": "A nosotros nos gusta salir a caminar por el parque por las tardes."}*/

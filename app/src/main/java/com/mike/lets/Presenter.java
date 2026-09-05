@@ -36,6 +36,7 @@ public class Presenter implements ContractInterface.Presenter {
     private final TextEntryManager textEntryManager = new TextEntryManager();
     AppLiveData appliveData = new AppLiveData();
     ToneGenerator toneGenerator;
+    private int lastGazeType = 0; // Para evitar repeticiones por frame
     // instantiating the objects of View and Model Interface
     public Presenter(ContractInterface.View mainView, ContractInterface.Model model) {
         this.mainView = mainView;
@@ -160,6 +161,16 @@ public class Presenter implements ContractInterface.Presenter {
     }
 
     @Override
+    public void updateContext(String context) {
+        textEntryManager.setConversationContext(context);
+    }
+
+    @Override
+    public void setLlmPrediction(String prediction) {
+        textEntryManager.setLlmPrediction(prediction);
+    }
+
+    @Override
     public void onDestroy() {
 
     }
@@ -176,14 +187,17 @@ public class Presenter implements ContractInterface.Presenter {
 
         if (detectionOutput != null && detectionOutput.AnalyzedData != null) { // when the input is valid
             int gazeType = detectionOutput.gestureOutput;
-            if (gazeType != 0) { // gaze input is meaningful
-                Log.d("IrisDetection", "Gesture Output: " + gazeType);
+            
+            // Solo procesar si la mirada ha cambiado desde el último frame (evita spam)
+            if (gazeType != 0 && gazeType != lastGazeType) { 
+                Log.d("IrisDetection", "Gesture Output (New): " + gazeType);
                 toneGenerator.startTone(ToneGenerator.TONE_CDMA_PIP, 150);
                 
                 if (Objects.equals(mode, "Menu")) {
                     textEntryManager.manageUserInput(gazeType, true);
                 }
             }
+            lastGazeType = gazeType;
         }
 
         // setting the app live data for the fragment displays
@@ -198,12 +212,23 @@ public class Presenter implements ContractInterface.Presenter {
             appliveData.predictionPage = textEntryManager.predictionPage;
             appliveData.predictionsList = predictions;
 
-            if (!predictions.isEmpty()) {
-                StringBuilder sb = new StringBuilder("Predictions: ");
-                for (int i = 0; i < Math.min(predictions.size(), 10); i++) {
-                    sb.append(predictions.get(i)).append(" ");
+            if (textEntryManager.justSelectedWord) {
+                mainView.clearContext();
+                textEntryManager.justSelectedWord = false;
+            }
+
+            String llmResponse = textEntryManager.getLlmPrediction();
+            if (llmResponse != null && !llmResponse.isEmpty()) {
+                appliveData.llmResponse = llmResponse;
+            } else if (!predictions.isEmpty()) {
+                // Fallback to dictionary predictions if LLM is empty
+                int pageSize = appliveData.isWordMode ? 3 : 4;
+                int start = appliveData.predictionPage * pageSize;
+                StringBuilder sb = new StringBuilder("Next: ");
+                for (int i = 0; i < Math.min(predictions.size() - start, 5); i++) {
+                    sb.append(predictions.get(start + i)).append(" ");
                 }
-                appliveData.llmResponse = sb.toString();
+                appliveData.llmResponse = sb.toString().trim();
             } else {
                 appliveData.llmResponse = "";
             }

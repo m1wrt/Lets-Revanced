@@ -21,6 +21,7 @@ public interface ContractInterface {
         void updateLiveData(AppLiveData appLiveData);
         void openSettings();
         void openCalibration();
+        void clearContext();
     }
 
     interface Model {
@@ -39,5 +40,7 @@ public interface ContractInterface {
         void setMode(String value); // cambia el modo: texto, cÃ¡mara, social, etc.
         String getMode();
         void onGazeButtonClicked(int input); // acciÃ³n cuando el usuario pulsa una opciÃ³n de mirada
+        void updateContext(String context);
+        void setLlmPrediction(String prediction);
     }
 }

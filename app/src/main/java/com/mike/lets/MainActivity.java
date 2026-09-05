@@ -49,6 +49,16 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     private ContractInterface.Presenter presenter;
     private ExecutorService cameraExecutor;
 
+    private final android.content.BroadcastReceiver textGenerationReceiver = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context context, android.content.Intent intent) {
+            String message = intent.getStringExtra("message");
+            if (presenter != null) {
+                presenter.setLlmPrediction(message);
+            }
+        }
+    };
+
     private static final String[] REQUIRED_PERMISSIONS = new String[]{Manifest.permission.CAMERA};
     private static final int REQUEST_CODE_PERMISSIONS = 10;
 
@@ -95,6 +105,17 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.mainMenuLayout.btnCambiar.setOnClickListener(v -> presenter.onGazeButtonClicked(5));
         binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(3));
         
+        binding.mainMenuLayout.editContext.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                presenter.updateContext(s.toString());
+            }
+        });
+
         binding.mainMenuLayout.topBarLayout.btnAjustes.setOnClickListener(v -> presenter.setMode("Settings"));
         binding.mainMenuLayout.topBarLayout.btnCalibracion.setOnClickListener(v -> openCalibration());
         binding.mainMenuLayout.topBarLayout.btnHome.setOnClickListener(v -> {
@@ -104,6 +125,9 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
         // Start calibration automatically
         openCalibration();
+        
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this)
+                .registerReceiver(textGenerationReceiver, new android.content.IntentFilter("textGenerationEvent"));
     }
 
     private void startCamera() {
@@ -211,6 +235,8 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(textGenerationReceiver);
         cameraExecutor.shutdown();
         presenter.onDestroy();
     }
@@ -403,6 +429,11 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             binding.calibrationLayout.getRoot().setVisibility(View.VISIBLE);
             presenter.setMode("Calibration");
         });
+    }
+
+    @Override
+    public void clearContext() {
+        runOnUiThread(() -> binding.mainMenuLayout.editContext.setText(""));
     }
 
     public native String stringFromJNI();

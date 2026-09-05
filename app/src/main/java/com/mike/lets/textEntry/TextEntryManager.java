@@ -1,21 +1,33 @@
 package com.mike.lets.textEntry;
 
 import android.util.Log;
+import com.mike.lets.UserDataManager;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TextEntryManager {
     private final BlurryInput blurryInput = new BlurryInput();
+    private final com.mike.lets.AI.GeminiManager geminiManager = new com.mike.lets.AI.GeminiManager();
     private String currentSentence = "";
+    private String conversationContext = "";
+    private String lastLlmInput = "";
     private List<String> currentPredictions = new ArrayList<>();
-    
+    private String llmPrediction = "";
+    public boolean justSelectedWord = false;
+
     public boolean letterModeUI = true;
     public boolean wordModeUI = false;
     public int wordIndex = -1;
     public int predictionPage = 0;
 
     public void initialize(android.content.Context context, String contextText) {
+        this.conversationContext = contextText != null ? contextText : "";
         blurryInput.initialize(context, contextText);
+        geminiManager.init(context);
+    }
+
+    public void setConversationContext(String context) {
+        this.conversationContext = context != null ? context : "";
     }
 
     public void manageUserInput(int gazeType, boolean isLive) {
@@ -30,25 +42,33 @@ public class TextEntryManager {
 
     private void handleLetterMode(int gazeType) {
         // 6, 7, 1, 2 are letter groups
-        if (gazeType == 6 || gazeType == 7 || gazeType == 1) {
+        if (gazeType == 6 || gazeType == 7 || gazeType == 1 || gazeType == 2) {
             blurryInput.addGaze(gazeType);
             updatePredictions();
-        } else if (gazeType == 2) { // BR -> MÁS PALABRAS (in letter mode too)
-            int wordsInPage = 4;
-            int nextStart = (predictionPage + 1) * wordsInPage;
-            if (nextStart < currentPredictions.size()) {
-                predictionPage++;
-            } else {
-                predictionPage = 0; // Cycle back
+            
+            // Paging for group UVWXYZ (2)
+            if (gazeType == 2 && currentPredictions.size() > 4) {
+                int wordsInPage = 4;
+                int nextStart = (predictionPage + 1) * wordsInPage;
+                if (nextStart < currentPredictions.size()) {
+                    predictionPage++;
+                } else {
+                    predictionPage = 0;
+                }
             }
         } else if (gazeType == 5) { // Closed -> CAMBIAR a Word Mode
             if (!currentPredictions.isEmpty()) {
                 letterModeUI = false;
                 wordModeUI = true;
                 predictionPage = 0;
+                // YA NO LLAMAMOS A triggerLLM() AQUÍ porque solo queremos procesar palabras reales
             }
         } else if (gazeType == 3) { // Up -> Borrar
-            blurryInput.deleteLast();
+            if (blurryInput.isEmpty()) {
+                deleteLastWordFromSentence();
+            } else {
+                blurryInput.deleteLast();
+            }
             updatePredictions();
         }
     }
@@ -60,13 +80,12 @@ public class TextEntryManager {
             return;
         }
 
-        int wordsInPage = 3; // Now using 3 words per page to leave BR for "More Words"
+        int wordsInPage = 3; 
         int startIdx = predictionPage * wordsInPage;
 
         if (gazeType == 5 || gazeType == 2) { // Closed (CAMBIAR) or BR (MAS PALABRAS)
             int nextStart = (predictionPage + 1) * wordsInPage;
             if (nextStart >= currentPredictions.size()) {
-                // If we reach the end, return to letter mode
                 letterModeUI = true;
                 wordModeUI = false;
                 predictionPage = 0;
@@ -99,20 +118,70 @@ public class TextEntryManager {
 
     private void selectWord(String word) {
         if (word.length() == 1) {
-            currentSentence += word; // No space for single letters (spelling mode)
+            currentSentence += word;
         } else {
-            currentSentence += word + " "; // Space for full words
+            currentSentence += word + " ";
         }
         blurryInput.clear();
-        currentPredictions = blurryInput.getPredictions(); // Refresh predictions after clearing input
+        currentPredictions = blurryInput.getPredictions();
         predictionPage = 0;
         wordIndex = -1;
         letterModeUI = true;
         wordModeUI = false;
+        
+        this.conversationContext = ""; // Limpiar contexto por cada palabra confirmada
+        this.justSelectedWord = true;
+        triggerLLM(); // Consulta al LLM al confirmar palabra
+    }
+
+    private void deleteLastWordFromSentence() {
+        if (currentSentence.isEmpty()) return;
+        currentSentence = currentSentence.trim();
+        int lastSpace = currentSentence.lastIndexOf(" ");
+        if (lastSpace == -1) {
+            currentSentence = "";
+        } else {
+            currentSentence = currentSentence.substring(0, lastSpace + 1);
+        }
+        triggerLLM();
+    }
+
+    private void triggerLLM() {
+        // Solo procesamos palabras reales (currentSentence), ignoramos los rangos de letras [A-F...]
+        String llmKeywords = currentSentence.trim();
+
+        // If input hasn't changed, don't spam
+        String fullInput = conversationContext + "|" + llmKeywords;
+        if (fullInput.equals(lastLlmInput)) return;
+        lastLlmInput = fullInput;
+        
+        if (llmKeywords.isEmpty()) {
+            llmPrediction = "";
+            return;
+        }
+
+        // Get language and model from UserDataManager
+        UserDataManager userDataManager = (UserDataManager) blurryInput.getContext().getApplicationContext();
+        String lang = userDataManager.getLanguage();
+        String model = "gemma-4-E2B-it.litertlm"; 
+
+        geminiManager.generate(llmKeywords, conversationContext, lang, model);
+    }
+
+    public void setLlmPrediction(String prediction) {
+        if (prediction != null && prediction.startsWith("SP-")) {
+            this.llmPrediction = prediction.substring(3);
+        } else {
+            this.llmPrediction = prediction;
+        }
     }
 
     public String getCurrentText() {
         return currentSentence + (letterModeUI ? " " + blurryInput.getInputLog() : "");
+    }
+    
+    public String getLlmPrediction() {
+        return llmPrediction;
     }
     
     public List<String> getPredictions() {

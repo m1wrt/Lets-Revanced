@@ -57,10 +57,17 @@ dependencies {
     // OpenCV
     implementation(libs.opencv.android)
 
+    // Networking
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+
     // DataStore + RxJava
     implementation(libs.datastore.preferences.rxjava2)
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
+
+    // LLM Integration
+    implementation(libs.localbroadcastmanager)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)

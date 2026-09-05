@@ -33,11 +33,13 @@ public class BlurryInput {
     private final Map<String, String> wordToCodeMap = new HashMap<>();
     private final StringBuilder internalInputCode = new StringBuilder();
     private String currentContext = "";
+    private Context context;
 
     /**
      * Inicializa el sistema, carga el diccionario y asegura que las letras individuales estén presentes.
      */
     public void initialize(Context context, String contextText) {
+        this.context = context;
         this.currentContext = contextText != null ? contextText.toLowerCase() : "";
         wordList.clear();
         wordToCodeMap.clear();
@@ -175,6 +177,17 @@ public class BlurryInput {
         if (internalInputCode.length() > 0) {
             internalInputCode.setLength(internalInputCode.length() - 1);
         }
+    }
+
+    /**
+     * Verifica si el buffer de entrada está vacío.
+     */
+    public boolean isEmpty() {
+        return internalInputCode.length() == 0;
+    }
+
+    public Context getContext() {
+        return context;
     }
 
     /**
