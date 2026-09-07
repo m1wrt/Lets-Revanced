@@ -7,7 +7,7 @@ import java.util.List;
 
 public class TextEntryManager {
     private final BlurryInput blurryInput = new BlurryInput();
-    private final com.mike.lets.AI.GeminiManager geminiManager = new com.mike.lets.AI.GeminiManager();
+    private final LLMClient llmClient = new LLMClient();
     private String currentSentence = "";
     private String conversationContext = "";
     private String lastLlmInput = "";
@@ -23,11 +23,12 @@ public class TextEntryManager {
     public void initialize(android.content.Context context, String contextText) {
         this.conversationContext = contextText != null ? contextText : "";
         blurryInput.initialize(context, contextText);
-        geminiManager.init(context);
     }
 
     public void setConversationContext(String context) {
         this.conversationContext = context != null ? context : "";
+        // También inicializamos BlurryInput con el nuevo contexto para el filtrado de palabras
+        blurryInput.initialize(blurryInput.getContext(), this.conversationContext);
     }
 
     public void manageUserInput(int gazeType, boolean isLive) {
@@ -130,7 +131,9 @@ public class TextEntryManager {
         wordModeUI = false;
         
         this.conversationContext = ""; // Limpiar contexto por cada palabra confirmada
+        blurryInput.initialize(blurryInput.getContext(), ""); // Limpiar también el contexto del buscador de palabras
         this.justSelectedWord = true;
+        this.llmPrediction = ""; // Limpiar la predicción anterior para no mezclar
         triggerLLM(); // Consulta al LLM al confirmar palabra
     }
 
@@ -143,6 +146,7 @@ public class TextEntryManager {
         } else {
             currentSentence = currentSentence.substring(0, lastSpace + 1);
         }
+        this.llmPrediction = "";
         triggerLLM();
     }
 
@@ -160,12 +164,17 @@ public class TextEntryManager {
             return;
         }
 
-        // Get language and model from UserDataManager
-        UserDataManager userDataManager = (UserDataManager) blurryInput.getContext().getApplicationContext();
-        String lang = userDataManager.getLanguage();
-        String model = "gemma-4-E2B-it.litertlm"; 
+        llmClient.getCompletion(conversationContext, llmKeywords, new LLMClient.LLMCallback() {
+            @Override
+            public void onSuccess(String prediction) {
+                setLlmPrediction(prediction);
+            }
 
-        geminiManager.generate(llmKeywords, conversationContext, lang, model);
+            @Override
+            public void onError(String error) {
+                setLlmPrediction("Error: " + error);
+            }
+        });
     }
 
     public void setLlmPrediction(String prediction) {

@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 public class LLMClient {
     private static final String TAG = "LLMClient";
-    private static final String SERVER_URL = "http://192.168.1.13:9379/v1/chat/completions";
-    private static final String MODEL_NAME = "gemma-4-E2B-it.litertlm";
+    private static final String SERVER_URL = "http://192.168.1.13:11434/v1/chat/completions";
+    private static final String MODEL_NAME = "sent";
     
     private final OkHttpClient client;
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -57,30 +57,30 @@ public class LLMClient {
                     "5. Responde ÚNICAMENTE con la oración final.");
             messages.put(systemMsg);
 
-            // Improved Few-shot prompting for natural Spanish synthesis
+            // Simplified Prompt to match the Modelfile template: "Crea una oración con: {{ .Prompt }}"
             JSONObject userMsg = new JSONObject();
             userMsg.put("role", "user");
-            String prompt = "Instrucción: Convierte estas palabras clave en una oración gramatical.\n\n" +
-                    "Keywords: pollo, Context: Qué quieres cenar\n" +
-                    "Resultado: Quiero pollo para cenar.\n\n" +
-                    "Keywords: hola dame, Context: Conversación general\n" +
-                    "Resultado: Hola, dame eso por favor.\n\n" +
-                    "Keywords: quiero pasta queso, Context: Pidiendo comida\n" +
-                    "Resultado: Quiero pasta con queso.\n\n" +
-                    "Ahora genera el resultado para esta entrada:\n" +
-                    "Keywords: " + (keywords.isEmpty() ? "---" : keywords) + "\n" +
-                    "Context: " + (contextText.isEmpty() ? "Conversación general" : contextText) + "\n" +
-                    "Resultado:";
-            userMsg.put("content", prompt);
+            
+            String userContent = "Keywords: " + (keywords.isEmpty() ? "---" : keywords);
+            if (!contextText.isEmpty()) {
+                userContent += ", Context: " + contextText;
+            }
+            userMsg.put("content", userContent);
             messages.put(userMsg);
 
             json.put("messages", messages);
-            json.put("max_tokens", 80);
-            json.put("temperature", 0.3); // Lower temperature for more stability
+            json.put("max_tokens", 40); // Matching num_predict from Modelfile
+            json.put("temperature", 0.3);
             json.put("top_p", 0.9);
             
-            // Avoid repeating the prompt or being too chatty
-            json.put("stop", new JSONArray().put("\n").put("Entrada:"));
+            // Critical: Add "model" and other control tokens to stop array
+            JSONArray stopTokens = new JSONArray();
+            stopTokens.put("\n");
+            stopTokens.put("model");
+            stopTokens.put("<start_of_turn>");
+            stopTokens.put("<end_of_turn>");
+            stopTokens.put("Resultado:");
+            json.put("stop", stopTokens);
 
             String jsonString = json.toString();
             Log.d(TAG, "Request Body: " + jsonString);
