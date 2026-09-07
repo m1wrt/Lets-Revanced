@@ -1,0 +1,12 @@
+FROM C:\Users\mikel\Downloads/gemma-3-1b-oraciones.Q4_K_M.gguf
+TEMPLATE """<start_of_turn>user
+Crea una oración con: {{ .Prompt }}.<end_of_turn>
+<start_of_turn>model
+"""
+
+PARAMETER stop "<end_of_turn>"
+PARAMETER stop "<eos>"
+PARAMETER stop "<start_of_turn>"
+PARAMETER stop "model"
+PARAMETER num_predict 40
+PARAMETER temperature 0.3
