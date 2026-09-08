@@ -104,6 +104,11 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.mainMenuLayout.panelBottomRight.setOnClickListener(v -> presenter.onGazeButtonClicked(2));
         binding.mainMenuLayout.btnCambiar.setOnClickListener(v -> presenter.onGazeButtonClicked(5));
         binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(3));
+
+        binding.mainMenuLayout.btnAdjustLlm.setOnClickListener(v -> {
+            Toast.makeText(this, "Ajustes de LLM (En desarrollo)", Toast.LENGTH_SHORT).show();
+            // Aquí se podrían abrir los ajustes del modelo
+        });
         
         binding.mainMenuLayout.editContext.addTextChangedListener(new android.text.TextWatcher() {
             @Override

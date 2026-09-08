@@ -172,7 +172,7 @@ public class Presenter implements ContractInterface.Presenter {
 
     @Override
     public void onDestroy() {
-
+        textEntryManager.release();
     }
 
     @Override

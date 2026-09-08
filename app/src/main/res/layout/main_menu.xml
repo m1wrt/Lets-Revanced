@@ -294,6 +294,18 @@
             app:layout_constraintBottom_toTopOf="@+id/context_area"
             app:layout_constraintTop_toBottomOf="@id/text_input_display" />
 
+        <ImageButton
+            android:id="@+id/btn_adjust_llm"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_manage"
+            android:contentDescription="Adjust LLM"
+            app:layout_constraintTop_toTopOf="@id/llm_display"
+            app:layout_constraintEnd_toEndOf="@id/llm_display" />
+
         <!-- Context Area -->
         <LinearLayout
             android:id="@+id/context_area"

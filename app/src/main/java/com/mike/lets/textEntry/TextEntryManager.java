@@ -7,7 +7,7 @@ import java.util.List;
 
 public class TextEntryManager {
     private final BlurryInput blurryInput = new BlurryInput();
-    private final LLMClient llmClient = new LLMClient();
+    private final LlamaCppClient llmClient = new LlamaCppClient();
     private String currentSentence = "";
     private String conversationContext = "";
     private String lastLlmInput = "";
@@ -23,6 +23,20 @@ public class TextEntryManager {
     public void initialize(android.content.Context context, String contextText) {
         this.conversationContext = contextText != null ? contextText : "";
         blurryInput.initialize(context, contextText);
+        llmClient.initialize(context, "gemma3-1b.gguf", new LlamaCppClient.LLMCallback() {
+            @Override
+            public void onSuccess(String prediction) {
+                Log.d("TextEntryManager", "LLM Initialized: " + prediction);
+                if (!currentSentence.isEmpty()) {
+                    triggerLLM();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("TextEntryManager", "LLM Init Error: " + error);
+            }
+        });
     }
 
     public void setConversationContext(String context) {
@@ -153,26 +167,45 @@ public class TextEntryManager {
     private void triggerLLM() {
         // Solo procesamos palabras reales (currentSentence), ignoramos los rangos de letras [A-F...]
         String llmKeywords = currentSentence.trim();
+        Log.d("TextEntryManager", "triggerLLM called with keywords: '" + llmKeywords + "'");
 
-        // If input hasn't changed, don't spam
-        String fullInput = conversationContext + "|" + llmKeywords;
-        if (fullInput.equals(lastLlmInput)) return;
-        lastLlmInput = fullInput;
-        
         if (llmKeywords.isEmpty()) {
+            Log.d("TextEntryManager", "Keywords empty, clearing prediction");
             llmPrediction = "";
+            lastLlmInput = "";
             return;
         }
 
-        llmClient.getCompletion(conversationContext, llmKeywords, new LLMClient.LLMCallback() {
+        if (!llmClient.isReady()) {
+            Log.d("TextEntryManager", "LLM not ready yet");
+            llmPrediction = "Cargando modelo de lenguaje...";
+            lastLlmInput = ""; // Asegurar que reintente cuando esté listo
+            return;
+        }
+
+        // If input hasn't changed, don't spam
+        String fullInput = conversationContext + "|" + llmKeywords;
+        if (fullInput.equals(lastLlmInput)) {
+            Log.d("TextEntryManager", "Input hasn't changed, skipping LLM");
+            return;
+        }
+        
+        llmClient.getCompletion(conversationContext, llmKeywords, new LlamaCppClient.LLMCallback() {
             @Override
             public void onSuccess(String prediction) {
-                setLlmPrediction(prediction);
+                lastLlmInput = fullInput; // Solo marcar como "procesado" si hubo éxito
+                if (prediction.isEmpty()) {
+                    setLlmPrediction("(Sin respuesta)");
+                } else {
+                    setLlmPrediction(prediction);
+                }
             }
 
             @Override
             public void onError(String error) {
+                Log.e("TextEntryManager", "LLM Error: " + error);
                 setLlmPrediction("Error: " + error);
+                lastLlmInput = ""; // Permitir reintento
             }
         });
     }
@@ -195,5 +228,9 @@ public class TextEntryManager {
     
     public List<String> getPredictions() {
         return currentPredictions;
+    }
+
+    public void release() {
+        llmClient.release();
     }
 }
