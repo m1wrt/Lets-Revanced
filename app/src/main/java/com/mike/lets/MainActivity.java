@@ -66,12 +66,19 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+        // Edge-to-edge support
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Apply insets to the main container
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, windowInsets) -> {
+            androidx.core.graphics.Insets insets = windowInsets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+            v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+            return windowInsets;
+        });
 
         if (allPermissionsGranted()) {
             startCamera();
@@ -92,8 +99,8 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         }
 
         // Set up the continue button in the calibration menu
-        // ViewBinding generates a binding for included layouts if they have an ID
         binding.calibrationLayout.buttonContinue.setOnClickListener(v -> {
+            Log.d("MainActivity", "Continue button clicked");
             presenter.updateCalibration();
         });
 
@@ -144,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                         .setTargetResolution(new Size(640, 480))
+                        .setTargetRotation(getWindowManager().getDefaultDisplay().getRotation())
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
@@ -156,22 +164,42 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                             return;
                         }
 
+                        int rotationDegrees = image.getImageInfo().getRotationDegrees();
                         Mat rgbaMat = imageToMat(image);
-                        // Convert to BGR for the model as it expects BGR in classifyGaze
-                        // Wait, classifyGaze does: Imgproc.cvtColor(rgbMat, rgbaMat, Imgproc.COLOR_BGR2RGBA);
-                        // So it expects BGR.
+
+                        // Rotate Mat based on rotation degrees to keep it upright
+                        if (rotationDegrees != 0) {
+                            Mat rotated = new Mat();
+                            if (rotationDegrees == 90) {
+                                org.opencv.core.Core.rotate(rgbaMat, rotated, org.opencv.core.Core.ROTATE_90_CLOCKWISE);
+                            } else if (rotationDegrees == 180) {
+                                org.opencv.core.Core.rotate(rgbaMat, rotated, org.opencv.core.Core.ROTATE_180);
+                            } else if (rotationDegrees == 270) {
+                                org.opencv.core.Core.rotate(rgbaMat, rotated, org.opencv.core.Core.ROTATE_90_COUNTERCLOCKWISE);
+                            }
+                            rgbaMat.release();
+                            rgbaMat = rotated;
+                        }
+
+                        // Mirroring for front camera to feel natural to the user
+                        org.opencv.core.Core.flip(rgbaMat, rgbaMat, 1);
+
+                        // Convert to BGR for the model
                         Mat bgrMat = new Mat();
                         org.opencv.imgproc.Imgproc.cvtColor(rgbaMat, bgrMat, org.opencv.imgproc.Imgproc.COLOR_RGBA2BGR);
 
                         presenter.onFrame(bgrMat);
+                        bgrMat.release(); // The model and presenter should have finished using it or made their own copies
                         
-                        // Update UI preview
+                        // Update UI preview - Create bitmap on the camera thread to avoid using Mat in UI thread asynchronously
+                        Bitmap bitmap = Bitmap.createBitmap(rgbaMat.cols(), rgbaMat.rows(), Bitmap.Config.ARGB_8888);
+                        Utils.matToBitmap(rgbaMat, bitmap);
+                        
                         runOnUiThread(() -> {
-                           Bitmap bitmap = Bitmap.createBitmap(rgbaMat.cols(), rgbaMat.rows(), Bitmap.Config.ARGB_8888);
-                           Utils.matToBitmap(rgbaMat, bitmap);
                            binding.imageView.setImageBitmap(bitmap);
                         });
 
+                        rgbaMat.release(); // Now it's safe to release
                         image.close();
                     }
                 });
@@ -273,13 +301,15 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             if (appLiveData.calibrationState == 6) { // Finished
                 binding.calibrationLayout.buttonContinue.setText("Finish");
                 binding.calibrationLayout.buttonContinue.setOnClickListener(v -> {
+                   Toast.makeText(this, "Finishing calibration", Toast.LENGTH_SHORT).show();
                    binding.calibrationLayout.getRoot().setVisibility(View.GONE);
                    binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
                    presenter.setMode("Menu");
                 });
             } else {
-                binding.calibrationLayout.buttonContinue.setText("Continue");
+                binding.calibrationLayout.buttonContinue.setText(appLiveData.calibrationState == -1 ? "Start" : "Continue");
                 binding.calibrationLayout.buttonContinue.setOnClickListener(v -> {
+                    Log.i("MainActivity", "Button Clicked: State=" + appLiveData.calibrationState);
                     presenter.updateCalibration();
                 });
             }
@@ -419,7 +449,11 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                     if (binding.calibrationLayout.getRoot().getVisibility() == View.VISIBLE) {
                         binding.calibrationLayout.calibrationEyePreview.setImageBitmap(eyeBitmap);
                     }
+                    rgbaEye.release();
                 }
+                
+                // We DON'T release testing mats here because the Presenter might need them for calibration capture.
+                // The Model will be responsible for releasing old mats in classifyGaze.
             }
         });
     }

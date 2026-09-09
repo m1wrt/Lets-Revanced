@@ -37,6 +37,9 @@ public class Presenter implements ContractInterface.Presenter {
     AppLiveData appliveData = new AppLiveData();
     ToneGenerator toneGenerator;
     private int lastGazeType = 0; // Para evitar repeticiones por frame
+    private boolean captureRequested = false;
+    private final String[] calibrationMessages = {"Look straight", "Look left and down", "Look right and down", "Look up", "Look left and up", "Look right and up"};
+    
     // instantiating the objects of View and Model Interface
     public Presenter(ContractInterface.View mainView, ContractInterface.Model model) {
         this.mainView = mainView;
@@ -76,66 +79,69 @@ public class Presenter implements ContractInterface.Presenter {
 
     @Override
     public void updateCalibration() {
-        Log.d("Presenter", "updateCalibration called. Current state: " + userDataManager.getCalibrationState());
-        // Ejecuta el proceso de calibraciÃƒÂ³n del usuario.
-        // Se pide mirar a distintas direcciones y se toman fotos del ojo para generar plantillas.
-        String[] calibrationMessages = {"Look straight", "Look left and down", "Look right and down", "Look up", "Look left and up", "Look right and up"};
+        int calibrationState = userDataManager.getCalibrationState();
+        Log.i("Presenter", "updateCalibration CLICKED. Current state: " + calibrationState);
 
+        if (calibrationState == -1) { // Begin
+            appliveData.calibrationInstruction = calibrationMessages[0];
+            userDataManager.setCalibrationState(0);
+            appliveData.calibrationState = 0;
+            Log.i("Presenter", "Calibration started. Instruction: " + calibrationMessages[0]);
+        } else if (calibrationState >= 0 && calibrationState < userDataManager.calibrationTemplateNum) {
+            // Signal that we want to capture the current step in the next frame
+            captureRequested = true;
+            Log.i("Presenter", "Capture requested for state: " + calibrationState);
+        } else if (calibrationState == userDataManager.calibrationTemplateNum) { // Restart
+            appliveData.calibrationInstruction = "EYE CALIBRATION";
+            userDataManager.setCalibrationState(-1);
+            appliveData.calibrationState = -1;
+        }
+    }
+
+    private void handleCalibrationCapture(DetectionOutput detectionOutput) {
+        if (!captureRequested || detectionOutput == null || detectionOutput.testingMats == null) return;
+
+        Mat[] eyeMats = detectionOutput.testingMats;
         int calibrationState = userDataManager.getCalibrationState();
 
-        if (calibrationState == -1) { // begin calibration
-            // audioManager.speakText(calibrationMessages[0]); // Stubbed
-            appliveData.calibrationInstruction = calibrationMessages[0];
-            calibrationState = 0;
-
-        } else if (calibrationState == userDataManager.calibrationTemplateNum) { // restart calibration
-            appliveData.calibrationInstruction = "EYE CALIBRATION";
-            calibrationState = -1;
-
-        } else if (calibrationState >= 0) { // during calibration
-            if (appliveData.DetectionOutput != null && appliveData.DetectionOutput.testingMats != null) {
-                Mat[] eyeMats = appliveData.DetectionOutput.testingMats;
+        // Check if mats are valid (index 0 and 1 are processed eyes)
+        if (eyeMats.length >= 2 && eyeMats[0] != null && eyeMats[1] != null && !eyeMats[0].empty() && !eyeMats[1].empty()) {
+            Log.d("Presenter", "Capturing calibration frame for state: " + calibrationState);
+            
+            Bitmap leftBmp = matToBitmap(eyeMats[0]);
+            Bitmap rightBmp = matToBitmap(eyeMats[1]);
+            
+            if (leftBmp != null && rightBmp != null) {
+                userDataManager.setLeftCalibrationData(leftBmp, calibrationState);
+                userDataManager.setRightCalibrationData(rightBmp, calibrationState);
                 
-                // Detailed debug info
-                Log.d("Calibration", "Mats length: " + eyeMats.length);
-                for(int i=0; i<eyeMats.length; i++) {
-                    Log.d("Calibration", "Mat " + i + " is " + (eyeMats[i] == null ? "null" : (eyeMats[i].empty() ? "empty" : "valid")));
-                }
+                calibrationState += 1;
+                captureRequested = false; // Capture successful
+                toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP, 100);
 
-                if (eyeMats.length >= 2 && eyeMats[0] != null && eyeMats[1] != null && !eyeMats[0].empty() && !eyeMats[1].empty()) { // the images are collectible
-                    Log.d("CalibrationInterface", "Recorded successfully. State: " + calibrationState);
-                    
-                    Bitmap leftBmp = matToBitmap(eyeMats[0]);
-                    Bitmap rightBmp = matToBitmap(eyeMats[1]);
-                    
-                    if (leftBmp != null && rightBmp != null) {
-                        userDataManager.setLeftCalibrationData(leftBmp, calibrationState); // collect left frame
-                        userDataManager.setRightCalibrationData(rightBmp, calibrationState); // collect right frame
-                        calibrationState += 1;
-                        
-                        Log.d("Calibration", "Saved frame " + (calibrationState-1));
-
-                        if (calibrationState == userDataManager.calibrationTemplateNum) { // finished calibration
-                            model.updateCalibrationTemplates();
-                            appliveData.calibrationInstruction = "CALIBRATION FINISHED!";
-                            Log.d("CalibrationInterface", "Finished calibration");
-                        } else { // continue
-                            // audioManager.speakText(calibrationMessages[calibrationState]); // Stubbed
-                            appliveData.calibrationInstruction = calibrationMessages[calibrationState];
-                        }
-                    } else {
-                        Log.e("Calibration", "Capture failed: Bitmaps were null");
-                        appliveData.calibrationInstruction = "RETRY: " + calibrationMessages[calibrationState];
-                    }
+                if (calibrationState == userDataManager.calibrationTemplateNum) {
+                    model.updateCalibrationTemplates();
+                    appliveData.calibrationInstruction = "CALIBRATION FINISHED!";
                 } else {
-                    Log.d("Calibration", "Detection failed, please try again (mats might be empty or null)");
+                    appliveData.calibrationInstruction = calibrationMessages[calibrationState];
                 }
+                
+                userDataManager.setCalibrationState(calibrationState);
+                appliveData.calibrationState = calibrationState;
+                Log.i("Presenter", "Calibration advanced to state: " + calibrationState);
             } else {
-                Log.d("Calibration", "Detection failed, no DetectionOutput yet");
+                Log.e("Presenter", "Failed to create bitmaps for calibration capture");
             }
+        } else {
+            // Keep captureRequested = true so we try again in the next frame
+            String failReason = "";
+            if (eyeMats == null) failReason = "eyeMats is null";
+            else if (eyeMats.length < 2) failReason = "eyeMats length < 2";
+            else if (eyeMats[0] == null || eyeMats[0].empty()) failReason = "Left eye mat empty/null";
+            else if (eyeMats[1] == null || eyeMats[1].empty()) failReason = "Right eye mat empty/null";
+            
+            Log.i("Presenter", "Waiting for valid frame to capture calibration point... Reason: " + failReason);
         }
-        userDataManager.setCalibrationState(calibrationState);
-        appliveData.calibrationState = calibrationState;
     }
 
     @Override
@@ -184,6 +190,13 @@ public class Presenter implements ContractInterface.Presenter {
         presenterBusy = true;
         prevMat = rgbMat;
         DetectionOutput detectionOutput = model.classifyGaze(rgbMat); // salida del modelo de mirada
+
+        if (captureRequested) {
+            Log.d("Presenter", "onFrame: capture is pending...");
+        }
+        
+        // Handle any pending calibration captures immediately as the model result is ready
+        handleCalibrationCapture(detectionOutput);
 
         if (detectionOutput != null && detectionOutput.AnalyzedData != null) { // when the input is valid
             int gazeType = detectionOutput.gestureOutput;

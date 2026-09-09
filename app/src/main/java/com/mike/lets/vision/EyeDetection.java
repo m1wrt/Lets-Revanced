@@ -133,6 +133,13 @@ public class EyeDetection {
      * El centro del iris se usa para calcular NIC (Normalized Iris Center).
      */
     public Point irisDetection(Mat ROI) {
+        Mat gray = new Mat();
+        if (ROI.channels() > 1) {
+            Imgproc.cvtColor(ROI, gray, Imgproc.COLOR_BGR2GRAY);
+        } else {
+            ROI.copyTo(gray);
+        }
+        
         Mat eroded = new Mat();
         Mat threshold = new Mat();
         opening = new Mat();
@@ -140,19 +147,18 @@ public class EyeDetection {
         Point irisCenter = new Point();
 
         Mat erode_kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
-        //Mat opening_kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
         ArrayList<MatOfPoint> contours = new ArrayList<>();
 
         // image processing
-     //   Imgproc.erode(ROI, eroded, erode_kernel);
-        Imgproc.blur(ROI, eroded, new Size(3,3));
-       // Imgproc.adaptiveThreshold(eroded, threshold, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 5, 3);
+        Imgproc.blur(gray, eroded, new Size(3,3));
         Imgproc.threshold(eroded, threshold, thresholdValue, 255, Imgproc.THRESH_BINARY);
-        //Imgproc.morphologyEx(threshold, opening, Imgproc.MORPH_OPEN, opening_kernel);
         Imgproc.blur(threshold, opening, new Size(3,3));
 
         // contour detection
         Core.bitwise_not(opening, opening);
+        if (opening.channels() > 1) {
+            Imgproc.cvtColor(opening, opening, Imgproc.COLOR_BGR2GRAY);
+        }
         Imgproc.findContours(opening, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         double maxVal = -1;
         int maxValIdx = -1;
@@ -168,14 +174,23 @@ public class EyeDetection {
         if (maxValIdx != -1) {
             MatOfPoint maxContour = contours.get(maxValIdx);
             Moments moments = Imgproc.moments(maxContour);
-            irisCenter.x = moments.get_m10() / moments.get_m00();
-            irisCenter.y = moments.get_m01() / moments.get_m00();
+            if (moments.get_m00() != 0) {
+                irisCenter.x = moments.get_m10() / moments.get_m00();
+                irisCenter.y = moments.get_m01() / moments.get_m00();
+            }
             //Imgproc.drawContours(draw, contours, maxValIdx, new Scalar(255,255,255), 2);
-            draw = new Mat(ROI.rows(), ROI.cols(), Imgproc.COLOR_BGR2GRAY);
+            draw = new Mat(ROI.rows(), ROI.cols(), CvType.CV_8UC3);
             draw.setTo(new Scalar(0,0,0));
             Imgproc.circle(draw, new Point(irisCenter.x,irisCenter.y), 2, new Scalar(255,255,255));
-            draw.convertTo(finalMat, CvType.CV_8UC3);
+            draw.copyTo(finalMat);
+            draw.release();
         }
+        
+        gray.release();
+        eroded.release();
+        threshold.release();
+        hierarchy.release();
+        
         return irisCenter;
     }
 }

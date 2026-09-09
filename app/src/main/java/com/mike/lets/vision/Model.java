@@ -101,23 +101,27 @@ public class Model implements ContractInterface.Model {
 
     @Override
     public void analyzeGazeOutput() {
+        analyzeFrameGaze(this.detectionOutput);
+    }
+
+    private void analyzeFrameGaze(DetectionOutput output) {
         // Combina los resultados de ambos ojos y decide cuál es la mirada final.
-        if (!detectionOutput.LeftData.Success && !detectionOutput.RightData.Success) {
-            detectionOutput.AnalyzedData = detectionOutput.LeftData;
-        } else if (detectionOutput.LeftData.Success && !detectionOutput.RightData.Success) {
-            detectionOutput.AnalyzedData = detectionOutput.LeftData;
-        } else if (!detectionOutput.LeftData.Success) {
-            detectionOutput.AnalyzedData = detectionOutput.RightData;
+        if (!output.LeftData.Success && !output.RightData.Success) {
+            output.AnalyzedData = output.LeftData;
+        } else if (output.LeftData.Success && !output.RightData.Success) {
+            output.AnalyzedData = output.LeftData;
+        } else if (!output.LeftData.Success) {
+            output.AnalyzedData = output.RightData;
         } else {
-            GazeData leftGazeData = detectionOutput.LeftData;
-            GazeData rightGazeData = detectionOutput.RightData;
+            GazeData leftGazeData = output.LeftData;
+            GazeData rightGazeData = output.RightData;
 
             if (leftGazeData.GazeType == 5 && rightGazeData.GazeType == 5) {
-                detectionOutput.AnalyzedData = rightGazeData;
+                output.AnalyzedData = rightGazeData;
             } else if (gazingLeft(leftGazeData) && gazingLeft(rightGazeData)) {
-                detectionOutput.AnalyzedData = leftGazeData;
+                output.AnalyzedData = leftGazeData;
             } else if (gazingRight(leftGazeData) && gazingRight(rightGazeData)) {
-                detectionOutput.AnalyzedData = rightGazeData;
+                output.AnalyzedData = rightGazeData;
             } else {
                 int index = -1;
                 double minError = 1000000f;
@@ -130,13 +134,13 @@ public class Model implements ContractInterface.Model {
                 }
                 // Sensitivity threshold for combined MSE
                 boolean success = minError <= (detector.sensitivity * 2.5); 
-                detectionOutput.setEyeData(2, success, tags[index], 1, (float)minError);
+                output.setEyeData(2, success, tags[index], 1, (float)minError);
             }
         }
 
-        detectionOutput.gestureOutput = 0;
-        if (detectionOutput.AnalyzedData.Success) {
-            int type = detectionOutput.AnalyzedData.GazeType;
+        output.gestureOutput = 0;
+        if (output.AnalyzedData.Success) {
+            int type = output.AnalyzedData.GazeType;
             if (type != 0) { // Active gaze (not straight)
                 if (type == currentGaze) {
                     length += 1;
@@ -145,13 +149,13 @@ public class Model implements ContractInterface.Model {
                     boolean isRepeatTrigger = (length > DWELL_THRESHOLD && (length - DWELL_THRESHOLD) % REPEAT_INTERVAL == 0);
 
                     if (isFirstTrigger || isRepeatTrigger) {
-                        String gazeTypeStr = detectionOutput.AnalyzedData.getTypeString(currentGaze);
+                        String gazeTypeStr = output.AnalyzedData.getTypeString(currentGaze);
                         if (prevInputs.size() > 25) {
                             prevInputs.clear();
                         }
                         prevInputs.add(gazeTypeStr);
-                        detectionOutput.prevInputs = prevInputs;
-                        detectionOutput.gestureOutput = type;
+                        output.prevInputs = prevInputs;
+                        output.gestureOutput = type;
                         Log.d("Model", "Gaze Selection Triggered: " + type + " (" + gazeTypeStr + ") at length " + length);
                     }
                 } else {
@@ -243,7 +247,7 @@ public class Model implements ContractInterface.Model {
      * Obtiene el centro del iris y lo normaliza como NIC (Normalized Iris Center).
      * Sirve para anÃƒÂ¡lisis extra de direcciÃƒÂ³n de mirada y debugging visual.
      */
-    private Point getIrisCenter(Mat eye) {
+    private Point getIrisCenter(Mat eye, DetectionOutput output) {
         Point normalized = new Point();
         if (eye != null) {
             Point irisCenter = detector.irisDetection(eye);
@@ -252,9 +256,9 @@ public class Model implements ContractInterface.Model {
                 Imgproc.circle(irisMat, corners[i], 2, new Scalar(255,255,255));
             }
             normalized = normalizeIrisCenter(irisCenter);
-            detectionOutput.testingMats[2] = detector.opening;
+            output.testingMats[2] = detector.opening;
         } else {
-            detectionOutput.testingMats[2] = new Mat();
+            output.testingMats[2] = new Mat();
         }
         return normalized;
     }
@@ -267,6 +271,10 @@ public class Model implements ContractInterface.Model {
         Mat leftEye = null, rightEye = null;
         Bitmap bmp;
 
+        // Create a new detection output for each frame to avoid race conditions with the UI thread
+        DetectionOutput frameOutput = new DetectionOutput();
+        frameOutput.initialize(4);
+        
         // Convierte el frame OpenCV a Bitmap para que MediaPipe pueda analizarlo.
         Mat rgbaMat = new Mat(rgbMat.rows(), rgbMat.cols(), CvType.CV_8UC4);
         Imgproc.cvtColor(rgbMat, rgbaMat, Imgproc.COLOR_BGR2RGBA);
@@ -274,41 +282,37 @@ public class Model implements ContractInterface.Model {
         Utils.matToBitmap(rgbaMat, bmp);
         faceDetector.detect(bmp);
 
-        // initialization
-        detectionOutput.initialize(4);
-        
         if (faceDetector.leftEyeContour == null && faceDetector.rightEyeContour == null) { // no eye detection
-            return detectionOutput;
+            rgbaMat.release();
+            return frameOutput;
         
         } else if (faceDetector.leftEyeOpenProb <= 0.1 && faceDetector.rightEyeOpenProb <= 0.1) { // check if eyes are closed
-            detectionOutput.setEyeData(0, true, 5, 1, faceDetector.leftEyeOpenProb);
-            detectionOutput.setEyeData(1, true, 5, 1, faceDetector.rightEyeOpenProb);
+            frameOutput.setEyeData(0, true, 5, 1, faceDetector.leftEyeOpenProb);
+            frameOutput.setEyeData(1, true, 5, 1, faceDetector.rightEyeOpenProb);
         } else {
             if (faceDetector.leftEyeContour != null) { // left eye available
 
                 List<PointF> leftEyePoints = faceDetector.leftEyeContour;
                 Rect leftEyeBound = getBoundingBox(leftEyePoints, rgbMat);
 
-                //Rect leftEyeBound = getSurroundBox(faceDetector.leftEyePos, rgbMat);
                 if (leftEyeBound != null) {
-                  //  Log.d("MVPModel", "Rect Dimensions: " + leftEyeBound.x + ' ' + leftEyeBound.y + ' ' + leftEyeBound.height + ' ' + leftEyeBound.width);
                     leftEye = new Mat(rgbMat, leftEyeBound);
                     
                     // Store high-res eye for UI display
                     Mat highResEye = new Mat();
                     leftEye.copyTo(highResEye);
-                    detectionOutput.testingMats[3] = highResEye;
-
-                    Log.d("MVPModel", "Image Dimensions: " + leftEye.cols() + " " + leftEye.rows());
+                    frameOutput.testingMats[3] = highResEye;
 
                     // image processing
-                    Imgproc.resize(leftEye, leftEye, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_LINEAR);
-                    Imgproc.cvtColor(leftEye, leftEye, Imgproc.COLOR_RGB2GRAY);
-                    //Imgproc.equalizeHist(leftEye, leftEye);
-
-                    if (userDataManager.checkCalibrationFiles()) { // true = calibration complete
-                        leftTemplateError = detector.runEyeModel(detectionOutput, leftEye, 0);
+                    Mat processedLeft = new Mat();
+                    Imgproc.resize(leftEye, processedLeft, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_LINEAR);
+                    Imgproc.cvtColor(processedLeft, processedLeft, Imgproc.COLOR_RGB2GRAY);
+                    
+                    if (userDataManager.checkCalibrationFiles()) {
+                        leftTemplateError = detector.runEyeModel(frameOutput, processedLeft, 0);
                     }
+                    
+                    frameOutput.testingMats[0] = processedLeft;
                 }
             }
             if (faceDetector.rightEyeContour != null) { // right eye available
@@ -316,32 +320,38 @@ public class Model implements ContractInterface.Model {
                 List<PointF> rightEyePoints = faceDetector.rightEyeContour;
                 Rect rightEyeBound = getBoundingBox(rightEyePoints, rgbMat);
 
-                //Rect rightEyeBound = getSurroundBox(faceDetector.rightEyePos, rgbMat);
                 if (rightEyeBound != null) {
-                  //  Log.d("MVPModel", "Rect Dimensions: " + rightEyeBound.x + ' ' + rightEyeBound.y + ' ' + rightEyeBound.height + ' ' + rightEyeBound.width);
                     rightEye = new Mat(rgbMat, rightEyeBound);
+                    
+                    Mat processedRight = new Mat();
+                    Imgproc.resize(rightEye, processedRight, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_LINEAR);
+                    Imgproc.cvtColor(processedRight, processedRight, Imgproc.COLOR_RGB2GRAY);
 
-                    // image processing
-                    Imgproc.resize(rightEye, rightEye, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_LINEAR);
-                    Imgproc.cvtColor(rightEye, rightEye, Imgproc.COLOR_RGB2GRAY);
-                    //Imgproc.equalizeHist(rightEye, rightEye);
-
-                    if (userDataManager.checkCalibrationFiles()) { // if there are calibration images
-                        rightTemplateError = detector.runEyeModel(detectionOutput, rightEye, 1);
+                    if (userDataManager.checkCalibrationFiles()) {
+                        rightTemplateError = detector.runEyeModel(frameOutput, processedRight, 1);
                     }
+                    
+                    frameOutput.testingMats[1] = processedRight;
                 }
             }
         }
 
-        //testing data
-        detectionOutput.testingMats[0] = leftEye;
-        detectionOutput.testingMats[1] = rightEye;
-        analyzeGazeOutput(); // analyze the output before returning to the presenter
-
         // NIC detection
-        detectionOutput.leftNIC = getIrisCenter(leftEye);
-        Log.d("IrisDetection", "Normalized x = " + detectionOutput.leftNIC.x + ", y = " + detectionOutput.leftNIC.y);
-        return detectionOutput;
+        frameOutput.leftNIC = getIrisCenter(leftEye, frameOutput);
+        
+        // Analyze final gaze using the frame's specific data
+        analyzeFrameGaze(frameOutput);
+        
+        rgbaMat.release();
+        // Do NOT release leftEye/rightEye here if they were used to create sub-Mats without copying
+        // But here we are using them as sources for resize/copy.
+        // Actually, 'leftEye = new Mat(rgbMat, leftEyeBound)' is a header.
+        // If we release it, it's fine.
+        if (leftEye != null) leftEye.release();
+        if (rightEye != null) rightEye.release();
+        
+        return frameOutput;
     }
+
 }
 

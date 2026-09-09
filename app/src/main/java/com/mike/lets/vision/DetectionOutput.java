@@ -35,6 +35,14 @@ public class DetectionOutput {
         testingMats = new Mat[MatNum];
     }
 
+    public void release() {
+        if (testingMats != null) {
+            for (Mat mat : testingMats) {
+                if (mat != null) mat.release();
+            }
+        }
+    }
+
     public int gestureOutput; // an input from the user (not the raw data from the frame)
 
     public Point leftNIC; // Normalized Iris Center for both eyes
