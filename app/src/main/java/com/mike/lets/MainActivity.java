@@ -135,6 +135,35 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             presenter.setMode("Dev");
         });
 
+        // Set up settings menu buttons
+        binding.settingsLayout.btnBackSettings.setOnClickListener(v -> {
+            binding.settingsLayout.getRoot().setVisibility(View.GONE);
+            if (presenter.getMode().equals("Settings")) {
+                presenter.setMode("Menu");
+                binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            }
+        });
+
+        binding.settingsLayout.btnSaveSettings.setOnClickListener(v -> {
+            // Save values
+            int sensitivity = (int) binding.settingsLayout.sliderSensitivity.getValue();
+            int threshold = (int) binding.settingsLayout.sliderThreshold.getValue();
+            String language = binding.settingsLayout.editLanguage.getText().toString();
+            String apiKey = binding.settingsLayout.editApiKey.getText().toString();
+
+            presenter.setSensitivity(sensitivity);
+            presenter.setLightingThreshold(threshold);
+            presenter.setLanguage(language);
+            presenter.setGeminiApiKey(apiKey);
+
+            Toast.makeText(this, "Ajustes guardados", Toast.LENGTH_SHORT).show();
+
+            // Return to menu
+            binding.settingsLayout.getRoot().setVisibility(View.GONE);
+            presenter.setMode("Menu");
+            binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
+        });
+
         // Start calibration automatically
         openCalibration();
         
@@ -460,6 +489,17 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
     @Override
     public void openSettings() {
+        runOnUiThread(() -> {
+            binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.calibrationLayout.getRoot().setVisibility(View.GONE);
+            binding.settingsLayout.getRoot().setVisibility(View.VISIBLE);
+
+            // Populate values
+            binding.settingsLayout.sliderSensitivity.setValue((float) presenter.getSensitivity());
+            binding.settingsLayout.sliderThreshold.setValue((float) presenter.getLightingThreshold());
+            binding.settingsLayout.editLanguage.setText(presenter.getLanguage());
+            binding.settingsLayout.editApiKey.setText(presenter.getGeminiApiKey());
+        });
     }
 
     @Override

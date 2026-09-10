@@ -66,6 +66,7 @@ public class Presenter implements ContractInterface.Presenter {
         this.mContext = mContext;
         this.applicationContext = applicationContext;
         userDataManager = (UserDataManager) applicationContext;
+        userDataManager.getSettings();
 
         model.initialize(mContext, applicationContext); // MVP model initialization
         textEntryManager.initialize(mContext, "");
@@ -174,6 +175,46 @@ public class Presenter implements ContractInterface.Presenter {
     @Override
     public void setLlmPrediction(String prediction) {
         textEntryManager.setLlmPrediction(prediction);
+    }
+
+    @Override
+    public int getSensitivity() {
+        return userDataManager.getSensitivity();
+    }
+
+    @Override
+    public void setSensitivity(int value) {
+        userDataManager.setSensitivity(value);
+    }
+
+    @Override
+    public int getLightingThreshold() {
+        return userDataManager.getLightingThreshold();
+    }
+
+    @Override
+    public void setLightingThreshold(int value) {
+        userDataManager.setLightingThreshold(value);
+    }
+
+    @Override
+    public String getLanguage() {
+        return userDataManager.getLanguage();
+    }
+
+    @Override
+    public void setLanguage(String value) {
+        userDataManager.setLanguage(value);
+    }
+
+    @Override
+    public String getGeminiApiKey() {
+        return userDataManager.getGeminiApiKey();
+    }
+
+    @Override
+    public void setGeminiApiKey(String value) {
+        userDataManager.setGeminiApiKey(value);
     }
 
     @Override

@@ -85,4 +85,12 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- Include Settings Menu as an overlay -->
+    <include
+        android:id="@+id/settingsLayout"
+        layout="@layout/settings_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

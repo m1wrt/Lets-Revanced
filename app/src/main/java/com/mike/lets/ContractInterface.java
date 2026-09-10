@@ -42,5 +42,14 @@ public interface ContractInterface {
         void onGazeButtonClicked(int input); // acciÃ³n cuando el usuario pulsa una opciÃ³n de mirada
         void updateContext(String context);
         void setLlmPrediction(String prediction);
+
+        int getSensitivity();
+        void setSensitivity(int value);
+        int getLightingThreshold();
+        void setLightingThreshold(int value);
+        String getLanguage();
+        void setLanguage(String value);
+        String getGeminiApiKey();
+        void setGeminiApiKey(String value);
     }
 }
