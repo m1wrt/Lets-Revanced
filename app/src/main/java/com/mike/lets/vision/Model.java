@@ -50,7 +50,6 @@ public class Model implements ContractInterface.Model {
     private final MediaPipeFaceDetector faceDetector = new MediaPipeFaceDetector();
     /** Resultado actual de la deteccion de mirada del frame */
     DetectionOutput detectionOutput = new DetectionOutput();
-    private DetectionOutput lastFrameOutput;
     private ArrayList<String> prevInputs;
     int gazeNum = 8; // number of types of gaze inputs
     int currentGaze = -1;
@@ -272,11 +271,6 @@ public class Model implements ContractInterface.Model {
         Mat leftEye = null, rightEye = null;
         Bitmap bmp;
 
-        // Release the output from TWO frames ago to ensure the UI thread is done with the previous one
-        if (lastFrameOutput != null) {
-            lastFrameOutput.release();
-        }
-
         // Create a new detection output for each frame to avoid race conditions with the UI thread
         DetectionOutput frameOutput = new DetectionOutput();
         frameOutput.initialize(4);
@@ -356,7 +350,6 @@ public class Model implements ContractInterface.Model {
         if (leftEye != null) leftEye.release();
         if (rightEye != null) rightEye.release();
         
-        lastFrameOutput = frameOutput;
         return frameOutput;
     }
 

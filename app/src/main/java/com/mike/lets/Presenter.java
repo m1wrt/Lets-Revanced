@@ -3,6 +3,8 @@ package com.mike.lets;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.media.ToneGenerator;
 import android.util.Log;
 
@@ -36,6 +38,8 @@ public class Presenter implements ContractInterface.Presenter {
     private final TextEntryManager textEntryManager = new TextEntryManager();
     AppLiveData appliveData = new AppLiveData();
     ToneGenerator toneGenerator;
+    private SoundPool soundPool;
+    private int selectSoundId;
     private int lastGazeType = 0; // Para evitar repeticiones por frame
     private boolean captureRequested = false;
     private final String[] calibrationMessages = {"Look straight", "Look left and down", "Look right and down", "Look up", "Look left and up", "Look right and up"};
@@ -74,6 +78,16 @@ public class Presenter implements ContractInterface.Presenter {
         appliveData.calibrationInstruction = "Eye Calibration";
 
         toneGenerator = new ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 100);
+
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(5)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        selectSoundId = soundPool.load(mContext, R.raw.select, 1);
 
         prevMat = new Mat();
     }
@@ -160,7 +174,9 @@ public class Presenter implements ContractInterface.Presenter {
 
     @Override
     public void onGazeButtonClicked(int input) { // when the user clicks a gaze button
-        toneGenerator.startTone(ToneGenerator.TONE_CDMA_PIP, 150);
+        if (soundPool != null) {
+            soundPool.play(selectSoundId, 1, 1, 0, 0, 1);
+        }
         Log.d("Presenter", "Button Pressed: " + input);
         if (Objects.equals(mode, "Menu")) {
             textEntryManager.manageUserInput(input, false);
@@ -178,48 +194,16 @@ public class Presenter implements ContractInterface.Presenter {
     }
 
     @Override
-    public int getSensitivity() {
-        return userDataManager.getSensitivity();
-    }
-
-    @Override
-    public void setSensitivity(int value) {
-        userDataManager.setSensitivity(value);
-    }
-
-    @Override
-    public int getLightingThreshold() {
-        return userDataManager.getLightingThreshold();
-    }
-
-    @Override
-    public void setLightingThreshold(int value) {
-        userDataManager.setLightingThreshold(value);
-    }
-
-    @Override
-    public String getLanguage() {
-        return userDataManager.getLanguage();
-    }
-
-    @Override
-    public void setLanguage(String value) {
-        userDataManager.setLanguage(value);
-    }
-
-    @Override
-    public String getGeminiApiKey() {
-        return userDataManager.getGeminiApiKey();
-    }
-
-    @Override
-    public void setGeminiApiKey(String value) {
-        userDataManager.setGeminiApiKey(value);
-    }
-
-    @Override
     public void onDestroy() {
         textEntryManager.release();
+        if (soundPool != null) {
+            soundPool.release();
+            soundPool = null;
+        }
+        if (toneGenerator != null) {
+            toneGenerator.release();
+            toneGenerator = null;
+        }
     }
 
     @Override
@@ -245,7 +229,9 @@ public class Presenter implements ContractInterface.Presenter {
             // Solo procesar si la mirada ha cambiado desde el último frame (evita spam)
             if (gazeType != 0 && gazeType != lastGazeType) { 
                 Log.d("IrisDetection", "Gesture Output (New): " + gazeType);
-                toneGenerator.startTone(ToneGenerator.TONE_CDMA_PIP, 150);
+                if (soundPool != null) {
+                    soundPool.play(selectSoundId, 1, 1, 0, 0, 1);
+                }
                 
                 if (Objects.equals(mode, "Menu")) {
                     textEntryManager.manageUserInput(gazeType, true);

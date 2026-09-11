@@ -4,11 +4,15 @@
 #include <memory>
 #include <chrono>
 #include <android/log.h>
+#include <mutex>
 #include "llama.h"
 
 #define TAG "LlamaCppNative"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
+// Global mutex to ensure thread-safety across native calls
+static std::mutex g_llm_mutex;
 
 extern "C" JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM* vm, void* reserved) {
@@ -35,6 +39,8 @@ struct LlamaState {
 
 extern "C" JNIEXPORT jlong JNICALL
 Java_com_mike_lets_textEntry_LlamaCppClient_nativeInit(JNIEnv* env, jobject, jstring modelPath) {
+    std::lock_guard<std::mutex> lock(g_llm_mutex);
+
     const char* path = env->GetStringUTFChars(modelPath, nullptr);
 
     llama_model_params model_params = llama_model_default_params();
@@ -49,7 +55,6 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeInit(JNIEnv* env, jobject, jst
     llama_context_params ctx_params = llama_context_default_params();
     ctx_params.n_ctx = 512;
     ctx_params.n_batch = 512;
-    // Usar 4 hilos suele ser más eficiente en Android para evitar sobrecarga
     ctx_params.n_threads = 4;
     ctx_params.n_threads_batch = 4;
 
@@ -65,17 +70,21 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeInit(JNIEnv* env, jobject, jst
     state->model = model;
     state->ctx = ctx;
     state->smpl = llama_sampler_chain_init(llama_sampler_chain_default_params());
-    // Reglas de Ollama: temperature 0.3
+
+    // Sampling configuration
     llama_sampler_chain_add(state->smpl, llama_sampler_init_temp(0.3f));
     llama_sampler_chain_add(state->smpl, llama_sampler_init_dist(42));
 
     env->ReleaseStringUTFChars(modelPath, path);
-    LOGD("Llama initialized successfully with 4 threads and NEON/SIMD");
+    LOGD("Llama initialized successfully");
     return reinterpret_cast<jlong>(state);
 }
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, jobject, jlong ptr, jstring prompt) {
+    // Lock the mutex to prevent concurrent inference
+    std::lock_guard<std::mutex> lock(g_llm_mutex);
+
     auto* state = reinterpret_cast<LlamaState*>(ptr);
     if (!state || !state->ctx) return env->NewStringUTF("");
 
@@ -87,18 +96,19 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
 
     const struct llama_vocab * vocab = llama_model_get_vocab(state->model);
 
-    // Usar llama_memory_clear correctamente
+    // Properly clear KV cache before each completion
     llama_memory_clear(llama_get_memory(state->ctx), true);
 
     std::vector<llama_token> tokens;
     tokens.resize(prompt_str.length() + 1);
-    int n_tokens = (int)llama_tokenize(vocab, prompt_str.c_str(), prompt_str.length(), tokens.data(), tokens.size(), true, true);
+    int n_tokens = (int)llama_tokenize(vocab, prompt_str.c_str(), (int)prompt_str.length(), tokens.data(), (int)tokens.size(), true, true);
     tokens.resize(n_tokens);
 
     if (n_tokens <= 0) return env->NewStringUTF("");
 
     llama_batch batch = llama_batch_get_one(tokens.data(), tokens.size());
     if (llama_decode(state->ctx, batch) != 0) {
+        LOGE("LLM Decode failed");
         return env->NewStringUTF("Error: decode failed");
     }
 
@@ -117,32 +127,32 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
         if (n > 0) {
             response.append(buf, n);
 
-            // Check stop tokens less frequently or more efficiently
-            if (n >= 3 || response.size() > 20) {
-                if (response.find("<end_of_turn>") != std::string::npos ||
-                    response.find("<eos>") != std::string::npos ||
-                    response.find("<start_of_turn>") != std::string::npos ||
-                    response.find("model") != std::string::npos) {
-                    break;
-                }
+            // Check for stop sequences in response
+            if (response.find("<end_of_turn>") != std::string::npos ||
+                response.find("<eos>") != std::string::npos ||
+                response.find("model") != std::string::npos) {
+                break;
             }
         }
 
         llama_batch batch_gen = llama_batch_get_one(&curr_token, 1);
-        if (llama_decode(state->ctx, batch_gen) != 0) break;
+        if (llama_decode(state->ctx, batch_gen) != 0) {
+            LOGE("LLM Generation decode failed");
+            break;
+        }
     }
 
     auto t_end = std::chrono::high_resolution_clock::now();
-    double ms_prompt = std::chrono::duration<double, std::milli>(t_prompt - t_start).count();
-    double ms_gen = std::chrono::duration<double, std::milli>(t_end - t_prompt).count();
+    double ms_total = std::chrono::duration<double, std::milli>(t_end - t_start).count();
 
-    LOGD("LLM Latency: Prompt %.2fms, Gen %.2fms, Total %.2fms", ms_prompt, ms_gen, ms_prompt + ms_gen);
+    LOGD("LLM Inference completed in %.2fms", ms_total);
 
     return env->NewStringUTF(response.c_str());
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_mike_lets_textEntry_LlamaCppClient_nativeRelease(JNIEnv*, jobject, jlong ptr) {
+    std::lock_guard<std::mutex> lock(g_llm_mutex);
     auto* state = reinterpret_cast<LlamaState*>(ptr);
     delete state;
     LOGD("Llama released");

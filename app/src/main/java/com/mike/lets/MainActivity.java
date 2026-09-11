@@ -135,35 +135,6 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             presenter.setMode("Dev");
         });
 
-        // Set up settings menu buttons
-        binding.settingsLayout.btnBackSettings.setOnClickListener(v -> {
-            binding.settingsLayout.getRoot().setVisibility(View.GONE);
-            if (presenter.getMode().equals("Settings")) {
-                presenter.setMode("Menu");
-                binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
-            }
-        });
-
-        binding.settingsLayout.btnSaveSettings.setOnClickListener(v -> {
-            // Save values
-            int sensitivity = (int) binding.settingsLayout.sliderSensitivity.getValue();
-            int threshold = (int) binding.settingsLayout.sliderThreshold.getValue();
-            String language = binding.settingsLayout.editLanguage.getText().toString();
-            String apiKey = binding.settingsLayout.editApiKey.getText().toString();
-
-            presenter.setSensitivity(sensitivity);
-            presenter.setLightingThreshold(threshold);
-            presenter.setLanguage(language);
-            presenter.setGeminiApiKey(apiKey);
-
-            Toast.makeText(this, "Ajustes guardados", Toast.LENGTH_SHORT).show();
-
-            // Return to menu
-            binding.settingsLayout.getRoot().setVisibility(View.GONE);
-            presenter.setMode("Menu");
-            binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
-        });
-
         // Start calibration automatically
         openCalibration();
         
@@ -305,6 +276,9 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
     @Override
     public void updateLiveData(AppLiveData appLiveData) {
+        // Capture the current detection output reference to avoid issues with concurrent updates
+        final com.mike.lets.vision.DetectionOutput currentOutput = appLiveData.DetectionOutput;
+        
         runOnUiThread(() -> {
             if (appLiveData.calibrationInstruction != null) {
                 binding.sampleText.setText(appLiveData.calibrationInstruction);
@@ -343,11 +317,11 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                 });
             }
 
-            if (appLiveData.DetectionOutput != null) {
+            if (currentOutput != null) {
                 // Update Gaze Type and Loss
-                if (appLiveData.DetectionOutput.AnalyzedData != null) {
-                    int gazeType = appLiveData.DetectionOutput.AnalyzedData.GazeType;
-                    String type = appLiveData.DetectionOutput.AnalyzedData.getTypeString(gazeType);
+                if (currentOutput.AnalyzedData != null) {
+                    int gazeType = currentOutput.AnalyzedData.GazeType;
+                    String type = currentOutput.AnalyzedData.getTypeString(gazeType);
                     binding.gazeTypeText.setText("Overall Gaze Type: " + type);
                     binding.lossText.setText(String.format("Overall Loss: %.2f", appLiveData.DetectionOutput.AnalyzedData.GazeProbability));
 
@@ -454,52 +428,50 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
                 // Update Eye Image (using high-res mat at index 3 if available, else index 0)
                 Mat eyeMat = null;
-                if (appLiveData.DetectionOutput.testingMats != null) {
-                    if (appLiveData.DetectionOutput.testingMats.length > 3 && appLiveData.DetectionOutput.testingMats[3] != null) {
-                        eyeMat = appLiveData.DetectionOutput.testingMats[3];
-                    } else if (appLiveData.DetectionOutput.testingMats[0] != null) {
-                        eyeMat = appLiveData.DetectionOutput.testingMats[0];
+                if (currentOutput.testingMats != null) {
+                    if (currentOutput.testingMats.length > 3 && currentOutput.testingMats[3] != null) {
+                        eyeMat = currentOutput.testingMats[3];
+                    } else if (currentOutput.testingMats[0] != null) {
+                        eyeMat = currentOutput.testingMats[0];
                     }
                 }
 
                 if (eyeMat != null && !eyeMat.empty()) {
-                    Mat rgbaEye = new Mat();
-                    if (eyeMat.channels() == 3) {
-                        org.opencv.imgproc.Imgproc.cvtColor(eyeMat, rgbaEye, org.opencv.imgproc.Imgproc.COLOR_BGR2RGBA);
-                    } else {
-                        eyeMat.copyTo(rgbaEye);
-                    }
+                    try {
+                        Mat rgbaEye = new Mat();
+                        if (eyeMat.channels() == 3) {
+                            org.opencv.imgproc.Imgproc.cvtColor(eyeMat, rgbaEye, org.opencv.imgproc.Imgproc.COLOR_BGR2RGBA);
+                        } else if (eyeMat.channels() == 1) {
+                            org.opencv.imgproc.Imgproc.cvtColor(eyeMat, rgbaEye, org.opencv.imgproc.Imgproc.COLOR_GRAY2RGBA);
+                        } else {
+                            eyeMat.copyTo(rgbaEye);
+                        }
 
-                    Bitmap eyeBitmap = Bitmap.createBitmap(rgbaEye.cols(), rgbaEye.rows(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(rgbaEye, eyeBitmap);
-                    binding.eyeImageView.setImageBitmap(eyeBitmap);
-                    
-                    // Also update the preview in the calibration menu if it's visible
-                    if (binding.calibrationLayout.getRoot().getVisibility() == View.VISIBLE) {
-                        binding.calibrationLayout.calibrationEyePreview.setImageBitmap(eyeBitmap);
+                        if (!rgbaEye.empty()) {
+                            Bitmap eyeBitmap = Bitmap.createBitmap(rgbaEye.cols(), rgbaEye.rows(), Bitmap.Config.ARGB_8888);
+                            Utils.matToBitmap(rgbaEye, eyeBitmap);
+                            binding.eyeImageView.setImageBitmap(eyeBitmap);
+                            
+                            if (binding.calibrationLayout.getRoot().getVisibility() == View.VISIBLE) {
+                                binding.calibrationLayout.calibrationEyePreview.setImageBitmap(eyeBitmap);
+                            }
+                        }
+                        rgbaEye.release();
+                    } catch (Exception e) {
+                        Log.e("MainActivity", "Error displaying eye preview", e);
                     }
-                    rgbaEye.release();
                 }
                 
-                // We DON'T release testing mats here because the Presenter might need them for calibration capture.
-                // The Model will be responsible for releasing old mats in classifyGaze.
+                // Release the testing mats now that the UI thread has finished drawing them
+                if (currentOutput != null) {
+                    currentOutput.release();
+                }
             }
         });
     }
 
     @Override
     public void openSettings() {
-        runOnUiThread(() -> {
-            binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
-            binding.calibrationLayout.getRoot().setVisibility(View.GONE);
-            binding.settingsLayout.getRoot().setVisibility(View.VISIBLE);
-
-            // Populate values
-            binding.settingsLayout.sliderSensitivity.setValue((float) presenter.getSensitivity());
-            binding.settingsLayout.sliderThreshold.setValue((float) presenter.getLightingThreshold());
-            binding.settingsLayout.editLanguage.setText(presenter.getLanguage());
-            binding.settingsLayout.editApiKey.setText(presenter.getGeminiApiKey());
-        });
     }
 
     @Override

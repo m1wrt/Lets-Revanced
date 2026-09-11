@@ -11,6 +11,7 @@ public class LlamaCppClient {
     private static final String TAG = "LlamaCppClient";
     private long nativePtr = 0;
     private boolean isInitializing = false;
+    private final java.util.concurrent.ExecutorService llmExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     static {
         System.loadLibrary("lets");
@@ -21,18 +22,20 @@ public class LlamaCppClient {
         void onError(String error);
     }
 
-    public synchronized void initialize(Context context, String modelName, LLMCallback callback) {
-        if (nativePtr != 0) {
-            callback.onSuccess("Model already loaded");
-            return;
-        }
-        if (isInitializing) {
-            callback.onSuccess("Model is already loading...");
-            return;
+    public void initialize(Context context, String modelName, LLMCallback callback) {
+        synchronized (this) {
+            if (nativePtr != 0) {
+                callback.onSuccess("Model already loaded");
+                return;
+            }
+            if (isInitializing) {
+                callback.onSuccess("Model is already loading...");
+                return;
+            }
+            isInitializing = true;
         }
         
-        isInitializing = true;
-        new Thread(() -> {
+        llmExecutor.execute(() -> {
             try {
                 String modelPath = copyModelFromAssets(context, modelName);
                 if (modelPath != null) {
@@ -58,22 +61,34 @@ public class LlamaCppClient {
                 }
                 callback.onError(e.getMessage());
             }
-        }).start();
+        });
     }
 
     public void getCompletion(String contextText, String keywords, LLMCallback callback) {
-        if (nativePtr == 0) {
-            Log.e(TAG, "Llama not initialized");
-            callback.onError("Llama not initialized");
-            return;
+        synchronized (this) {
+            if (nativePtr == 0) {
+                Log.e(TAG, "Llama not initialized");
+                callback.onError("Llama not initialized");
+                return;
+            }
+            
+            // Cancel pending task if any (only works if task hasn't started)
+            // But since it's a SingleThreadExecutor, we can't easily "remove" from queue.
+            // A better way is to use a volatile variable to hold the latest keywords.
         }
 
-        new Thread(() -> {
+        llmExecutor.execute(() -> {
+            long currentPtr;
+            synchronized (this) {
+                currentPtr = nativePtr;
+            }
+            
+            if (currentPtr == 0) return;
+
             try {
                 String prompt = formatPrompt(contextText, keywords);
-                Log.d(TAG, "Sending prompt to native: " + prompt);
-                String result = nativeGetCompletion(nativePtr, prompt);
-                Log.d(TAG, "Received result from native: " + result);
+                Log.d(TAG, "Executing LLM request: " + keywords);
+                String result = nativeGetCompletion(currentPtr, prompt);
                 if (result != null) {
                     callback.onSuccess(result.trim());
                 } else {
@@ -83,7 +98,7 @@ public class LlamaCppClient {
                 Log.e(TAG, "Error during completion", e);
                 callback.onError(e.getMessage());
             }
-        }).start();
+        });
     }
 
     private String formatPrompt(String contextText, String keywords) {

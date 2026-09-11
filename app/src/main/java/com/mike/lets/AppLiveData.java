@@ -19,5 +19,7 @@ public class AppLiveData {
     public boolean isWordMode = false;
     public int predictionPage = 0;
 
-    void setDetectionOutput(DetectionOutput detectionOutput) { this.DetectionOutput = detectionOutput; }
+    void setDetectionOutput(DetectionOutput detectionOutput) { 
+        this.DetectionOutput = detectionOutput; 
+    }
 }
