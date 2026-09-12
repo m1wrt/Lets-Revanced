@@ -113,8 +113,15 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(3));
 
         binding.mainMenuLayout.btnAdjustLlm.setOnClickListener(v -> {
-            Toast.makeText(this, "Ajustes de LLM (En desarrollo)", Toast.LENGTH_SHORT).show();
-            // Aquí se podrían abrir los ajustes del modelo
+            binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.settingsMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("Settings");
+        });
+
+        binding.settingsMenuLayout.btnBackSettings.setOnClickListener(v -> {
+            binding.settingsMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("Menu");
         });
         
         binding.mainMenuLayout.editContext.addTextChangedListener(new android.text.TextWatcher() {
@@ -128,7 +135,11 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             }
         });
 
-        binding.mainMenuLayout.topBarLayout.btnAjustes.setOnClickListener(v -> presenter.setMode("Settings"));
+        binding.mainMenuLayout.topBarLayout.btnAjustes.setOnClickListener(v -> {
+            binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.settingsMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("Settings");
+        });
         binding.mainMenuLayout.topBarLayout.btnCalibracion.setOnClickListener(v -> openCalibration());
         binding.mainMenuLayout.topBarLayout.btnHome.setOnClickListener(v -> {
             binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
