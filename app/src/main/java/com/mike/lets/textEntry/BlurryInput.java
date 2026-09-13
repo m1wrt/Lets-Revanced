@@ -36,14 +36,16 @@ public class BlurryInput {
     private Context context;
 
     /**
-     * Inicializa el sistema, carga el diccionario y asegura que las letras individuales estén presentes.
+     * Inicializa el sistema y carga el diccionario.
      */
     public void initialize(Context context, String contextText) {
         this.context = context;
         this.currentContext = contextText != null ? contextText.toLowerCase() : "";
-        wordList.clear();
-        wordToCodeMap.clear();
-        internalInputCode.setLength(0);
+        
+        if (!wordList.isEmpty()) {
+            updateContext(contextText);
+            return; // Ya inicializado
+        }
 
         // 1. Agregar letras individuales para permitir el deletreo letra por letra
         for (char c = 'a'; c <= 'z'; c++) {
@@ -56,6 +58,13 @@ public class BlurryInput {
         loadWordsFromAssets(context, "SpanishWords.txt");
         
         rebuildCodeMap();
+    }
+
+    /**
+     * Actualiza el contexto de la conversación sin reiniciar el sistema ni borrar el buffer.
+     */
+    public void updateContext(String contextText) {
+        this.currentContext = contextText != null ? contextText.toLowerCase() : "";
     }
 
     private void rebuildCodeMap() {

@@ -41,8 +41,8 @@ public class TextEntryManager {
 
     public void setConversationContext(String context) {
         this.conversationContext = context != null ? context : "";
-        // También inicializamos BlurryInput con el nuevo contexto para el filtrado de palabras
-        blurryInput.initialize(blurryInput.getContext(), this.conversationContext);
+        // Usamos updateContext para evitar reiniciar el buffer de entrada y el diccionario
+        blurryInput.updateContext(this.conversationContext);
     }
 
     public void manageUserInput(int gazeType, boolean isLive) {
@@ -145,7 +145,7 @@ public class TextEntryManager {
         wordModeUI = false;
         
         this.conversationContext = ""; // Limpiar contexto por cada palabra confirmada
-        blurryInput.initialize(blurryInput.getContext(), ""); // Limpiar también el contexto del buscador de palabras
+        blurryInput.updateContext(""); // Limpiar también el contexto del buscador de palabras sin reiniciar todo
         this.justSelectedWord = true;
         this.llmPrediction = ""; // Limpiar la predicción anterior para no mezclar
         triggerLLM(); // Consulta al LLM al confirmar palabra
