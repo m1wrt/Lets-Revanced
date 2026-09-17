@@ -1,0 +1,256 @@
+{
+  "root": [
+    {
+      "palabras": "fome massa",
+      "oracion": "Estou com fome, quero massa."
+    },
+    {
+      "palabras": "mudar canal",
+      "oracion": "Quero mudar o canal da televisão."
+    },
+    {
+      "palabras": "sede",
+      "oracion": "Estou com sede, preciso beber algo."
+    },
+    {
+      "palabras": "dormir",
+      "oracion": "com sono"
+    },
+    {
+      "palabras": "fome maçã pera",
+      "oracion": "Estou com fome, quero uma maçã e uma pera."
+    },
+    {
+      "palabras": "fome sopa",
+      "oracion": "Estou com fome, quero uma sopa."
+    },
+    {
+      "palabras": "fome macarrão queijo",
+      "oracion": "Estou com fome, quero macarrão com queijo."
+    },
+    {
+      "palabras": "sede água",
+      "oracion": "Estou com sede, preciso beber água."
+    },
+    {
+      "palabras": "sono",
+      "oracion": "Estou com sono."
+    },
+    {
+      "palabras": "sono dormir",
+      "oracion": "Estou com sono, preciso ir dormir."
+    },
+    {
+      "palabras": "preciso remédio",
+      "oracion": "Preciso tomar meus remédios."
+    },
+    {
+      "palabras": "preciso mudar canal",
+      "oracion": "Preciso mudar de canal."
+    },
+    {
+      "palabras": "canal mudar",
+      "oracion": "Preciso mudar de canal."
+    },
+    {
+      "palabras": "fome hambúrguer batatas",
+      "oracion": "Estou com fome, quero um hambúrguer com batatas."
+    },
+    {
+      "palabras": "ligar rádio",
+      "oracion": "Quero ligar o rádio."
+    },
+    {
+      "palabras": "mudar estação",
+      "oracion": "Quero mudar a estação de rádio."
+    },
+    {
+      "palabras": "banheiro",
+      "oracion": "banheiro"
+    },
+    {
+      "palabras": "banheiro",
+      "oracion": "Preciso ir ao banheiro."
+    },
+    {
+      "palabras": "dor",
+      "oracion": "Estou com dor."
+    },
+    {
+      "palabras": "dor cabeça",
+      "oracion": "Minha cabeça dói."
+    },
+    {
+      "palabras": "dor joelho",
+      "oracion": "Tenho dor no joelho."
+    },
+    {
+      "palabras": "nervoso",
+      "oracion": "Sinto-me nervoso."
+    },
+    {
+      "palabras": "tomar banho",
+      "oracion": "Preciso tomar banho."
+    },
+    {
+      "palabras": "olá",
+      "oracion": "Olá, como você está?"
+    },
+    {
+      "palabras": "como você está",
+      "oracion": "Como você está?"
+    },
+    {
+      "palabras": "alegre",
+      "oracion": "Fico feliz."
+    },
+    {
+      "palabras": "triste",
+      "oracion": "Sinto-me triste."
+    },
+    {
+      "palabras": "feliz",
+      "oracion": "Sinto-me feliz."
+    },
+    {
+      "palabras": "olá",
+      "oracion": "bem e você"
+    },
+    {
+      "palabras": "bem e você",
+      "oracion": "Bem, e você?"
+    },
+    {
+      "palabras": "almoço sopa",
+      "oracion": "Quero almoçar uma sopa."
+    },
+    {
+      "palabras": "jantar",
+      "oracion": "Quero jantar."
+    },
+    {
+      "palabras": "tomar café",
+      "oracion": "Quero tomar café da manhã."
+    },
+    {
+      "palabras": "xixi",
+      "oracion": "Preciso ir ao banheiro."
+    },
+    {
+      "palabras": "cocô",
+      "oracion": "Preciso ir ao banheiro."
+    },
+    {
+      "palabras": "beber",
+      "oracion": "Preciso beber algo."
+    },
+    {
+      "palabras": "beber água",
+      "oracion": "Preciso beber água."
+    },
+    {
+      "palabras": "beber vinho",
+      "oracion": "Quero tomar uma taça de vinho."
+    },
+    {
+      "palabras": "desligar televisão",
+      "oracion": "Quero desligar a televisão."
+    },
+    {
+      "palabras": "desligar ventilador",
+      "oracion": "Quero desligar o ventilador."
+    },
+    {
+      "palabras": "ligar ventilador",
+      "oracion": "Quero ligar o ventilador."
+    },
+    {
+      "palabras": "vovó fome",
+      "oracion": "A vovó está com fome."
+    },
+    {
+      "palabras": "cachorro fome",
+      "oracion": "O cachorro está com fome."
+    },
+    {
+      "palabras": "fome gato",
+      "oracion": "O gato está com fome."
+    },
+    {
+      "palabras": "ler",
+      "oracion": "Preciso ler."
+    },
+    {
+      "palabras": "ler livro",
+      "oracion": "Quero ler um livro."
+    },
+    {
+      "palabras": "passar livro",
+      "oracion": "Você poderia me passar o livro?"
+    },
+    {
+      "palabras": "música",
+      "oracion": "Quero ouvir música."
+    },
+    {
+      "palabras": "mudar música",
+      "oracion": "Quero mudar a música."
+    },
+    {
+      "palabras": "música anterior",
+      "oracion": "Quero voltar para a música anterior."
+    },
+    {
+      "palabras": "próxima música",
+      "oracion": "Quero avançar para a próxima música."
+    },
+    {
+      "palabras": "carregar bateria",
+      "oracion": "Preciso carregar a bateria."
+    },
+    {
+      "palabras": "acender luz",
+      "oracion": "Quero acender a luz."
+    },
+    {
+      "palabras": "apagar luz",
+      "oracion": "Quero apagar a luz."
+    },
+    {
+      "palabras": "coceira costas",
+      "oracion": "Minhas costas estão coçando."
+    },
+    {
+      "palabras": "dor pé",
+      "oracion": "Estou com dor no pé."
+    },
+    {
+      "palabras": "aumentar volume música",
+      "oracion": "Quero aumentar o volume da música."
+    },
+    {
+      "palabras": "preciso oftalmologista",
+      "oracion": "Preciso ir ao oftalmologista."
+    },
+    {
+      "palabras": "enviar mensagem",
+      "oracion": "Preciso enviar uma mensagem."
+    },
+    {
+      "palabras": "enviar mensagem mãe",
+      "oracion": "Preciso enviar uma mensagem para minha mãe."
+    },
+    {
+      "palabras": "visitar",
+      "oracion": "Preciso visitar alguém."
+    },
+    {
+      "palabras": "hora",
+      "oracion": "Que horas são?"
+    },
+    {
+      "palabras": "um dois três",
+      "oracion": "123"
+    }
+  ]
+}

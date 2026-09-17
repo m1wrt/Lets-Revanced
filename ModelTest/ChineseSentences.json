@@ -1,0 +1,256 @@
+{
+    "root": [
+        {
+            "palabras": "hunger pasta",
+            "oracion": "我很饿，我想吃面条。"
+        },
+        {
+            "palabras": "change channel",
+            "oracion": "我想换电视频道。"
+        },
+        {
+            "palabras": "thirst",
+            "oracion": "我很渴，需要喝点东西。"
+        },
+        {
+            "palabras": "sleep",
+            "oracion": "困"
+        },
+        {
+            "palabras": "hunger apple pear",
+            "oracion": "我很饿，想吃一个苹果和一个梨。"
+        },
+        {
+            "palabras": "hunger soup",
+            "oracion": "我很饿，想喝汤。"
+        },
+        {
+            "palabras": "hunger macaroni cheese",
+            "oracion": "我很饿，想吃奶酪通心粉。"
+        },
+        {
+            "palabras": "thirst water",
+            "oracion": "我很渴，需要喝水。"
+        },
+        {
+            "palabras": "sleepy",
+            "oracion": "我困了。"
+        },
+        {
+            "palabras": "sleepy go to sleep",
+            "oracion": "我困了，需要去睡觉。"
+        },
+        {
+            "palabras": "need medication",
+            "oracion": "我需要吃药。"
+        },
+        {
+            "palabras": "need change channel",
+            "oracion": "我需要换个频道。"
+        },
+        {
+            "palabras": "channel change",
+            "oracion": "我需要换频道。"
+        },
+        {
+            "palabras": "hunger burger fries",
+            "oracion": "我很饿，想吃汉堡和薯条。"
+        },
+        {
+            "palabras": "turn on radio",
+            "oracion": "我想打开收音机。"
+        },
+        {
+            "palabras": "change station",
+            "oracion": "我想换收音机台。"
+        },
+        {
+            "palabras": "bathroom",
+            "oracion": "卫生间"
+        },
+        {
+            "palabras": "bathroom",
+            "oracion": "我需要去卫生间。"
+        },
+        {
+            "palabras": "pain",
+            "oracion": "我感到疼痛。"
+        },
+        {
+            "palabras": "headache",
+            "oracion": "我头痛。"
+        },
+        {
+            "palabras": "knee pain",
+            "oracion": "我膝盖疼。"
+        },
+        {
+            "palabras": "nervous",
+            "oracion": "我感到紧张。"
+        },
+        {
+            "palabras": "take a bath",
+            "oracion": "我需要洗澡。"
+        },
+        {
+            "palabras": "hello",
+            "oracion": "你好，你好吗？"
+        },
+        {
+            "palabras": "how are you",
+            "oracion": "你好吗？"
+        },
+        {
+            "palabras": "glad",
+            "oracion": "很高兴。"
+        },
+        {
+            "palabras": "sad",
+            "oracion": "我感到难过。"
+        },
+        {
+            "palabras": "happy",
+            "oracion": "我感到高兴。"
+        },
+        {
+            "palabras": "hello",
+            "oracion": "我很好，你呢"
+        },
+        {
+            "palabras": "good and you",
+            "oracion": "很好，你呢？"
+        },
+        {
+            "palabras": "lunch soup",
+            "oracion": "我想吃午餐汤"
+        },
+        {
+            "palabras": "dinner",
+            "oracion": "我想吃晚餐。"
+        },
+        {
+            "palabras": "breakfast",
+            "oracion": "我想吃早餐。"
+        },
+        {
+            "palabras": "urinate",
+            "oracion": "我需要去洗手间。"
+        },
+        {
+            "palabras": "defecate",
+            "oracion": "我需要去洗手间。"
+        },
+        {
+            "palabras": "drink",
+            "oracion": "我需要喝点东西。"
+        },
+        {
+            "palabras": "drink water",
+            "oracion": "我需要喝水。"
+        },
+        {
+            "palabras": "drink wine",
+            "oracion": "我想喝一杯葡萄酒。"
+        },
+        {
+            "palabras": "turn off television",
+            "oracion": "我想关掉电视。"
+        },
+        {
+            "palabras": "turn off fan",
+            "oracion": "我想关掉风扇。"
+        },
+        {
+            "palabras": "turn on fan",
+            "oracion": "我想打开风扇。"
+        },
+        {
+            "palabras": "grandma hunger",
+            "oracion": "奶奶饿了。"
+        },
+        {
+            "palabras": "dog hunger",
+            "oracion": "狗饿了。"
+        },
+        {
+            "palabras": "cat hunger",
+            "oracion": "猫饿了。"
+        },
+        {
+            "palabras": "read",
+            "oracion": "我需要阅读。"
+        },
+        {
+            "palabras": "read book",
+            "oracion": "我想看书。"
+        },
+        {
+            "palabras": "pass book",
+            "oracion": "你能把书递给我吗？"
+        },
+        {
+            "palabras": "music",
+            "oracion": "我想听音乐。"
+        },
+        {
+            "palabras": "change song",
+            "oracion": "我想换首歌。"
+        },
+        {
+            "palabras": "rewind song",
+            "oracion": "我想倒回上一首歌。"
+        },
+        {
+            "palabras": "fast forward song",
+            "oracion": "我想快进这首歌。"
+        },
+        {
+            "palabras": "battery charge",
+            "oracion": "我需要给电池充电。"
+        },
+        {
+            "palabras": "turn on light",
+            "oracion": "我想开灯。"
+        },
+        {
+            "palabras": "turn off light",
+            "oracion": "我想关灯。"
+        },
+        {
+            "palabras": "itchy back",
+            "oracion": "我背部发痒。"
+        },
+        {
+            "palabras": "foot pain",
+            "oracion": "我脚疼。"
+        },
+        {
+            "palabras": "increase music volume",
+            "oracion": "我想调高音乐音量。"
+        },
+        {
+            "palabras": "need ophthalmologist",
+            "oracion": "我需要去看眼科医生。"
+        },
+        {
+            "palabras": "send message",
+            "oracion": "我需要发信息。"
+        },
+        {
+            "palabras": "send message mom",
+            "oracion": "我需要给我妈妈发信息。"
+        },
+        {
+            "palabras": "visit",
+            "oracion": "我需要去拜访某人。"
+        },
+        {
+            "palabras": "time",
+            "oracion": "几点钟了？"
+        },
+        {
+            "palabras": "one two three",
+            "oracion": "123"
+        }
+    ]
+}

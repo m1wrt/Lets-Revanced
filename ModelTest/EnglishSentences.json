@@ -1,0 +1,276 @@
+{
+  "root": [
+    {
+      "palabras": "hungry pasta",
+      "oracion": "I am hungry, I want pasta."
+    },
+    {
+      "palabras": "change channel",
+      "oracion": "I want to change the TV channel."
+    },
+    {
+      "palabras": "thirsty",
+      "oracion": "I am thirsty, I need to drink something."
+    },
+    {
+      "palabras": "sleep",
+      "oracion": "sleepy"
+    },
+    {
+      "palabras": "hungry apple pear",
+      "oracion": "I am hungry, I want an apple and a pear."
+    },
+    {
+      "palabras": "hungry soup",
+      "oracion": "I am hungry, I want soup."
+    },
+    {
+      "palabras": "hungry macaroni cheese",
+      "oracion": "I am hungry, I want macaroni and cheese."
+    },
+    {
+      "palabras": "thirsty water",
+      "oracion": "I am thirsty, I need to drink water."
+    },
+    {
+      "palabras": "sleepy",
+      "oracion": "I am sleepy."
+    },
+    {
+      "palabras": "sleepy sleep",
+      "oracion": "I am sleepy, I need to go to sleep."
+    },
+    {
+      "palabras": "need medicine",
+      "oracion": "I need to take my medicine."
+    },
+    {
+      "palabras": "need change channel",
+      "oracion": "I need to change the channel."
+    },
+    {
+      "palabras": "channel change",
+      "oracion": "I need to change the channel."
+    },
+    {
+      "palabras": "hungry burger fries",
+      "oracion": "I am hungry, I want a burger with fries."
+    },
+    {
+      "palabras": "turn on radio",
+      "oracion": "I want to turn on the radio."
+    },
+    {
+      "palabras": "change station",
+      "oracion": "I want to change the radio station."
+    },
+    {
+      "palabras": "bathroom",
+      "oracion": "bathroom"
+    },
+    {
+      "palabras": "bathroom",
+      "oracion": "I need to go to the bathroom."
+    },
+    {
+      "palabras": "pain",
+      "oracion": "I have pain."
+    },
+    {
+      "palabras": "head pain",
+      "oracion": "My head hurts."
+    },
+    {
+      "palabras": "knee pain",
+      "oracion": "I have pain in my knee."
+    },
+    {
+      "palabras": "nervous",
+      "oracion": "I feel nervous."
+    },
+    {
+      "palabras": "bathe",
+      "oracion": "I need to take a shower."
+    },
+    {
+      "palabras": "hello",
+      "oracion": "Hello, how are you?"
+    },
+    {
+      "palabras": "how are you",
+      "oracion": "How are you?"
+    },
+    {
+      "palabras": "glad",
+      "oracion": "I am glad."
+    },
+    {
+      "palabras": "sad",
+      "oracion": "I feel sad."
+    },
+    {
+      "palabras": "happy",
+      "oracion": "I feel happy."
+    },
+    {
+      "palabras": "hello",
+      "oracion": "good and you"
+    },
+    {
+      "palabras": "good and you",
+      "oracion": "Good, and you?"
+    },
+    {
+      "palabras": "lunch soup",
+      "oracion": "I want to have soup for lunch."
+    },
+    {
+      "palabras": "dinner",
+      "oracion": "I want to have dinner."
+    },
+    {
+      "palabras": "breakfast",
+      "oracion": "I want to have breakfast."
+    },
+    {
+      "palabras": "pee",
+      "oracion": "I need to go to the bathroom."
+    },
+    {
+      "palabras": "poop",
+      "oracion": "I need to go to the bathroom."
+    },
+    {
+      "palabras": "drink",
+      "oracion": "I need to drink something."
+    },
+    {
+      "palabras": "drink water",
+      "oracion": "I need to drink water."
+    },
+    {
+      "palabras": "drink wine",
+      "oracion": "I want to drink a glass of wine."
+    },
+    {
+      "palabras": "turn off tv",
+      "oracion": "I want to turn off the TV."
+    },
+    {
+      "palabras": "turn off fan",
+      "oracion": "I want to turn off the fan."
+    },
+    {
+      "palabras": "turn on fan",
+      "oracion": "I want to turn on the fan."
+    },
+    {
+      "palabras": "grandma hungry",
+      "oracion": "Grandma is hungry."
+    },
+    {
+      "palabras": "dog hungry",
+      "oracion": "The dog is hungry."
+    },
+    {
+      "palabras": "hungry cat",
+      "oracion": "The cat is hungry."
+    },
+    {
+      "palabras": "read",
+      "oracion": "I need to read."
+    },
+    {
+      "palabras": "read book",
+      "oracion": "I want to read a book."
+    },
+    {
+      "palabras": "pass book",
+      "oracion": "Could you pass me the book?"
+    },
+    {
+      "palabras": "music",
+      "oracion": "I want to listen to music."
+    },
+    {
+      "palabras": "change song",
+      "oracion": "I want to change the song."
+    },
+    {
+      "palabras": "previous song",
+      "oracion": "I want to go back to the previous song."
+    },
+    {
+      "palabras": "next song",
+      "oracion": "I want to skip to the next song."
+    },
+    {
+      "palabras": "charge battery",
+      "oracion": "I need to charge the battery."
+    },
+    {
+      "palabras": "turn on light",
+      "oracion": "I want to turn on the light."
+    },
+    {
+      "palabras": "turn off light",
+      "oracion": "I want to turn off the light."
+    },
+    {
+      "palabras": "itchy back",
+      "oracion": "My back itches."
+    },
+    {
+      "palabras": "foot pain",
+      "oracion": "I have pain in my foot."
+    },
+    {
+      "palabras": "volume up music",
+      "oracion": "I want to turn up the music volume."
+    },
+    {
+      "palabras": "need eye doctor",
+      "oracion": "I need to see the eye doctor."
+    },
+    {
+      "palabras": "send message",
+      "oracion": "I need to send a message."
+    },
+    {
+      "palabras": "send message mom",
+      "oracion": "I need to send a message to my mom."
+    },
+    {
+      "palabras": "visit",
+      "oracion": "I need to visit someone."
+    },
+    {
+      "palabras": "time",
+      "oracion": "What time is it?"
+    },
+    {
+      "palabras": "one two three",
+      "oracion": "123"
+    },
+    {
+      "palabras": "need help",
+      "oracion": "I need help."
+    },
+    {
+      "palabras": "yes",
+      "oracion": "Yes, please."
+    },
+    {
+      "palabras": "no",
+      "oracion": "No, thank you."
+    },
+    {
+      "palabras": "please",
+      "oracion": "Please help me."
+    },
+    {
+      "palabras": "wait",
+      "oracion": "Please wait."
+    }
+  ]
+}

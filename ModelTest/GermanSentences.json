@@ -1,0 +1,256 @@
+{
+    "root": [
+        {
+            "palabras": "Hunger Nudeln",
+            "oracion": "Ich habe Hunger, ich möchte Nudeln."
+        },
+        {
+            "palabras": "Kanal wechseln",
+            "oracion": "Ich möchte den Fernsehkanal wechseln."
+        },
+        {
+            "palabras": "Durst",
+            "oracion": "Ich habe Durst, ich muss etwas trinken."
+        },
+        {
+            "palabras": "schlafen",
+            "oracion": "Müdigkeit"
+        },
+        {
+            "palabras": "Hunger Apfel Birne",
+            "oracion": "Ich habe Hunger, ich möchte einen Apfel und eine Birne"
+        },
+        {
+            "palabras": "Hunger Suppe",
+            "oracion": "Ich habe Hunger, ich möchte eine Suppe."
+        },
+        {
+            "palabras": "Hunger Makkaroni Käse",
+            "oracion": "Ich habe Hunger, ich möchte Makkaroni mit Käse."
+        },
+        {
+            "palabras": "Durst Wasser",
+            "oracion": "Ich habe Durst, ich muss Wasser trinken."
+        },
+        {
+            "palabras": "müde",
+            "oracion": "Ich bin müde."
+        },
+        {
+            "palabras": "müde schlafen",
+            "oracion": "Ich bin müde, ich muss schlafen gehen."
+        },
+        {
+            "palabras": "Medikament nötig",
+            "oracion": "Ich muss meine Medikamente nehmen"
+        },
+        {
+            "palabras": "Kanal wechseln nötig",
+            "oracion": "Ich muss den Kanal wechseln."
+        },
+        {
+            "palabras": "Kanal wechseln",
+            "oracion": "Ich muss den Kanal wechseln"
+        },
+        {
+            "palabras": "Hunger Burger Pommes",
+            "oracion": "Ich habe Hunger, ich möchte einen Burger mit Pommes."
+        },
+        {
+            "palabras": "Radio einschalten",
+            "oracion": "Ich möchte das Radio einschalten."
+        },
+        {
+            "palabras": "Sender wechseln",
+            "oracion": "Ich möchte den Radiosender wechseln."
+        },
+        {
+            "palabras": "Bad",
+            "oracion": "Bad"
+        },
+        {
+            "palabras": "Bad",
+            "oracion": "Ich muss auf die Toilette."
+        },
+        {
+            "palabras": "Schmerz",
+            "oracion": "Ich habe Schmerzen."
+        },
+        {
+            "palabras": "Kopfschmerzen",
+            "oracion": "Mein Kopf tut weh."
+        },
+        {
+            "palabras": "Kniemeißel Schmerz",
+            "oracion": "Ich habe Schmerzen im Knie."
+        },
+        {
+            "palabras": "nervös",
+            "oracion": "Ich fühle mich nervös."
+        },
+        {
+            "palabras": "baden",
+            "oracion": "Ich muss baden."
+        },
+        {
+            "palabras": "Hallo",
+            "oracion": "Hallo, wie geht es dir?"
+        },
+        {
+            "palabras": "wie geht es dir",
+            "oracion": "Wie geht es dir?"
+        },
+        {
+            "palabras": "freue mich",
+            "oracion": "Das freut mich."
+        },
+        {
+            "palabras": "traurig",
+            "oracion": "Ich fühle mich traurig."
+        },
+        {
+            "palabras": "glücklich",
+            "oracion": "Ich fühle mich glücklich."
+        },
+        {
+            "palabras": "hallo",
+            "oracion": "gut und dir"
+        },
+        {
+            "palabras": "gut und dir",
+            "oracion": "Gut, und dir?"
+        },
+        {
+            "palabras": "Mittagessen Suppe",
+            "oracion": "Ich möchte zu Mittag eine Suppe essen"
+        },
+        {
+            "palabras": "Abendessen",
+            "oracion": "Ich möchte zu Abend essen."
+        },
+        {
+            "palabras": "frühstücken",
+            "oracion": "Ich möchte frühstücken."
+        },
+        {
+            "palabras": "urinieren",
+            "oracion": "Ich muss auf die Toilette."
+        },
+        {
+            "palabras": "stuhlgang",
+            "oracion": "Ich muss auf die Toilette."
+        },
+        {
+            "palabras": "trinken",
+            "oracion": "Ich muss etwas trinken."
+        },
+        {
+            "palabras": "Wasser trinken",
+            "oracion": "Ich muss Wasser trinken."
+        },
+        {
+            "palabras": "Wein trinken",
+            "oracion": "Ich möchte ein Glas Wein trinken."
+        },
+        {
+            "palabras": "Fernseher ausschalten",
+            "oracion": "Ich möchte den Fernseher ausschalten."
+        },
+        {
+            "palabras": "Ventilator ausschalten",
+            "oracion": "Ich möchte den Ventilator ausschalten."
+        },
+        {
+            "palabras": "Ventilator einschalten",
+            "oracion": "Ich möchte den Ventilator einschalten."
+        },
+        {
+            "palabras": "Oma Hunger",
+            "oracion": "Oma ist hungrig."
+        },
+        {
+            "palabras": "Hund Hunger",
+            "oracion": "Der Hund hat Hunger"
+        },
+        {
+            "palabras": "Katze Hunger",
+            "oracion": "Die Katze hat Hunger."
+        },
+        {
+            "palabras": "lesen",
+            "oracion": "Ich muss lesen."
+        },
+        {
+            "palabras": "Buch lesen",
+            "oracion": "Ich möchte ein Buch lesen."
+        },
+        {
+            "palabras": "Buch reichen",
+            "oracion": "Könntest du mir das Buch reichen?"
+        },
+        {
+            "palabras": "Musik",
+            "oracion": "Ich möchte Musik hören."
+        },
+        {
+            "palabras": "Lied wechseln",
+            "oracion": "Ich möchte das Lied wechseln."
+        },
+        {
+            "palabras": "Lied zurückspulen",
+            "oracion": "Ich möchte zum vorherigen Lied zurückgehen."
+        },
+        {
+            "palabras": "Lied vorspulen",
+            "oracion": "Ich möchte das Lied vorspulen."
+        },
+        {
+            "palabras": "Akku laden",
+            "oracion": "Ich muss den Akku aufladen."
+        },
+        {
+            "palabras": "Licht einschalten",
+            "oracion": "Ich möchte das Licht einschalten."
+        },
+        {
+            "palabras": "Licht ausschalten",
+            "oracion": "Ich möchte das Licht ausschalten."
+        },
+        {
+            "palabras": "juckender Rücken",
+            "oracion": "Mein Rücken juckt."
+        },
+        {
+            "palabras": "Fußschmerz",
+            "oracion": "Ich habe Schmerzen im Fuß."
+        },
+        {
+            "palabras": "Musik lauter machen",
+            "oracion": "Ich möchte die Musik lauter machen."
+        },
+        {
+            "palabras": "Augenarzt nötig",
+            "oracion": "Ich muss zum Augenarzt gehen."
+        },
+        {
+            "palabras": "Nachricht senden",
+            "oracion": "Ich muss eine Nachricht senden."
+        },
+        {
+            "palabras": "Nachricht an Mama senden",
+            "oracion": "Ich muss meiner Mama eine Nachricht senden"
+        },
+        {
+            "palabras": "besuchen",
+            "oracion": "Ich muss jemanden besuchen."
+        },
+        {
+            "palabras": "Uhrzeit",
+            "oracion": "Wie spät ist es?"
+        },
+        {
+            "palabras": "eins zwei drei",
+            "oracion": "123"
+        }
+    ]
+}

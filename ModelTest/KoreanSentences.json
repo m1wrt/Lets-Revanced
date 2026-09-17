@@ -1,0 +1,256 @@
+{
+    "root": [
+        {
+            "palabras": "hunger pasta",
+            "oracion": "배고파요, 파스타 먹고 싶어요."
+        },
+        {
+            "palabras": "change channel",
+            "oracion": "TV 채널을 바꾸고 싶어요."
+        },
+        {
+            "palabras": "thirst",
+            "oracion": "목이 마르, 뭐 좀 마시고 싶어요."
+        },
+        {
+            "palabras": "sleep",
+            "oracion": "졸려요"
+        },
+        {
+            "palabras": "hunger apple pear",
+            "oracion": "배고파요, 사과랑 배 먹고 싶어요"
+        },
+        {
+            "palabras": "hunger soup",
+            "oracion": "배고파요, 수프 먹고 싶어요."
+        },
+        {
+            "palabras": "hunger macaroni cheese",
+            "oracion": "배고파요, 치즈 마카로니 먹고 싶어요."
+        },
+        {
+            "palabras": "thirst water",
+            "oracion": "목이 마르, 물 마셔야 해요."
+        },
+        {
+            "palabras": "sleepy",
+            "oracion": "졸려요."
+        },
+        {
+            "palabras": "sleepy go to sleep",
+            "oracion": "졸려요, 자러 가야 해요."
+        },
+        {
+            "palabras": "need medication",
+            "oracion": "약을 먹어야 해요"
+        },
+        {
+            "palabras": "need change channel",
+            "oracion": "채널을 바꿔야 해요."
+        },
+        {
+            "palabras": "channel change",
+            "oracion": "채널을 바꿔야 해요"
+        },
+        {
+            "palabras": "hunger burger fries",
+            "oracion": "배고파요, 햄버거랑 감자튀김 먹고 싶어요."
+        },
+        {
+            "palabras": "turn on radio",
+            "oracion": "라디오를 켜고 싶어요."
+        },
+        {
+            "palabras": "change station",
+            "oracion": "라디오 방송국을 바꾸고 싶어요."
+        },
+        {
+            "palabras": "bathroom",
+            "oracion": "화장실"
+        },
+        {
+            "palabras": "bathroom",
+            "oracion": "화장실에 가야 해요."
+        },
+        {
+            "palabras": "pain",
+            "oracion": "아파요."
+        },
+        {
+            "palabras": "headache",
+            "oracion": "머리가 아파요."
+        },
+        {
+            "palabras": "knee pain",
+            "oracion": "무릎이 아파요."
+        },
+        {
+            "palabras": "nervous",
+            "oracion": "긴장돼요."
+        },
+        {
+            "palabras": "take a bath",
+            "oracion": "목욕을 해야 해요."
+        },
+        {
+            "palabras": "hello",
+            "oracion": "안녕하세요, 어떻게 지내세요?"
+        },
+        {
+            "palabras": "how are you",
+            "oracion": "어떻게 지내세요?"
+        },
+        {
+            "palabras": "glad",
+            "oracion": "다행이네요."
+        },
+        {
+            "palabras": "sad",
+            "oracion": "슬퍼요."
+        },
+        {
+            "palabras": "happy",
+            "oracion": "행복해요."
+        },
+        {
+            "palabras": "hello",
+            "oracion": "잘 지내요, 당신은요"
+        },
+        {
+            "palabras": "good and you",
+            "oracion": "잘 지내요, 당신은요?"
+        },
+        {
+            "palabras": "lunch soup",
+            "oracion": "점심으로 수프를 먹고 싶어요"
+        },
+        {
+            "palabras": "dinner",
+            "oracion": "저녁을 먹고 싶어요."
+        },
+        {
+            "palabras": "breakfast",
+            "oracion": "아침을 먹고 싶어요."
+        },
+        {
+            "palabras": "urinate",
+            "oracion": "화장실에 가야 해요."
+        },
+        {
+            "palabras": "defecate",
+            "oracion": "화장실에 가야 해요."
+        },
+        {
+            "palabras": "drink",
+            "oracion": "뭐 좀 마시고 싶어요."
+        },
+        {
+            "palabras": "drink water",
+            "oracion": "물 마셔야 해요."
+        },
+        {
+            "palabras": "drink wine",
+            "oracion": "와인 한 잔 마시고 싶어요."
+        },
+        {
+            "palabras": "turn off television",
+            "oracion": "TV를 끄고 싶어요."
+        },
+        {
+            "palabras": "turn off fan",
+            "oracion": "선풍기를 끄고 싶어요."
+        },
+        {
+            "palabras": "turn on fan",
+            "oracion": "선풍기를 켜고 싶어요."
+        },
+        {
+            "palabras": "grandma hunger",
+            "oracion": "할머니가 배고프대요."
+        },
+        {
+            "palabras": "dog hunger",
+            "oracion": "강아지가 배고파요"
+        },
+        {
+            "palabras": "cat hunger",
+            "oracion": "고양이가 배고파요."
+        },
+        {
+            "palabras": "read",
+            "oracion": "책을 읽어야 해요."
+        },
+        {
+            "palabras": "read book",
+            "oracion": "책을 읽고 싶어요."
+        },
+        {
+            "palabras": "pass book",
+            "oracion": "책 좀 건네주시겠어요?"
+        },
+        {
+            "palabras": "music",
+            "oracion": "음악을 듣고 싶어요."
+        },
+        {
+            "palabras": "change song",
+            "oracion": "노래를 바꾸고 싶어요."
+        },
+        {
+            "palabras": "rewind song",
+            "oracion": "이전 노래로 돌아가고 싶어요."
+        },
+        {
+            "palabras": "fast forward song",
+            "oracion": "노래를 빨리감기하고 싶어요."
+        },
+        {
+            "palabras": "battery charge",
+            "oracion": "배터리를 충전해야 해요."
+        },
+        {
+            "palabras": "turn on light",
+            "oracion": "불을 켜고 싶어요."
+        },
+        {
+            "palabras": "turn off light",
+            "oracion": "불을 끄고 싶어요."
+        },
+        {
+            "palabras": "itchy back",
+            "oracion": "등이 가려워요."
+        },
+        {
+            "palabras": "foot pain",
+            "oracion": "발이 아파요."
+        },
+        {
+            "palabras": "increase music volume",
+            "oracion": "음악 소리를 키우고 싶어요."
+        },
+        {
+            "palabras": "need ophthalmologist",
+            "oracion": "안과에 가야 해요."
+        },
+        {
+            "palabras": "send message",
+            "oracion": "메시지를 보내야 해요."
+        },
+        {
+            "palabras": "send message mom",
+            "oracion": "엄마에게 메시지를 보내야 해요"
+        },
+        {
+            "palabras": "visit",
+            "oracion": "누군가를 방문해야 해요."
+        },
+        {
+            "palabras": "time",
+            "oracion": "지금 몇 시예요?"
+        },
+        {
+            "palabras": "one two three",
+            "oracion": "123"
+        }
+    ]
+}

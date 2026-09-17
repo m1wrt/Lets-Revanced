@@ -1,0 +1,256 @@
+{
+  "root": [
+    {
+      "palabras": "morta pasta",
+      "oracion": "Mi estas malsata, mi volas paston."
+    },
+    {
+      "palabras": "ŝanĝi kanalon",
+      "oracion": "Mi volas ŝanĝi la televidan kanalon."
+    },
+    {
+      "palabras": "soifo",
+      "oracion": "Mi estas soifa, mi devas trinki ion."
+    },
+    {
+      "palabras": "dormi",
+      "oracion": "dormema"
+    },
+    {
+      "palabras": "malsato pomo piro",
+      "oracion": "Mi estas malsata, mi volas pomon kaj piron."
+    },
+    {
+      "palabras": "malsato supo",
+      "oracion": "Mi estas malsata, mi volas supon."
+    },
+    {
+      "palabras": "malsato makaronoj kazo",
+      "oracion": "Mi estas malsata, mi volas makaroniojn kun kazo."
+    },
+    {
+      "palabras": "soifo akvo", 
+      "oracion": "Mi estas soifa, mi devas trinki akvon."
+    },
+    {
+      "palabras": "dormemo",
+      "oracion": "Mi estas dormema."
+    },
+    {
+      "palabras": "dormemo dormi",
+      "oracion": "Mi estas dormema, mi devas iri dormi."
+    },
+    {
+      "palabras": "bezonas medicinon",
+      "oracion": "Mi devas preni miajn medikamentojn."
+    },
+    {
+      "palabras": "bezonas ŝanĝi kanalon",
+      "oracion": "Mi devas ŝanĝi la kanalon."
+    },
+    {
+      "palabras": "kanalo ŝanĝi",
+      "oracion": "Mi devas ŝanĝi la kanalon."
+    },
+    {
+      "palabras": "malsato hamburgero terpomoj",
+      "oracion": "Mi estas malsata, mi volas hamburgeron kun frititaj terpomoj."
+    },
+    {
+      "palabras": "ŝalti radion",
+      "oracion": "Mi volas ŝalti la radion."
+    },
+    {
+      "palabras": "ŝanĝi stacion",
+      "oracion": "Mi volas ŝanĝi la radiostacion."
+    },
+    {
+      "palabras": "banĉambro",
+      "oracion": "banĉambro"
+    },
+    {
+      "palabras": "banĉambro",
+      "oracion": "Mi devas iri al la banĉambro."
+    },
+    {
+      "palabras": "doloro",
+      "oracion": "Mi havas doloron."
+    },
+    {
+      "palabras": "doloro kapo",
+      "oracion": "Mia kapo doloras."
+    },
+    {
+      "palabras": "doloro genuo",
+      "oracion": "Mi havas doloron en la genuo."
+    },
+    {
+      "palabras": "nervoza",
+      "oracion": "Mi seentas nervoza."
+    },
+    {
+      "palabras": "bani",
+      "oracion": "Mi devas bani min."
+    },
+    {
+      "palabras": "saluton",
+      "oracion": "Saluton, kiel vi fartas?"
+    },
+    {
+      "palabras": "kiel vi fartas",
+      "oracion": "Kiel vi fartas?"
+    },
+    {
+      "palabras": "ĝoja",
+      "oracion": "Mi ĝojas."
+    },
+    {
+      "palabras": "malamo",
+      "oracion": "Mi seentas malĝoja."
+    },
+    {
+      "palabras": "feliĉa",
+      "oracion": "Mi seentas feliĉa."
+    },
+    {
+      "palabras": "saluton",
+      "oracion": "bone kaj vi"
+    },
+    {
+      "palabras": "bone kaj vi",
+      "oracion": "Bone, kaj vi?"
+    },
+    {
+      "palabras": "tagmanĝo supo",
+      "oracion": "Mi volas tagmanĝi supon."
+    },
+    {
+      "palabras": "vespermanĝo",
+      "oracion": "Mi volas vespermanĝi."
+    },
+    {
+      "palabras": "matenmanĝi",
+      "oracion": "Mi volas matenmanĝi."
+    },
+    {
+      "palabras": "pisi",
+      "oracion": "Mi devas iri al la banĉambro."
+    },
+    {
+      "palabras": "feki",
+      "oracion": "Mi devas iri al la banĉambro."
+    },
+    {
+      "palabras": "trinki",
+      "oracion": "Mi devas trinki ion."
+    },
+    {
+      "palabras": "trinki akvon",
+      "oracion": "Mi devas trinki akvon."
+    },
+    {
+      "palabras": "trinki vinon",
+      "oracion": "Mi volas trinki glason da vino."
+    },
+    {
+      "palabras": "estingi televidon",
+      "oracion": "Mi volas estingi la televidon."
+    },
+    {
+      "palabras": "estingi ventolilon",
+      "oracion": "Mi volas estingi la ventolilon."
+    },
+    {
+      "palabras": "ŝalti ventolilon",
+      "oracion": "Mi volas ŝalti la ventolilon."
+    },
+    {
+      "palabras": "avino malsato",
+      "oracion": "La avino estas malsata."
+    },
+    {
+      "palabras": "hundo malsato",
+      "oracion": "La hundo estas malsata."
+    },
+    {
+      "palabras": "malsato kato",
+      "oracion": "La kato estas malsata."
+    },
+    {
+      "palabras": "legi",
+      "oracion": "Mi devas legi."
+    },
+    {
+      "palabras": "legi libron",
+      "oracion": "Mi volas legi libron."
+    },
+    {
+      "palabras": "donu libron",
+      "oracion": "Ĉu vi povus doni al mi la libron?"
+    },
+    {
+      "palabras": "muziko",
+      "oracion": "Mi volas aŭskulti muzikon."
+    },
+    {
+      "palabras": "ŝanĝi kanton",
+      "oracion": "Mi volas ŝanĝi la kanton."
+    },
+    {
+      "palabras": "antaŭa kanto",
+      "oracion": "Mi volas reiri al la antaŭa kanto."
+    },
+    {
+      "palabras": "sekva kanto",
+      "oracion": "Mi volas iri al la sekva kanto."
+    },
+    {
+      "palabras": "ŝargi baterion",
+      "oracion": "Mi devas ŝargi la baterion."
+    },
+    {
+      "palabras": "ŝalti lumon",
+      "oracion": "Mi volas ŝalti la lumon."
+    },
+    {
+      "palabras": "estingi lumon",
+      "oracion": "Mi volas estingi la lumon."
+    },
+    {
+      "palabras": "juki dorso",
+      "oracion": "Mia dorso jukas."
+    },
+    {
+      "palabras": "doloro piedo",
+      "oracion": "Mi havas doloron en la piedo."
+    },
+    {
+      "palabras": "plialtigi volumon muziko",
+      "oracion": "Mi volas plialtigi la muzikan volumon."
+    },
+    {
+      "palabras": "bezonas okulkuraciston",
+      "oracion": "Mi devas iri al la okulkuracisto."
+    },
+    {
+      "palabras": "sendi mesaĝon",
+      "oracion": "Mi devas sendi mesaĝon."
+    },
+    {
+      "palabras": "sendi mesaĝon panjo",
+      "oracion": "Mi devas sendi mesaĝon al mia panjo."
+    },
+    {
+      "palabras": "viziti",
+      "oracion": "Mi devas viziti iun."
+    },
+    {
+      "palabras": "horo",
+      "oracion": "Kiom da horo estas?"
+    },
+    {
+      "palabras": "unu du tri",
+      "oracion": "123"
+    }
+  ]
+}

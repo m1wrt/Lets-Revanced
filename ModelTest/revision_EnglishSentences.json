@@ -1,0 +1,62 @@
+[
+  {
+    "palabras": "thirsty drink",
+    "oracion": "",
+    "correcta": false,
+    "correccion": "I am thirsty, I need to drink something."
+  },
+  {
+    "palabras": "need bathe",
+    "oracion": "I need to bathe.",
+    "correcta": true,
+    "correccion": "I need to bathe."
+  },
+  {
+    "palabras": "turn off radio",
+    "oracion": "I want to turn off the radio.",
+    "correcta": true,
+    "correccion": "I want to turn off the radio."
+  },
+  {
+    "palabras": "pass medicine",
+    "oracion": "I need to take my medicine.",
+    "correcta": false,
+    "correccion": "Could you pass me the medicine?"
+  },
+  {
+    "palabras": "hungry soup pasta",
+    "oracion": "I'm hungry, I want a soup with pasta.",
+    "correcta": false,
+    "correccion": "I am hungry, I want soup and pasta."
+  },
+  {
+    "palabras": "knee pain help",
+    "oracion": "I have pain in my knee. I want to find out how to feel better.",
+    "correcta": false,
+    "correccion": "I have pain in my knee, I need help."
+  },
+  {
+    "palabras": "hello how are you",
+    "oracion": "good, and you?",
+    "correcta": false,
+    "correccion": "Hello, how are you?"
+  },
+  {
+    "palabras": "turn on tv",
+    "oracion": "I want to turn on the TV.",
+    "correcta": true,
+    "correccion": "I want to turn on the TV."
+  },
+  {
+    "palabras": "volume up radio",
+    "oracion": "I want to turn the radio volume up.",
+    "correcta": true,
+    "correccion": "I want to turn the radio volume up."
+  },
+  {
+    "palabras": "need bathroom",
+    "oracion": "I need to go to the bathroom.",
+    "correcta": true,
+    "correccion": "I need to go to the bathroom."
+  }
+]
