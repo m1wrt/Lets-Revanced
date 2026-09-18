@@ -250,7 +250,74 @@
         },
         {
             "palabras": "uno dos tres",
-            "oracion": "123"
-        }
+            "oracion": "123",
+            "NOTA": "!! IMPLEMENTAR SISTEMA Q CONVIERTA TEXTO A NUMEROS Y SI ESTA ACOMPAÑADO DE ETIQUETA HORA {NUMERO} Y {NUMERO} "
+        },
+        {
+            "palabras": "medicamento seis tarde",
+            "oracion": "Debo tomar el medicamento a las seis de la tarde."
+        },
+        {
+            "palabras": "quiero teatro",
+            "oracion": "Quiero ver una obra."
+        },
+        {
+            "palabras": "quiero obra teatro de elena",
+            "oracion": "Quiero ir a ver la obra de teatro de elena."
+        },
+        {
+            "palabras": "quiero piscina con jose",
+            "oracion": "Quiero ir a la piscina con josé."
+        },
+        {
+            "palabras": "aramis oler mal deshodorante",
+            "oracion": "Aramis huele mal, necesita desodorante."
+        },
+        {
+            "palabras": "nick guitarra tocar bien",
+            "oracion": "Nick toca bien la guitarra."
+        },
+        {
+            "palabras": "quiero cenar noche",
+            "oracion": "Quiero cenar esta noche."
+        },
+        {
+            "palabras": "morir miedo",
+            "oracion": "Tengo miedo a morir."
+        },
+        {
+            "palabras": "quien eres", 
+            "oracion": "¿Quién eres tú?"
+        },
+        {
+            "palabras": "quien es tipo",
+            "oracion": "¿Quién es ese tipo?"
+        },
+        {
+            "palabras": "tele anime", 
+            "oracion": "Pon anime en la tele."
+        },
+        {
+            "palabras": "chocha pica",
+            "oracion": "Me pica la chocha."
+        }, 
+        {
+            "palabras": "recordar poner partido beisbol cuatro",
+            "oracion": "Recuerdame poner el partido de béisbol a las cuatro."
+        },
+        {
+            "palabras":"viajar japon playa",
+            "oracion": "Quiero viajar a Japón y pasar tiempo en la playa."
+        },
+        {
+            "palabras": "comprar vinilo rock",
+            "oracion": "Quiero comprar vinilo rock."
+        },
+        {
+            "palabras": "quiero buscar internet bananas",
+            "oracion": "Quiero buscar bananas en internet."
+        },
+
+
     ]
 }
