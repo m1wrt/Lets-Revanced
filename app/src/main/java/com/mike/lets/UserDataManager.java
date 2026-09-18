@@ -49,6 +49,7 @@ public class UserDataManager extends Application {
     private String accessToken = "";
     private String accessTokenSecret = "";
     private String geminiApiKey = "";
+    private String llmModelPath = "";
 
     private Bitmap[] leftCalibrationData;
     private Bitmap[] rightCalibrationData;
@@ -72,6 +73,7 @@ public class UserDataManager extends Application {
         defaultSettings.put("RequestTokenSecret", "");
         defaultSettings.put("SentenceGenerationModel", "1");
         defaultSettings.put("GeminiApiKey", "");
+        defaultSettings.put("LlmModelPath", "");
     }
 
 
@@ -88,6 +90,7 @@ public class UserDataManager extends Application {
         requestTokenSecret = getString("RequestTokenSecret");
         sentenceGenerationModel = Integer.parseInt(getString("SentenceGenerationModel"));
         geminiApiKey = getString("GeminiApiKey");
+        llmModelPath = getString("LlmModelPath");
 
         // get calibration files
         if (getCalibrationFiles(mContext, leftEyeFileNames) != null) {
@@ -318,6 +321,15 @@ public class UserDataManager extends Application {
     public void setGeminiApiKey(String apiKey) {
         this.geminiApiKey = apiKey;
         setString("GeminiApiKey", apiKey);
+    }
+
+    public String getLlmModelPath() {
+        return llmModelPath;
+    }
+
+    public void setLlmModelPath(String llmModelPath) {
+        this.llmModelPath = llmModelPath;
+        setString("LlmModelPath", llmModelPath);
     }
 }
 

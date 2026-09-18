@@ -23,10 +23,19 @@ public class TextEntryManager {
     public void initialize(android.content.Context context, String contextText) {
         this.conversationContext = contextText != null ? contextText : "";
         blurryInput.initialize(context, contextText);
-        llmClient.initialize(context, "gemma3-1b.gguf", new LlamaCppClient.LLMCallback() {
+
+        UserDataManager userDataManager = (UserDataManager) context.getApplicationContext();
+        String savedPath = userDataManager.getLlmModelPath();
+        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.gguf";
+
+        loadModel(context, modelToLoad);
+    }
+
+    public void loadModel(android.content.Context context, String modelPath) {
+        llmClient.initialize(context, modelPath, new LlamaCppClient.LLMCallback() {
             @Override
             public void onSuccess(String prediction) {
-                Log.d("TextEntryManager", "LLM Initialized: " + prediction);
+                Log.d("TextEntryManager", "LLM Initialized with: " + modelPath);
                 if (!currentSentence.isEmpty()) {
                     triggerLLM();
                 }

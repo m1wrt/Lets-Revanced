@@ -33,6 +33,52 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/settings_title" />
 
+    <LinearLayout
+        android:id="@+id/llm_model_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/settings_content">
+
+        <Button
+            android:id="@+id/btn_import_model"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:background="@drawable/panel_background"
+            android:text="IMPORTAR MODELO (.GGUF)"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_clear_model"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/panel_background"
+            android:text="X"
+            android:textColor="@color/red"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_model_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Modelo: Predeterminado (gemma3-1b.gguf)"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/llm_model_container" />
+
     <Button
         android:id="@+id/btn_back_settings"
         android:layout_width="200dp"

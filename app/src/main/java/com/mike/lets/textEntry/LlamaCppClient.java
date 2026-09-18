@@ -22,14 +22,13 @@ public class LlamaCppClient {
         void onError(String error);
     }
 
-    public void initialize(Context context, String modelName, LLMCallback callback) {
+    public void initialize(Context context, String modelNameOrPath, LLMCallback callback) {
         synchronized (this) {
             if (nativePtr != 0) {
-                callback.onSuccess("Model already loaded");
-                return;
+                release(); // Release existing model if any
             }
             if (isInitializing) {
-                callback.onSuccess("Model is already loading...");
+                callback.onError("Model is already loading...");
                 return;
             }
             isInitializing = true;
@@ -37,8 +36,16 @@ public class LlamaCppClient {
         
         llmExecutor.execute(() -> {
             try {
-                String modelPath = copyModelFromAssets(context, modelName);
-                if (modelPath != null) {
+                String modelPath;
+                if (modelNameOrPath.startsWith("/")) {
+                    // It's already an absolute path
+                    modelPath = modelNameOrPath;
+                } else {
+                    // It's a name in assets
+                    modelPath = copyModelFromAssets(context, modelNameOrPath);
+                }
+
+                if (modelPath != null && new File(modelPath).exists()) {
                     long ptr = nativeInit(modelPath);
                     synchronized (this) {
                         nativePtr = ptr;
@@ -53,7 +60,7 @@ public class LlamaCppClient {
                     synchronized (this) {
                         isInitializing = false;
                     }
-                    callback.onError("Model file not found in assets");
+                    callback.onError("Model file not found: " + modelNameOrPath);
                 }
             } catch (Exception e) {
                 synchronized (this) {

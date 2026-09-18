@@ -194,6 +194,11 @@ public class Presenter implements ContractInterface.Presenter {
     }
 
     @Override
+    public void loadLlmModel(String path) {
+        textEntryManager.loadModel(applicationContext, path);
+    }
+
+    @Override
     public void onDestroy() {
         textEntryManager.release();
         if (soundPool != null) {

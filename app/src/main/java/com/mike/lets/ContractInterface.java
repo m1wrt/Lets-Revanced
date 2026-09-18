@@ -42,5 +42,6 @@ public interface ContractInterface {
         void onGazeButtonClicked(int input); // acciÃ³n cuando el usuario pulsa una opciÃ³n de mirada
         void updateContext(String context);
         void setLlmPrediction(String prediction);
+        void loadLlmModel(String path);
     }
 }

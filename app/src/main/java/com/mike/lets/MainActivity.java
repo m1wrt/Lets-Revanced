@@ -2,6 +2,8 @@ package com.mike.lets;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
@@ -12,7 +14,9 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
@@ -48,6 +52,15 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     private ActivityMainBinding binding;
     private ContractInterface.Presenter presenter;
     private ExecutorService cameraExecutor;
+
+    private final ActivityResultLauncher<String> importModelLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            uri -> {
+                if (uri != null) {
+                    processImportedModel(uri);
+                }
+            }
+    );
 
     private final android.content.BroadcastReceiver textGenerationReceiver = new android.content.BroadcastReceiver() {
         @Override
@@ -123,6 +136,23 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
             presenter.setMode("Menu");
         });
+
+        binding.settingsMenuLayout.btnImportModel.setOnClickListener(v -> importModelLauncher.launch("*/*"));
+        
+        binding.settingsMenuLayout.btnClearModel.setOnClickListener(v -> {
+            UserDataManager userDataManager = (UserDataManager) getApplicationContext();
+            userDataManager.setLlmModelPath("");
+            presenter.loadLlmModel("gemma3-1b.gguf");
+            binding.settingsMenuLayout.tvModelStatus.setText("Modelo: Predeterminado (gemma3-1b.gguf)");
+            Toast.makeText(this, "Modelo predeterminado restaurado", Toast.LENGTH_SHORT).show();
+        });
+
+        // Initialize status text
+        UserDataManager udm = (UserDataManager) getApplicationContext();
+        String currentPath = udm.getLlmModelPath();
+        if (currentPath != null && !currentPath.isEmpty()) {
+            binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + new java.io.File(currentPath).getName());
+        }
         
         binding.mainMenuLayout.editContext.addTextChangedListener(new android.text.TextWatcher() {
             @Override
@@ -499,4 +529,59 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     }
 
     public native String stringFromJNI();
+
+    private void processImportedModel(Uri uri) {
+        try {
+            String fileName = getFileName(uri);
+            if (fileName == null || !fileName.endsWith(".gguf")) {
+                Toast.makeText(this, "Por favor selecciona un archivo .gguf", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Copy file to internal storage
+            java.io.File destFile = new java.io.File(getFilesDir(), fileName);
+            try (java.io.InputStream is = getContentResolver().openInputStream(uri);
+                 java.io.FileOutputStream os = new java.io.FileOutputStream(destFile)) {
+                byte[] buffer = new byte[1024 * 4];
+                int read;
+                while ((read = is.read(buffer)) != -1) {
+                    os.write(buffer, 0, read);
+                }
+            }
+
+            UserDataManager userDataManager = (UserDataManager) getApplicationContext();
+            userDataManager.setLlmModelPath(destFile.getAbsolutePath());
+            
+            presenter.loadLlmModel(destFile.getAbsolutePath());
+            
+            binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + fileName);
+            Toast.makeText(this, "Modelo importado: " + fileName, Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            Log.e("MainActivity", "Error importing model", e);
+            Toast.makeText(this, "Error al importar modelo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (index != -1) {
+                        result = cursor.getString(index);
+                    }
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
 }

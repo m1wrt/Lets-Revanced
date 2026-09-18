@@ -16,4 +16,5 @@
     <color name="text_area_background">#1E1E1E</color>
     <color name="button_color">#BB86FC</color>
     <color name="status_text_color">#03DAC5</color>
+    <color name="red">#FF0000</color>
 </resources>
