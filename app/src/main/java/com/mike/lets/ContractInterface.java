@@ -22,6 +22,9 @@ public interface ContractInterface {
         void openSettings();
         void openCalibration();
         void clearContext();
+        void showCompletoPopup(String userText, String llmText);
+        void speakText(String text);
+        void closePopup();
     }
 
     interface Model {
@@ -43,5 +46,7 @@ public interface ContractInterface {
         void updateContext(String context);
         void setLlmPrediction(String prediction);
         void loadLlmModel(String path);
+        void setLanguage(String language);
+        void clearSelection();
     }
 }

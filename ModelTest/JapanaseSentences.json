@@ -1,0 +1,325 @@
+{
+    "root": [
+        {
+            "palabras": "onaka suita pasuta",
+            "oracion": "お腹が空いた。パスタが食べたい。"
+        },
+        {
+            "palabras": "terebi channeru kaetai",
+            "oracion": "テレビのチャンネルを変えたいです。"
+        },
+        {
+            "palabras": "kawaita",
+            "oracion": "喉が渇いた。"
+        },
+        {
+            "palabras": "nemui",
+            "oracion": "眠い。"
+        },
+        {
+            "palabras": "onaka suita ringo nashi",
+            "oracion": "お腹が空いた。リンゴと梨が食べたい。"
+        },
+        {
+            "palabras": "onaka suita shiru",
+            "oracion": "お腹が空いた。スープが食べたい。"
+        },
+        {
+            "palabras": "onaka suita makkaroni chizu",
+            "oracion": "お腹が空いた。マカロニとチーズが食べたい。"
+        },
+        {
+            "palabras": "kawaita mizu",
+            "oracion": "喉が渇いた。水を飲みたい。"
+        },
+        {
+            "palabras": "nemui",
+            "oracion": "眠いです。"
+        },
+        {
+            "palabras": "nemui neru",
+            "oracion": "眠いです。寝たいです。"
+        },
+        {
+            "palabras": "kusuri hitsuyou",
+            "oracion": "薬が必要です。"
+        },
+        {
+            "palabras": "channeru kaetai",
+            "oracion": "チャンネルを変えたいです。"
+        },
+        {
+            "palabras": "channeru kaete",
+            "oracion": "チャンネルを変えたいです。"
+        },
+        {
+            "palabras": "onaka suita hanbaagu poteto",
+            "oracion": "お腹が空いた。ハンバーガーとポテトが食べたい。"
+        },
+        {
+            "palabras": "rajio tsukete",
+            "oracion": "ラジオをつけたい。"
+        },
+        {
+            "palabras": "rajio hoso kaete",
+            "oracion": "ラジオの周波数を変えたい。"
+        },
+        {
+            "palabras": "ofuro",
+            "oracion": "お風呂。"
+        },
+        {
+            "palabras": "toire ni ikitai",
+            "oracion": "トイレに行きたいです。"
+        },
+        {
+            "palabras": "itai",
+            "oracion": "痛いです。"
+        },
+        {
+            "palabras": "atama itai",
+            "oracion": "頭が痛いです。"
+        },
+        {
+            "palabras": "hiza itai",
+            "oracion": "膝が痛いです。"
+        },
+        {
+            "palabras": "shinpai",
+            "oracion": "緊張しています。"
+        },
+        {
+            "palabras": "abiru",
+            "oracion": "お風呂に入りたい。"
+        },
+        {
+            "palabras": "konnichiwa",
+            "oracion": "こんにちは。"
+        },
+        {
+            "palabras": "genki desu ka",
+            "oracion": "元気ですか？"
+        },
+        {
+            "palabras": "ureshii",
+            "oracion": "うれしいです。"
+        },
+        {
+            "palabras": "kanashii",
+            "oracion": "悲しいです。"
+        },
+        {
+            "palabras": "shiawase",
+            "oracion": "幸せです。"
+        },
+        {
+            "palabras": "konnichiwa",
+            "oracion": "こんにちは。"
+        },
+        {
+            "palabras": "genki desu",
+            "oracion": "元気です。あなたは？"
+        },
+        {
+            "palabras": "hiru gohan shiru",
+            "oracion": "昼ごはんにスープが食べたい。"
+        },
+        {
+            "palabras": "yuushoku",
+            "oracion": "夕食を食べたい。"
+        },
+        {
+            "palabras": "asagohan",
+            "oracion": "朝ごはんを食べたい。"
+        },
+        {
+            "palabras": "shoben",
+            "oracion": "トイレに行きたい。"
+        },
+        {
+            "palabras": "benjo",
+            "oracion": "トイレに行きたい。"
+        },
+        {
+            "palabras": "nomitai",
+            "oracion": "何か飲みたいです。"
+        },
+        {
+            "palabras": "mizu nomitai",
+            "oracion": "水を飲みたい。"
+        },
+        {
+            "palabras": "sake nomitai",
+            "oracion": "ワインを飲みたい。"
+        },
+        {
+            "palabras": "terebi keshite",
+            "oracion": "テレビを消したい。"
+        },
+        {
+            "palabras": "senpuuki keshite",
+            "oracion": "扇風機を消したい。"
+        },
+        {
+            "palabras": "senpuuki tsukete",
+            "oracion": "扇風機をつけたい。"
+        },
+        {
+            "palabras": "obaasan onaka suita",
+            "oracion": "おばあちゃんはお腹が空いている。"
+        },
+        {
+            "palabras": "inu onaka suita",
+            "oracion": "犬が空腹です。"
+        },
+        {
+            "palabras": "neko onaka suita",
+            "oracion": "猫はお腹が空いている。"
+        },
+        {
+            "palabras": "yomu",
+            "oracion": "本を読みたい。"
+        },
+        {
+            "palabras": "hon yomu",
+            "oracion": "本を読みたい。"
+        },
+        {
+            "palabras": "hon kasete",
+            "oracion": "本を貸してもらえますか？"
+        },
+        {
+            "palabras": "ongaku",
+            "oracion": "音楽を聞きたい。"
+        },
+        {
+            "palabras": "kyoku kaete",
+            "oracion": "曲を変えたい。"
+        },
+        {
+            "palabras": "mae no kyoku",
+            "oracion": "曲を戻したい。"
+        },
+        {
+            "palabras": "tsugi no kyoku",
+            "oracion": "曲を早送りしたい。"
+        },
+        {
+            "palabras": "denchi jyuden",
+            "oracion": "バッテリーを充電したい。"
+        },
+        {
+            "palabras": "denki tsukete",
+            "oracion": "電気をつけたい。"
+        },
+        {
+            "palabras": "denki keshite",
+            "oracion": "電気を消したい。"
+        },
+        {
+            "palabras": "senaka kaita",
+            "oracion": "背中がかゆいです。"
+        },
+        {
+            "palabras": "ashi itai",
+            "oracion": "足が痛いです。"
+        },
+        {
+            "palabras": "ongaku no boiru ageru",
+            "oracion": "音楽の音量を上げたい。"
+        },
+        {
+            "palabras": "gankaisha",
+            "oracion": "眼科に行きたいです。"
+        },
+        {
+            "palabras": "messeeji okuru",
+            "oracion": "メッセージを送りたいです。"
+        },
+        {
+            "palabras": "haha ni messeeji okuru",
+            "oracion": "お母さんにメッセージを送りたい。"
+        },
+        {
+            "palabras": "otozure",
+            "oracion": "誰かに会いに行きたい。"
+        },
+        {
+            "palabras": "nan ji",
+            "oracion": "今何時ですか。"
+        },
+        {
+            "palabras": "ichi ni san",
+            "oracion": "123",
+            "NOTA": "!! IMPLEMENTAR SISTEMA QUE CONVIERTA TEXTO A NÚMEROS Y SI ESTÁ ACOMPAÑADO DE ETIQUETA HORA {NUMERO} Y {NUMERO}"
+        },
+        {
+            "palabras": "kusuri roku ji gogo",
+            "oracion": "夕方六時に薬を飲む。"
+        },
+        {
+            "palabras": "gekijo ni ikitai",
+            "oracion": "劇場に行きたいです。"
+        },
+        {
+            "palabras": "Elena no gekijou ni ikitai",
+            "oracion": "エレナの舞台を見たいです。"
+        },
+        {
+            "palabras": "Jose to puuru ni ikitai",
+            "oracion": "ジョセと一緒にプールに行きたいです。"
+        },
+        {
+            "palabras": "Aramis kusai deodorant",
+            "oracion": "アラミスは臭い。デオドラントが必要です。"
+        },
+        {
+            "palabras": "Nikku guitar jozu",
+            "oracion": "ニックはギターを上手に弾く。"
+        },
+        {
+            "palabras": "konya yuushoku",
+            "oracion": "今夜、夕食を食べたい。"
+        },
+        {
+            "palabras": "shinu koto ga kowai",
+            "oracion": "死ぬのが怖いです。"
+        },
+        {
+            "palabras": "dare desu ka",
+            "oracion": "あなたは誰ですか？"
+        },
+        {
+            "palabras": "ano hito wa dare",
+            "oracion": "あの人は誰ですか？"
+        },
+        {
+            "palabras": "terebi de anime",
+            "oracion": "テレビでアニメを見たい。"
+        },
+        {
+            "palabras": "koko kaita",
+            "oracion": "ここがかゆいです。"
+        },
+        {
+            "palabras": "yobu beisuboru yo ji",
+            "oracion": "四時に野球の試合を録画してほしい。"
+        },
+        {
+            "palabras": "Nihon de umibe",
+            "oracion": "日本へ旅行して海辺に行きたい。"
+        },
+        {
+            "palabras": "rock no viniru kaimono",
+            "oracion": "ロックのレコードを買いたい。"
+        },
+        {
+            "palabras": "internet de banana kensaku",
+            "oracion": "インターネットでバナナを検索したい。"
+        },
+        {
+            "palabras": "shokudo no menu",
+            "oracion": "食事のメニューを見たい。"
+        }
+    ]
+}

@@ -317,7 +317,10 @@
             "palabras": "quiero buscar internet bananas",
             "oracion": "Quiero buscar bananas en internet."
         },
-
+        {
+            "palabras": "leer carta",
+            "oracion": "Quiero leer la carta."
+        }
 
     ]
 }

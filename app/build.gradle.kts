@@ -73,6 +73,9 @@ dependencies {
     // LLM Integration
     implementation(libs.localbroadcastmanager)
 
+    // ML Kit Translation
+    implementation("com.google.mlkit:translate:17.0.3")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)

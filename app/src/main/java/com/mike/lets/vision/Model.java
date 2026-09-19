@@ -289,6 +289,12 @@ public class Model implements ContractInterface.Model {
         } else if (faceDetector.leftEyeOpenProb <= 0.1 && faceDetector.rightEyeOpenProb <= 0.1) { // check if eyes are closed
             frameOutput.setEyeData(0, true, 5, 1, faceDetector.leftEyeOpenProb);
             frameOutput.setEyeData(1, true, 5, 1, faceDetector.rightEyeOpenProb);
+        } else if (faceDetector.leftEyeOpenProb <= 0.1 && faceDetector.rightEyeOpenProb > 0.5) { // Wink left -> Borrar
+            frameOutput.setEyeData(0, true, 3, 1, faceDetector.leftEyeOpenProb);
+            frameOutput.setEyeData(1, true, 3, 1, faceDetector.rightEyeOpenProb);
+        } else if (faceDetector.rightEyeOpenProb <= 0.1 && faceDetector.leftEyeOpenProb > 0.5) { // Wink right -> Borrar
+            frameOutput.setEyeData(0, true, 3, 1, faceDetector.leftEyeOpenProb);
+            frameOutput.setEyeData(1, true, 3, 1, faceDetector.rightEyeOpenProb);
         } else {
             if (faceDetector.leftEyeContour != null) { // left eye available
 

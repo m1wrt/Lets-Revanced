@@ -179,8 +179,28 @@ public class Presenter implements ContractInterface.Presenter {
         }
         Log.d("Presenter", "Button Pressed: " + input);
         if (Objects.equals(mode, "Menu")) {
-            textEntryManager.manageUserInput(input, false);
+            int action = textEntryManager.manageUserInput(input, false);
+            if (action == 3) {
+                mainView.showCompletoPopup(textEntryManager.getCurrentText(), textEntryManager.getLlmPrediction());
+            }
+        } else if (Objects.equals(mode, "Popup")) {
+            if (input == 1) { // Bottom Left -> Hablar
+                String textToSpeak = textEntryManager.getLlmPrediction();
+                if (textToSpeak == null || textToSpeak.isEmpty()) {
+                    textToSpeak = textEntryManager.getCurrentText();
+                }
+                mainView.speakText(textToSpeak);
+                clearSelection();
+                mainView.closePopup();
+            } else if (input == 7) { // Top Right -> Volver
+                mainView.closePopup();
+            }
         }
+    }
+
+    @Override
+    public void clearSelection() {
+        textEntryManager.clearAll();
     }
 
     @Override
@@ -196,6 +216,12 @@ public class Presenter implements ContractInterface.Presenter {
     @Override
     public void loadLlmModel(String path) {
         textEntryManager.loadModel(applicationContext, path);
+    }
+
+    @Override
+    public void setLanguage(String language) {
+        userDataManager.setLanguage(language);
+        textEntryManager.initialize(applicationContext, textEntryManager.getCurrentText());
     }
 
     @Override
@@ -239,7 +265,22 @@ public class Presenter implements ContractInterface.Presenter {
                 }
                 
                 if (Objects.equals(mode, "Menu")) {
-                    textEntryManager.manageUserInput(gazeType, true);
+                    int action = textEntryManager.manageUserInput(gazeType, true);
+                    if (action == 3) {
+                        mainView.showCompletoPopup(textEntryManager.getCurrentText(), textEntryManager.getLlmPrediction());
+                    }
+                } else if (Objects.equals(mode, "Popup")) {
+                    if (gazeType == 1) { // Bottom Left -> Hablar
+                        String textToSpeak = textEntryManager.getLlmPrediction();
+                        if (textToSpeak == null || textToSpeak.isEmpty()) {
+                            textToSpeak = textEntryManager.getCurrentText();
+                        }
+                        mainView.speakText(textToSpeak);
+                        clearSelection();
+                        mainView.closePopup();
+                    } else if (gazeType == 7) { // Top Right -> Volver
+                        mainView.closePopup();
+                    }
                 }
             }
             lastGazeType = gazeType;
@@ -252,6 +293,8 @@ public class Presenter implements ContractInterface.Presenter {
         
         if (Objects.equals(mode, "Menu")) {
             appliveData.currentText = textEntryManager.getCurrentText();
+            appliveData.translatedSentence = textEntryManager.getTranslatedSentence();
+            appliveData.translatedWord = textEntryManager.getTranslatedWord();
             List<String> predictions = textEntryManager.getPredictions();
             appliveData.isWordMode = textEntryManager.wordModeUI;
             appliveData.predictionPage = textEntryManager.predictionPage;

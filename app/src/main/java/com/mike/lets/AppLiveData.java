@@ -14,8 +14,11 @@ public class AppLiveData {
     public String calibrationInstruction;
     public boolean isRecording;
     public String currentText = "";
+    public String translatedSentence = "";
+    public String translatedWord = "";
     public String llmResponse = "";
     public java.util.List<String> predictionsList = new java.util.ArrayList<>();
+    public java.util.List<String> translatedPredictions = new java.util.ArrayList<>();
     public boolean isWordMode = false;
     public int predictionPage = 0;
 

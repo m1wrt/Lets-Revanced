@@ -52,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     private ActivityMainBinding binding;
     private ContractInterface.Presenter presenter;
     private ExecutorService cameraExecutor;
+    private android.speech.tts.TextToSpeech tts;
+    private android.app.AlertDialog popupDialog;
+    private android.view.View popupView;
 
     private final ActivityResultLauncher<String> importModelLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
@@ -101,6 +104,16 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
+        // Initialize TTS
+        tts = new android.speech.tts.TextToSpeech(this, status -> {
+            if (status == android.speech.tts.TextToSpeech.SUCCESS) {
+                UserDataManager udm = (UserDataManager) getApplicationContext();
+                String lang = udm.getLanguage();
+                java.util.Locale locale = "Japanese".equalsIgnoreCase(lang) ? java.util.Locale.JAPANESE : new java.util.Locale("es", "ES");
+                tts.setLanguage(locale);
+            }
+        });
+
         // Initialize MVP
         Model model = new Model();
         presenter = new Presenter(this, model);
@@ -137,6 +150,18 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             presenter.setMode("Menu");
         });
 
+        binding.settingsMenuLayout.btnLangSpanish.setOnClickListener(v -> {
+            presenter.setLanguage("Spanish");
+            updateLanguageUI();
+            Toast.makeText(this, "Idioma cambiado a Español", Toast.LENGTH_SHORT).show();
+        });
+
+        binding.settingsMenuLayout.btnLangJapanese.setOnClickListener(v -> {
+            presenter.setLanguage("Japanese");
+            updateLanguageUI();
+            Toast.makeText(this, "Idioma cambiado a Japonés", Toast.LENGTH_SHORT).show();
+        });
+
         binding.settingsMenuLayout.btnImportModel.setOnClickListener(v -> importModelLauncher.launch("*/*"));
         
         binding.settingsMenuLayout.btnClearModel.setOnClickListener(v -> {
@@ -153,6 +178,8 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         if (currentPath != null && !currentPath.isEmpty()) {
             binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + new java.io.File(currentPath).getName());
         }
+
+        updateLanguageUI();
         
         binding.mainMenuLayout.editContext.addTextChangedListener(new android.text.TextWatcher() {
             @Override
@@ -309,6 +336,10 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
         androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(textGenerationReceiver);
         cameraExecutor.shutdown();
@@ -368,7 +399,15 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
                     // Update Main Menu content
                     if (binding.mainMenuLayout.getRoot().getVisibility() == View.VISIBLE) {
-                        binding.mainMenuLayout.textInputDisplay.setText("Text: " + appLiveData.currentText);
+                        String display = "Text: " + appLiveData.currentText;
+                        if (appLiveData.translatedWord != null && !appLiveData.translatedWord.isEmpty()) {
+                            display += " [" + appLiveData.translatedWord + "]";
+                        }
+                        if (appLiveData.translatedSentence != null && !appLiveData.translatedSentence.isEmpty()) {
+                            display += "\n(Tr: " + appLiveData.translatedSentence + ")";
+                        }
+                        binding.mainMenuLayout.textInputDisplay.setText(display);
+                        
                         binding.mainMenuLayout.llmDisplay.setText("LLM: " + appLiveData.llmResponse);
                         
                         String[] groups = {"ABCDEF", "GHIJKLM", "NOPQRST", "UVWXYZ"};
@@ -465,6 +504,18 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         binding.mainMenuLayout.btnCambiar.setBackgroundResource(gazeType == 5 ? R.drawable.llm_area_background : R.drawable.panel_background);
                         binding.mainMenuLayout.btnBorrar.setBackgroundResource(gazeType == 3 ? R.drawable.llm_area_background : R.drawable.panel_background);
                     }
+                    
+                    // Highlight Popup buttons if visible
+                    if (popupView != null && popupDialog != null && popupDialog.isShowing()) {
+                        android.view.View btnHablar = popupView.findViewById(R.id.btn_popup_hablar);
+                        android.view.View btnVolver = popupView.findViewById(R.id.btn_popup_volver);
+                        if (btnHablar != null) {
+                            btnHablar.setBackgroundResource(gazeType == 1 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        }
+                        if (btnVolver != null) {
+                            btnVolver.setBackgroundResource(gazeType == 7 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        }
+                    }
                 }
 
                 // Update Eye Image (using high-res mat at index 3 if available, else index 0)
@@ -508,6 +559,56 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                     currentOutput.release();
                 }
             }
+        });
+    }
+
+    @Override
+    public void showCompletoPopup(String userText, String llmText) {
+        runOnUiThread(() -> {
+            if (popupDialog != null && popupDialog.isShowing()) return;
+
+            popupView = getLayoutInflater().inflate(R.layout.popup_completo, null);
+            android.widget.TextView contentTv = popupView.findViewById(R.id.popup_content_text);
+            
+            String fullText = "Texto: " + userText;
+            if (llmText != null && !llmText.isEmpty()) {
+                fullText += "\n\nLLM: " + llmText;
+            }
+            contentTv.setText(fullText);
+
+            popupDialog = new android.app.AlertDialog.Builder(this)
+                    .setView(popupView)
+                    .setCancelable(false)
+                    .create();
+            
+            if (popupDialog.getWindow() != null) {
+                popupDialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            }
+            popupDialog.show();
+            
+            presenter.setMode("Popup");
+
+            // Manual click handlers
+            popupView.findViewById(R.id.btn_popup_volver).setOnClickListener(v -> closePopup());
+            popupView.findViewById(R.id.btn_popup_hablar).setOnClickListener(v -> presenter.onGazeButtonClicked(1));
+        });
+    }
+
+    @Override
+    public void speakText(String text) {
+        if (tts != null) {
+            tts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
+        }
+    }
+
+    @Override
+    public void closePopup() {
+        runOnUiThread(() -> {
+            if (popupDialog != null) {
+                popupDialog.dismiss();
+            }
+            popupView = null;
+            presenter.setMode("Menu");
         });
     }
 
@@ -583,5 +684,17 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             }
         }
         return result;
+    }
+
+    private void updateLanguageUI() {
+        UserDataManager udm = (UserDataManager) getApplicationContext();
+        String lang = udm.getLanguage();
+        if ("Spanish".equalsIgnoreCase(lang)) {
+            binding.settingsMenuLayout.btnLangSpanish.setBackgroundResource(R.drawable.llm_area_background);
+            binding.settingsMenuLayout.btnLangJapanese.setBackgroundResource(R.drawable.panel_background);
+        } else if ("Japanese".equalsIgnoreCase(lang)) {
+            binding.settingsMenuLayout.btnLangSpanish.setBackgroundResource(R.drawable.panel_background);
+            binding.settingsMenuLayout.btnLangJapanese.setBackgroundResource(R.drawable.llm_area_background);
+        }
     }
 }

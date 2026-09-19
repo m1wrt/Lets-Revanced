@@ -43,7 +43,7 @@ public class UserDataManager extends Application {
     public final int calibrationTemplateNum = 6; // nÃƒÂºmero de direcciones de mirada usadas para calibrar
     private int sentenceGenerationModel = 0;
     private int sensitivity = 20;
-    private String language = "English";
+    private String language = "Spanish"; // Default to Spanish as requested
     private String requestToken = "";
     private String requestTokenSecret = "";
     private String accessToken = "";
@@ -63,7 +63,7 @@ public class UserDataManager extends Application {
         dataStore = new RxPreferenceDataStoreBuilder(this, "settings").build();
 
         // set up default settings
-        defaultSettings.put("Language", "English");
+        defaultSettings.put("Language", "Spanish");
         defaultSettings.put("LightingThreshold", "0");
         defaultSettings.put("TextEntryMode", "2");
         defaultSettings.put("Sensitivity", "20");
