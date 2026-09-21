@@ -107,10 +107,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         // Initialize TTS
         tts = new android.speech.tts.TextToSpeech(this, status -> {
             if (status == android.speech.tts.TextToSpeech.SUCCESS) {
-                UserDataManager udm = (UserDataManager) getApplicationContext();
-                String lang = udm.getLanguage();
-                java.util.Locale locale = "Japanese".equalsIgnoreCase(lang) ? java.util.Locale.JAPANESE : new java.util.Locale("es", "ES");
-                tts.setLanguage(locale);
+                tts.setLanguage(new java.util.Locale("es", "ES"));
             }
         });
 
@@ -150,18 +147,6 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             presenter.setMode("Menu");
         });
 
-        binding.settingsMenuLayout.btnLangSpanish.setOnClickListener(v -> {
-            presenter.setLanguage("Spanish");
-            updateLanguageUI();
-            Toast.makeText(this, "Idioma cambiado a Español", Toast.LENGTH_SHORT).show();
-        });
-
-        binding.settingsMenuLayout.btnLangJapanese.setOnClickListener(v -> {
-            presenter.setLanguage("Japanese");
-            updateLanguageUI();
-            Toast.makeText(this, "Idioma cambiado a Japonés", Toast.LENGTH_SHORT).show();
-        });
-
         binding.settingsMenuLayout.btnImportModel.setOnClickListener(v -> importModelLauncher.launch("*/*"));
         
         binding.settingsMenuLayout.btnClearModel.setOnClickListener(v -> {
@@ -179,8 +164,6 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + new java.io.File(currentPath).getName());
         }
 
-        updateLanguageUI();
-        
         binding.mainMenuLayout.editContext.addTextChangedListener(new android.text.TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -691,15 +674,4 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         return result;
     }
 
-    private void updateLanguageUI() {
-        UserDataManager udm = (UserDataManager) getApplicationContext();
-        String lang = udm.getLanguage();
-        if ("Spanish".equalsIgnoreCase(lang)) {
-            binding.settingsMenuLayout.btnLangSpanish.setBackgroundResource(R.drawable.llm_area_background);
-            binding.settingsMenuLayout.btnLangJapanese.setBackgroundResource(R.drawable.panel_background);
-        } else if ("Japanese".equalsIgnoreCase(lang)) {
-            binding.settingsMenuLayout.btnLangSpanish.setBackgroundResource(R.drawable.panel_background);
-            binding.settingsMenuLayout.btnLangJapanese.setBackgroundResource(R.drawable.llm_area_background);
-        }
-    }
 }

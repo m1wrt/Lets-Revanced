@@ -38,7 +38,7 @@ public class BlurryInput {
     /**
      * Inicializa el sistema y carga el diccionario.
      */
-    public void initialize(Context context, String contextText, String language) {
+    public void initialize(Context context, String contextText) {
         this.context = context;
         this.currentContext = contextText != null ? contextText.toLowerCase() : "";
         
@@ -53,11 +53,8 @@ public class BlurryInput {
             wordToCodeMap.put(letter, encode(letter));
         }
 
-        // 2. Cargar diccionario principal
+        // 2. Cargar diccionario principal (Solo Español)
         String dictionaryFile = "SpanishWords.txt";
-        if ("Japanese".equalsIgnoreCase(language)) {
-            dictionaryFile = "JapaneseWords.txt";
-        }
         
         loadWordsFromAssets(context, dictionaryFile);
         

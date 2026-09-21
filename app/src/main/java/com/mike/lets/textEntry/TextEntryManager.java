@@ -30,7 +30,7 @@ public class TextEntryManager {
         UserDataManager userDataManager = (UserDataManager) context.getApplicationContext();
         this.currentLanguage = userDataManager.getLanguage();
         
-        blurryInput.initialize(context, contextText, this.currentLanguage);
+        blurryInput.initialize(context, contextText);
         
         translationManager.initialize(context, this.currentLanguage, v -> {
             Log.d("TextEntryManager", "Translation initialized for " + currentLanguage);
