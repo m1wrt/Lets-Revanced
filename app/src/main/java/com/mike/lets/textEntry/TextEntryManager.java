@@ -92,11 +92,11 @@ public class TextEntryManager {
                     predictionPage = 0;
                 }
             }
-        } else if (gazeType == 3) { // Up -> CAMBIAR a Word Mode
+        } else if (gazeType == 5) { // Wink -> CAMBIAR a Word Mode
             letterModeUI = false;
             wordModeUI = true;
             predictionPage = 0;
-        } else if (gazeType == 5) { // Both Closed -> Borrar
+        } else if (gazeType == 3 || gazeType == 4) { // Up or Both Closed -> Borrar
             if (blurryInput.isEmpty()) {
                 deleteLastWordFromSentence();
             } else {
@@ -111,17 +111,32 @@ public class TextEntryManager {
         if (gazeType == 3) { // Up -> COMPLETO
             return 3;
         }
+        
+        if (gazeType == 4) { // Both Closed -> Borrar (In Word Mode)
+            deleteLastWordFromSentence();
+            updatePredictions();
+            letterModeUI = true;
+            wordModeUI = false;
+            return 0;
+        }
 
         int wordsInPage = 3;
         int startIdx = predictionPage * wordsInPage;
 
-        if (gazeType == 5 || gazeType == 2) { // Both Closed or BR (MAS PALABRAS)
+        if (gazeType == 2) { // BR (MAS PALABRAS)
             int nextStart = (predictionPage + 1) * wordsInPage;
             if (nextStart < currentPredictions.size()) {
                 predictionPage++;
             } else {
                 predictionPage = 0; // Cycle back to first page of words
             }
+            return 0;
+        }
+
+        if (gazeType == 5) { // Wink (CAMBIAR) -> Volver a letras
+            letterModeUI = true;
+            wordModeUI = false;
+            predictionPage = 0;
             return 0;
         }
 

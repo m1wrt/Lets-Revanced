@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Encapsula la detecciÃƒÂ³n facial con MediaPipe.
+ * Encapsula la detecciÃ³n facial con MediaPipe.
  *
  * Su trabajo es localizar la cara y los puntos de referencia de los ojos
  * para que luego el modelo pueda recortar cada ojo y clasificar la mirada.

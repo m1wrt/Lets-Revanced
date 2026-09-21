@@ -132,8 +132,8 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.mainMenuLayout.panelTopRight.setOnClickListener(v -> presenter.onGazeButtonClicked(7));
         binding.mainMenuLayout.panelBottomLeft.setOnClickListener(v -> presenter.onGazeButtonClicked(1));
         binding.mainMenuLayout.panelBottomRight.setOnClickListener(v -> presenter.onGazeButtonClicked(2));
-        binding.mainMenuLayout.btnCambiar.setOnClickListener(v -> presenter.onGazeButtonClicked(3)); // Up -> Cambiar
-        binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(5)); // Both closed -> Borrar
+        binding.mainMenuLayout.btnCambiar.setOnClickListener(v -> presenter.onGazeButtonClicked(5)); // Wink -> Cambiar
+        binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(3)); // Both closed -> Borrar
 
         binding.mainMenuLayout.btnAdjustLlm.setOnClickListener(v -> {
             binding.mainMenuLayout.getRoot().setVisibility(View.GONE);

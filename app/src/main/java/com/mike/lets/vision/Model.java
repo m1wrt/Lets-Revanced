@@ -39,7 +39,7 @@ import java.util.Objects;
  * 2) Recorta la zona del ojo para cada frame.
  * 3) Compara esa ROI con plantillas calibradas.
  * 4) Combina resultados de ambos ojos para producir una mirada final.
- * 5) Devuelve un DetectionOutput con el tipo de mirada y la acciÃƒÂ³n asociada.
+ * 5) Devuelve un DetectionOutput con el tipo de mirada y la acciÃ³n asociada.
  */
 public class Model implements ContractInterface.Model {
     Context mContext, ApplicationContext;
@@ -62,10 +62,10 @@ public class Model implements ContractInterface.Model {
     
     private Bitmap reusableBitmap;
     
-    // Better wink detection fields
+    // Wink/Closed detection logic
     private int winkLength = 0;
-    private static final int WINK_DWELL_THRESHOLD = 3; 
-    private static final float WINK_SCORE_THRESHOLD = 0.45f; 
+    private static final int WINK_DWELL_THRESHOLD = 2; 
+    private static final float WINK_SCORE_THRESHOLD = 0.50f; // Sensitive enough for easy winking
 
     @Override
     public void initialize(Context context, Context applicationContext) throws IOException {
@@ -87,6 +87,9 @@ public class Model implements ContractInterface.Model {
         gazeCount = new int[gazeNum]; // change based on how many detections there are
 
         faceDetector.initialize(context); // initialize MediaPipe Face Landmarker
+        
+        // Sync sensitivity from settings
+        detector.sensitivity = userDataManager.getSensitivity() / 1000.0f;
     }
 
     @Override
@@ -150,8 +153,8 @@ public class Model implements ContractInterface.Model {
         output.gestureOutput = 0;
         if (output.AnalyzedData != null && output.AnalyzedData.Success) {
             int type = output.AnalyzedData.GazeType;
+            // Confirm immediately for gestures (3: Borrar, 5: Cambiar)
             if (type == 3 || type == 5) {
-                // Confirm immediately as they have their own temporal filtering
                 output.gestureOutput = type;
                 currentGaze = type;
                 length = DWELL_THRESHOLD;
@@ -188,8 +191,8 @@ public class Model implements ContractInterface.Model {
     }
 
     /**
-     * Genera un rectÃƒÂ¡ngulo alrededor del ojo usando los landmarks del ojo detectado.
-     * Ese rectÃƒÂ¡ngulo se usa como ROI para extraer la imagen del ojo y compararla con plantillas.
+     * Genera un rectÃ¡ngulo alrededor del ojo usando los landmarks del ojo detectado.
+     * Ese rectÃ¡ngulo se usa como ROI para extraer la imagen del ojo y compararla con plantillas.
      */
     private Rect getBoundingBox(List<PointF> points, Mat mat) {
 
@@ -245,8 +248,8 @@ public class Model implements ContractInterface.Model {
     }
 
     /**
-     * Normaliza la posiciÃƒÂ³n del iris respecto a las esquinas del ojo.
-     * Esto permite comparar la direcciÃƒÂ³n de la mirada de forma mÃƒÂ¡s estable.
+     * Normaliza la posiciÃ³n del iris respecto a las esquinas del ojo.
+     * Esto permite comparar la direcciÃ³n de la mirada de forma mÃ¡s estable.
      */
     private Point normalizeIrisCenter(Point irisCenter) {
 
@@ -257,7 +260,7 @@ public class Model implements ContractInterface.Model {
 
     /**
      * Obtiene el centro del iris y lo normaliza como NIC (Normalized Iris Center).
-     * Sirve para anÃƒÂ¡lisis extra de direcciÃƒÂ³n de mirada y debugging visual.
+     * Sirve para anÃ¡lisis extra de direcciÃ³n de mirada y debugging visual.
      */
     private Point getIrisCenter(Mat eye, DetectionOutput output) {
         Point normalized = new Point();
@@ -279,7 +282,7 @@ public class Model implements ContractInterface.Model {
 
     @Override
     public DetectionOutput classifyGaze(Mat rgbaMat) { @OptIn(markerClass = ExperimentalGetImage.class)
-        // Punto de entrada principal para cada frame de cÃƒÂ¡mara.
+        // Punto de entrada principal para cada frame de cÃ¡mara.
         // Devuelve un DetectionOutput con la mirada clasificada para ese frame.
 
         Mat leftEye = null, rightEye = null;
@@ -297,22 +300,28 @@ public class Model implements ContractInterface.Model {
         Utils.matToBitmap(rgbaMat, reusableBitmap);
         faceDetector.detect(reusableBitmap);
 
-        // Wink/Closed detection logic
+        // Wink/Closed detection logic (Blendshapes)
         float leftBlink = faceDetector.leftEyeBlinkScore;
         float rightBlink = faceDetector.rightEyeBlinkScore;
 
         boolean leftClosed = leftBlink > WINK_SCORE_THRESHOLD;
         boolean rightClosed = rightBlink > WINK_SCORE_THRESHOLD;
+        boolean leftOpen = leftBlink < 0.30f;
+        boolean rightOpen = rightBlink < 0.30f;
 
-        if (leftClosed && rightClosed) { 
+        if ((leftClosed && rightOpen) || (rightClosed && leftOpen)) { // Any Wink -> Cambiar (5)
             winkLength++;
             if (winkLength >= WINK_DWELL_THRESHOLD) {
-                // Both closed -> Borrar (5)
                 frameOutput.setEyeData(0, true, 5, 1, leftBlink);
                 frameOutput.setEyeData(1, true, 5, 1, rightBlink);
             }
+        } else if (leftClosed && rightClosed) { // Both closed -> Ignore (to avoid "Down" detection)
+            winkLength = 0;
+            frameOutput.setEyeData(0, false, 0, 0, 0);
+            frameOutput.setEyeData(1, false, 0, 0, 0);
         } else {
             winkLength = 0;
+            // Template matching for normal gaze (including Up for Borrar)
             if (faceDetector.leftEyeContour != null) { 
                 List<PointF> leftEyePoints = faceDetector.leftEyeContour;
                 Rect leftEyeBound = getBoundingBox(leftEyePoints, rgbaMat);

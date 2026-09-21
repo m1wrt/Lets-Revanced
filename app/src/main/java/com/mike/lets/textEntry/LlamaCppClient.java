@@ -110,10 +110,8 @@ public class LlamaCppClient {
 
     private String formatPrompt(String contextText, String keywords) {
         // Template exacto solicitado: <start_of_turn>user\nCrea una oración con: {{ .Prompt }}.<end_of_turn>\n<start_of_turn>model\n
+        // Se ignora contextText por completo para que la LLM local sea puramente sin memoria (stateless) de inputs anteriores
         String prompt = keywords;
-        if (!contextText.isEmpty()) {
-            prompt += " (Contexto: " + contextText + ")";
-        }
         
         return "<start_of_turn>user\n" +
                "Crea una oracion con: " + prompt + ".<end_of_turn>\n" +

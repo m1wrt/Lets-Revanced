@@ -98,6 +98,8 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
 
     // Properly clear KV cache before each completion
     llama_memory_clear(llama_get_memory(state->ctx), true);
+    // Reset sampler state to ensure no "memory" or state from previous generations remains
+    llama_sampler_reset(state->smpl);
 
     std::vector<llama_token> tokens;
     tokens.resize(prompt_str.length() + 1);
