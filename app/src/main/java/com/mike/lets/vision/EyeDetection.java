@@ -33,6 +33,9 @@ public class EyeDetection {
     public float sensitivity = 0.015f;
     static int IMAGE_WIDTH = 40, IMAGE_HEIGHT = 14;
     
+    private final Mat diffMat = new Mat();
+    private final Mat norB = new Mat();
+    
     /**
      * Carga las imÃƒÂ¡genes de calibraciÃƒÂ³n del usuario para cada ojo.
      * Estas plantillas sirven como referencia para comparar la mirada actual.
@@ -56,10 +59,16 @@ public class EyeDetection {
                 continue; // one frame incomplete, skip
             }
             Log.d("CalibrationInterface", "Recorded = " + i);
-            templates[i] = new Mat(bm[i].getWidth(), bm[i].getHeight(), CvType.CV_8UC4);
-            Utils.bitmapToMat(bm[i], templates[i]);
-            Imgproc.cvtColor(templates[i], templates[i], Imgproc.COLOR_BGR2GRAY);
-            Imgproc.resize(templates[i], templates[i], new Size(IMAGE_WIDTH,IMAGE_HEIGHT), Imgproc.INTER_AREA);
+            Mat temp = new Mat();
+            Utils.bitmapToMat(bm[i], temp);
+            Imgproc.cvtColor(temp, temp, Imgproc.COLOR_BGR2GRAY);
+            Imgproc.resize(temp, temp, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_AREA);
+            
+            // Pre-convert to 32F and normalize for faster MSE calculation
+            Mat template32F = new Mat();
+            temp.convertTo(template32F, CvType.CV_32F, 1.0/255.0);
+            templates[i] = template32F;
+            temp.release();
         }
         if (left) {
             leftTemplates = templates;
@@ -68,64 +77,66 @@ public class EyeDetection {
         }
     }
 
-    private double mse(Mat a, Mat b, int h, int w) { // minimum squared error calculations
-        double sum;
-        Mat difMat = new Mat(h, w, CvType.CV_8UC4);
-        Imgproc.cvtColor(difMat, difMat, Imgproc.COLOR_BGR2GRAY);
-        Mat norA = new Mat();
-        Mat norB = new Mat();
-        a.convertTo(norA, CvType.CV_32F, 1.0/255, 0);
-        b.convertTo(norB, CvType.CV_32F, 1.0/255, 0);
-        //Log.d("EyeDetection", a.channels() + " " + b.channels() + " " + difMat.channels());
-        Core.subtract(norA, norB, difMat);
-        Mat destSquared = difMat.mul(difMat);
-        Scalar s = Core.sumElems(destSquared);
-        double d = (float) h * w;
-        sum = s.val[0] / d;
-        return sum;
+    private double mse(Mat template32F, Mat current32F, int h, int w) {
+        Core.subtract(template32F, current32F, diffMat);
+        // We use Core.norm or Core.sumElems for MSE
+        // MSE = sum(diff^2) / N
+        // In OpenCV, we can use norm with NORM_L2SQR
+        double normSq = Core.norm(diffMat, Core.NORM_L2SQR);
+        return normSq / (h * w);
     }
+
     /**
      * Compara el ojo actual con todas las plantillas calibradas y devuelve la mejor coincidencia.
      *
      * @param detectionOutput resultado global del frame
-     * @param eyeROI imagen del ojo ya recortada y normalizada
+     * @param eyeROI imagen del ojo ya recortada y normalizada (esperada en escala de grises)
      * @param type 0 = ojo izquierdo, 1 = ojo derecho
      */
     public double[] runEyeModel(DetectionOutput detectionOutput, Mat eyeROI, int type) {
-        Log.d("GestureDetection", "Here!");
         Mat[] compareTemplates;
         double[] templateError = new double[userDataManager.calibrationTemplateNum];
 
-        // resize the eyeROI to the correct image size/format
-        eyeROI.convertTo(eyeROI, CvType.CV_8UC4);
-        Mat tensorMat = new Mat(IMAGE_HEIGHT, IMAGE_WIDTH, CvType.CV_8UC4);
+        // Prepare current eye ROI for MSE comparison
+        Mat tensorMat = new Mat();
+        if (eyeROI.channels() > 1) {
+            Imgproc.cvtColor(eyeROI, tensorMat, Imgproc.COLOR_GRAY2BGR); // This looks wrong in original code, it should be gray
+            // Re-checking original: eyeROI.convertTo(eyeROI, CvType.CV_8UC4); ... Imgproc.resize ...
+            // Our eyeROI here is already GRAY from Model.java
+        }
+        
         Imgproc.resize(eyeROI, tensorMat, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_AREA);
-
+        
         if (type == 0) {
             compareTemplates = leftTemplates;
-            detectionOutput.testingMats[0] = tensorMat;
+            detectionOutput.testingMats[0] = tensorMat.clone();
         } else {
             compareTemplates = rightTemplates;
-            detectionOutput.testingMats[1] = tensorMat;
+            detectionOutput.testingMats[1] = tensorMat.clone();
         }
+
+        // Convert current eye to 32F once
+        tensorMat.convertTo(norB, CvType.CV_32F, 1.0/255.0);
+        
         // MSE
         double minError = 10000000;
         int index = 0;
         for (int i = 0; i < userDataManager.calibrationTemplateNum; i++) {
-            double sum = mse(compareTemplates[i], tensorMat, IMAGE_HEIGHT, IMAGE_WIDTH); // - DETECT_BIAS[tags[i]];
+            if (compareTemplates[i] == null) continue;
+            
+            double sum = mse(compareTemplates[i], norB, IMAGE_HEIGHT, IMAGE_WIDTH);
             templateError[i] = sum;
             if (sum < minError) {
                 minError = sum;
                 index = i;
             }
         }
-        Log.d("GestureDetection", "Sensitivity = " + sensitivity);
-        Boolean success = minError <= sensitivity; // get threshold for the specific type
-        Log.d("GestureDetection", "The gaze for ");
+        
+        Boolean success = minError <= sensitivity;
         detectionOutput.setEyeData(type, success, tags[index], 1, (float)minError);
 
+        tensorMat.release();
         return templateError;
-
     }
 
     /**

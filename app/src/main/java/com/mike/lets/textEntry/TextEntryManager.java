@@ -92,11 +92,11 @@ public class TextEntryManager {
                     predictionPage = 0;
                 }
             }
-        } else if (gazeType == 5) { // Closed -> CAMBIAR a Word Mode
+        } else if (gazeType == 3) { // Up -> CAMBIAR a Word Mode
             letterModeUI = false;
             wordModeUI = true;
             predictionPage = 0;
-        } else if (gazeType == 3) { // Up -> Borrar
+        } else if (gazeType == 5) { // Both Closed -> Borrar
             if (blurryInput.isEmpty()) {
                 deleteLastWordFromSentence();
             } else {
@@ -115,14 +115,12 @@ public class TextEntryManager {
         int wordsInPage = 3;
         int startIdx = predictionPage * wordsInPage;
 
-        if (gazeType == 5 || gazeType == 2) { // Closed (CAMBIAR) or BR (MAS PALABRAS)
+        if (gazeType == 5 || gazeType == 2) { // Both Closed or BR (MAS PALABRAS)
             int nextStart = (predictionPage + 1) * wordsInPage;
-            if (currentPredictions.isEmpty() || nextStart >= currentPredictions.size()) {
-                letterModeUI = true;
-                wordModeUI = false;
-                predictionPage = 0;
-            } else {
+            if (nextStart < currentPredictions.size()) {
                 predictionPage++;
+            } else {
+                predictionPage = 0; // Cycle back to first page of words
             }
             return 0;
         }

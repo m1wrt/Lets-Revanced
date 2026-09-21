@@ -13,6 +13,7 @@ import com.google.mediapipe.tasks.core.BaseOptions;
 import com.google.mediapipe.tasks.vision.core.RunningMode;
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker;
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult;
+import com.google.mediapipe.tasks.components.containers.Category;
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark;
 
 import java.util.ArrayList;
@@ -33,6 +34,10 @@ public class MediaPipeFaceDetector {
     public List<PointF> leftEyeContour, rightEyeContour;
     public float rightEyeOpenProb, leftEyeOpenProb;
 
+    // Blendshapes for better blink/wink detection
+    public float leftEyeBlinkScore = 0f;
+    public float rightEyeBlinkScore = 0f;
+
     // Indices for eyes in MediaPipe Face Mesh (468+ landmarks)
     private static final int[] LEFT_EYE_INDICES = {33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246};
     private static final int[] RIGHT_EYE_INDICES = {362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398};
@@ -49,6 +54,7 @@ public class MediaPipeFaceDetector {
                 .setBaseOptions(baseOptions)
                 .setRunningMode(RunningMode.IMAGE)
                 .setNumFaces(1)
+                .setOutputFaceBlendshapes(true)
                 .build();
 
         try {
@@ -74,6 +80,8 @@ public class MediaPipeFaceDetector {
         if (result.faceLandmarks().isEmpty()) {
             leftEyeContour = null;
             rightEyeContour = null;
+            leftEyeBlinkScore = 0f;
+            rightEyeBlinkScore = 0f;
             return;
         }
 
@@ -94,6 +102,18 @@ public class MediaPipeFaceDetector {
         // Calculation of EAR (Eye Aspect Ratio) for open probability
         leftEyeOpenProb = calculateEAR(landmarks, 33, 160, 158, 133, 153, 144);
         rightEyeOpenProb = calculateEAR(landmarks, 263, 385, 387, 362, 380, 373);
+
+        // Extract blendshapes for winks
+        if (result.faceBlendshapes().isPresent() && !result.faceBlendshapes().get().isEmpty()) {
+            List<Category> blendshapes = result.faceBlendshapes().get().get(0);
+            for (Category category : blendshapes) {
+                if (category.categoryName().equals("eyeBlinkLeft")) {
+                    leftEyeBlinkScore = category.score();
+                } else if (category.categoryName().equals("eyeBlinkRight")) {
+                    rightEyeBlinkScore = category.score();
+                }
+            }
+        }
     }
 
     private float calculateEAR(List<NormalizedLandmark> landmarks, int p1, int p2, int p3, int p4, int p5, int p6) {

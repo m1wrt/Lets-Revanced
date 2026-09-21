@@ -1,142 +1,151 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/main_background"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:fillViewport="true">
 
-    <TextView
-        android:id="@+id/settings_title"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="AJUSTES DE LLM"
-        android:textColor="@color/black"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:paddingBottom="32dp">
 
-    <TextView
-        android:id="@+id/settings_content"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:text="Aquí podrás configurar los parámetros del modelo Llama.cpp (Gemma-2b) en futuras actualizaciones."
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        android:gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settings_title" />
+        <TextView
+            android:id="@+id/settings_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="AJUSTES DE LLM"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/llm_model_container"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settings_content">
-
-        <Button
-            android:id="@+id/btn_import_model"
+        <TextView
+            android:id="@+id/settings_content"
             android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            android:background="@drawable/panel_background"
-            android:text="IMPORTAR MODELO (.GGUF)"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:layout_height="wrap_content"
+            android:layout_margin="24dp"
+            android:gravity="center"
+            android:text="Aquí podrás configurar los parámetros del modelo Llama.cpp (Gemma-2b) en futuras actualizaciones."
+            android:textColor="@color/status_text_color"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_title" />
 
-        <Button
-            android:id="@+id/btn_clear_model"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/panel_background"
-            android:text="X"
-            android:textColor="@color/red"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tv_model_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Modelo: Predeterminado (gemma3-1b.gguf)"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/llm_model_container" />
-
-    <TextView
-        android:id="@+id/tv_language_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="IDIOMA DE ENTRADA"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_model_status" />
-
-    <LinearLayout
-        android:id="@+id/language_selector_container"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_language_title">
-
-        <Button
-            android:id="@+id/btn_lang_spanish"
+        <LinearLayout
+            android:id="@+id/llm_model_container"
             android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            android:background="@drawable/panel_background"
-            android:text="ESPAÑOL"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="24dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_content">
+
+            <Button
+                android:id="@+id/btn_import_model"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:background="@drawable/panel_background"
+                android:text="IMPORTAR MODELO (.GGUF)"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btn_clear_model"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/panel_background"
+                android:text="X"
+                android:textColor="@color/red"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_model_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Modelo: Predeterminado (gemma3-1b.gguf)"
+            android:textColor="@color/status_text_color"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@id/llm_model_container"
+            app:layout_constraintTop_toBottomOf="@id/llm_model_container" />
+
+        <TextView
+            android:id="@+id/tv_lang_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="IDIOMA DE INTERFAZ"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/llm_model_container"
+            app:layout_constraintTop_toBottomOf="@id/tv_model_status" />
+
+        <LinearLayout
+            android:id="@+id/language_selector_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="24dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_lang_title">
+
+            <Button
+                android:id="@+id/btn_lang_spanish"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:background="@drawable/panel_background"
+                android:text="ESPAÑOL"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btn_lang_japanese"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/panel_background"
+                android:text="JAPONÉS"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
 
         <Button
-            android:id="@+id/btn_lang_japanese"
-            android:layout_width="0dp"
+            android:id="@+id/btn_back_settings"
+            android:layout_width="200dp"
             android:layout_height="60dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
+            android:layout_marginTop="48dp"
+            android:layout_marginBottom="32dp"
             android:background="@drawable/panel_background"
-            android:text="JAPONÉS"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
-    </LinearLayout>
+            android:text="VOLVER"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/language_selector_container"
+            app:layout_constraintVertical_bias="1.0" />
 
-    <Button
-        android:id="@+id/btn_back_settings"
-        android:layout_width="200dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="48dp"
-        android:background="@drawable/panel_background"
-        android:text="VOLVER"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

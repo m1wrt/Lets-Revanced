@@ -135,8 +135,8 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.mainMenuLayout.panelTopRight.setOnClickListener(v -> presenter.onGazeButtonClicked(7));
         binding.mainMenuLayout.panelBottomLeft.setOnClickListener(v -> presenter.onGazeButtonClicked(1));
         binding.mainMenuLayout.panelBottomRight.setOnClickListener(v -> presenter.onGazeButtonClicked(2));
-        binding.mainMenuLayout.btnCambiar.setOnClickListener(v -> presenter.onGazeButtonClicked(5));
-        binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(3));
+        binding.mainMenuLayout.btnCambiar.setOnClickListener(v -> presenter.onGazeButtonClicked(3)); // Up -> Cambiar
+        binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(5)); // Both closed -> Borrar
 
         binding.mainMenuLayout.btnAdjustLlm.setOnClickListener(v -> {
             binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
@@ -210,6 +210,10 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                 .registerReceiver(textGenerationReceiver, new android.content.IntentFilter("textGenerationEvent"));
     }
 
+    private Bitmap uiBitmap;
+    private final Mat rotatedMat = new Mat();
+    private byte[] rowDataBuffer;
+
     private void startCamera() {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
 
@@ -237,37 +241,34 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
                         // Rotate Mat based on rotation degrees to keep it upright
                         if (rotationDegrees != 0) {
-                            Mat rotated = new Mat();
                             if (rotationDegrees == 90) {
-                                org.opencv.core.Core.rotate(rgbaMat, rotated, org.opencv.core.Core.ROTATE_90_CLOCKWISE);
+                                org.opencv.core.Core.rotate(rgbaMat, rotatedMat, org.opencv.core.Core.ROTATE_90_CLOCKWISE);
                             } else if (rotationDegrees == 180) {
-                                org.opencv.core.Core.rotate(rgbaMat, rotated, org.opencv.core.Core.ROTATE_180);
+                                org.opencv.core.Core.rotate(rgbaMat, rotatedMat, org.opencv.core.Core.ROTATE_180);
                             } else if (rotationDegrees == 270) {
-                                org.opencv.core.Core.rotate(rgbaMat, rotated, org.opencv.core.Core.ROTATE_90_COUNTERCLOCKWISE);
+                                org.opencv.core.Core.rotate(rgbaMat, rotatedMat, org.opencv.core.Core.ROTATE_90_COUNTERCLOCKWISE);
                             }
-                            rgbaMat.release();
-                            rgbaMat = rotated;
+                            rgbaMat.release(); // The original mat is no longer needed
+                            rgbaMat = rotatedMat.clone(); // We clone to keep rotatedMat reusable
                         }
 
                         // Mirroring for front camera to feel natural to the user
                         org.opencv.core.Core.flip(rgbaMat, rgbaMat, 1);
 
-                        // Convert to BGR for the model
-                        Mat bgrMat = new Mat();
-                        org.opencv.imgproc.Imgproc.cvtColor(rgbaMat, bgrMat, org.opencv.imgproc.Imgproc.COLOR_RGBA2BGR);
-
-                        presenter.onFrame(bgrMat);
-                        bgrMat.release(); // The model and presenter should have finished using it or made their own copies
+                        // Pass RGBA directly to the presenter (optimized)
+                        presenter.onFrame(rgbaMat);
                         
-                        // Update UI preview - Create bitmap on the camera thread to avoid using Mat in UI thread asynchronously
-                        Bitmap bitmap = Bitmap.createBitmap(rgbaMat.cols(), rgbaMat.rows(), Bitmap.Config.ARGB_8888);
-                        Utils.matToBitmap(rgbaMat, bitmap);
+                        // Update UI preview - reuse bitmap
+                        if (uiBitmap == null || uiBitmap.getWidth() != rgbaMat.cols() || uiBitmap.getHeight() != rgbaMat.rows()) {
+                            uiBitmap = Bitmap.createBitmap(rgbaMat.cols(), rgbaMat.rows(), Bitmap.Config.ARGB_8888);
+                        }
+                        Utils.matToBitmap(rgbaMat, uiBitmap);
                         
                         runOnUiThread(() -> {
-                           binding.imageView.setImageBitmap(bitmap);
+                           binding.imageView.setImageBitmap(uiBitmap);
                         });
 
-                        rgbaMat.release(); // Now it's safe to release
+                        rgbaMat.release(); 
                         image.close();
                     }
                 });
@@ -287,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         ImageProxy.PlaneProxy plane = image.getPlanes()[0];
         ByteBuffer buffer = plane.getBuffer();
         int rowStride = plane.getRowStride();
-        int pixelStride = plane.getPixelStride(); // should be 4 for RGBA_8888
+        int pixelStride = plane.getPixelStride(); 
         
         int width = image.getWidth();
         int height = image.getHeight();
@@ -295,17 +296,21 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         Mat mat = new Mat(height, width, CvType.CV_8UC4);
         
         if (rowStride == width * pixelStride) {
-            // No padding, can copy directly
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-            mat.put(0, 0, bytes);
+            int size = buffer.remaining();
+            if (rowDataBuffer == null || rowDataBuffer.length < size) {
+                rowDataBuffer = new byte[size];
+            }
+            buffer.get(rowDataBuffer, 0, size);
+            mat.put(0, 0, rowDataBuffer, 0, size);
         } else {
-            // Has padding, copy row by row
-            byte[] rowData = new byte[rowStride];
+            // Re-use row data buffer to reduce GC pressure
+            if (rowDataBuffer == null || rowDataBuffer.length < rowStride) {
+                rowDataBuffer = new byte[rowStride];
+            }
             for (int i = 0; i < height; i++) {
                 buffer.position(i * rowStride);
-                buffer.get(rowData, 0, Math.min(rowStride, buffer.remaining()));
-                mat.put(i, 0, rowData, 0, width * pixelStride);
+                buffer.get(rowDataBuffer, 0, Math.min(rowStride, buffer.remaining()));
+                mat.put(i, 0, rowDataBuffer, 0, width * pixelStride);
             }
         }
         return mat;

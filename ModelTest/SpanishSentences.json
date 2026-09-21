@@ -320,7 +320,18 @@
         {
             "palabras": "leer carta",
             "oracion": "Quiero leer la carta."
+        },
+        {
+            "palabras": "miedo",
+            "oracion": "Tengo miedo." 
+        },
+        {
+            "palabras": "miedo mujer",
+            "oracion": "Tengo miedo de la mujer."
+        },
+                {
+            "palabras": "bonito chico",
+            "oracion": "El chico es muy bonito."
         }
-
     ]
 }

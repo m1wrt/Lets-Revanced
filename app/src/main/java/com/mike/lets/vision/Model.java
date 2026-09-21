@@ -59,7 +59,14 @@ public class Model implements ContractInterface.Model {
     Integer[] tags = new Integer[]{0, 1, 2, 3, 6, 7}; // matches the calibration order
     Point[] corners = new Point[4]; // left, top, right, down
     double[] leftTemplateError, rightTemplateError;
-    //.
+    
+    private Bitmap reusableBitmap;
+    
+    // Better wink detection fields
+    private int winkLength = 0;
+    private static final int WINK_DWELL_THRESHOLD = 3; 
+    private static final float WINK_SCORE_THRESHOLD = 0.45f; 
+
     @Override
     public void initialize(Context context, Context applicationContext) throws IOException {
         // Inicializa el modelo de vision y las plantillas usadas para comparar la mirada.
@@ -106,6 +113,8 @@ public class Model implements ContractInterface.Model {
 
     private void analyzeFrameGaze(DetectionOutput output) {
         // Combina los resultados de ambos ojos y decide cuál es la mirada final.
+        if (output.LeftData == null || output.RightData == null) return;
+        
         if (!output.LeftData.Success && !output.RightData.Success) {
             output.AnalyzedData = output.LeftData;
         } else if (output.LeftData.Success && !output.RightData.Success) {
@@ -123,25 +132,30 @@ public class Model implements ContractInterface.Model {
             } else if (gazingRight(leftGazeData) && gazingRight(rightGazeData)) {
                 output.AnalyzedData = rightGazeData;
             } else {
-                int index = -1;
+                int minIndex = -1;
                 double minError = 1000000f;
                 for (int i = 0; i < userDataManager.calibrationTemplateNum; i++) {
                     double error = leftTemplateError[i] + rightTemplateError[i];
                     if (error < minError) {
-                        index = i;
+                        minIndex = i;
                         minError = error;
                     }
                 }
                 // Sensitivity threshold for combined MSE
                 boolean success = minError <= (detector.sensitivity * 2.5); 
-                output.setEyeData(2, success, tags[index], 1, (float)minError);
+                output.setEyeData(2, success, tags[minIndex], 1, (float)minError);
             }
         }
 
         output.gestureOutput = 0;
-        if (output.AnalyzedData.Success) {
+        if (output.AnalyzedData != null && output.AnalyzedData.Success) {
             int type = output.AnalyzedData.GazeType;
-            if (type != 0) { // Active gaze (not straight)
+            if (type == 3 || type == 5) {
+                // Confirm immediately as they have their own temporal filtering
+                output.gestureOutput = type;
+                currentGaze = type;
+                length = DWELL_THRESHOLD;
+            } else if (type != 0) { // Active gaze (not straight)
                 if (type == currentGaze) {
                     length += 1;
                     // Trigger on dwell threshold OR on repeat intervals
@@ -221,8 +235,6 @@ public class Model implements ContractInterface.Model {
         corners[2] = new Point((maxX - points.get(maxXIdx).x) * xRatio, (maxY - points.get(maxXIdx).y) * yRatio);
         corners[3] = new Point((maxX - points.get(maxYIdx).x) * xRatio, (maxY - points.get(maxYIdx).y) * yRatio);
 
-        Log.d("CornerDetection", corners[0].x + " " + corners[1].x + " " + corners[2].x + " " + corners[3].x);
-        Log.d("CornerDetection", "Max: " + minX + " " + minY + " " + maxX + " " + maxY);
         Rect boundingBox;
         if (minX >= 0 && minY >= 0 && maxX < mat.cols() && maxY < mat.rows() && minX < maxX && minY < maxY) { // contour is valid
             boundingBox = new Rect(new Point(minX, minY), new Point(maxX, maxY));
@@ -249,11 +261,13 @@ public class Model implements ContractInterface.Model {
      */
     private Point getIrisCenter(Mat eye, DetectionOutput output) {
         Point normalized = new Point();
-        if (eye != null) {
+        if (eye != null && !eye.empty()) {
             Point irisCenter = detector.irisDetection(eye);
             Mat irisMat = detector.finalMat;
-            for (int i = 0; i < 4; i++) { // testing
-                Imgproc.circle(irisMat, corners[i], 2, new Scalar(255,255,255));
+            if (irisMat != null) {
+                for (int i = 0; i < 4; i++) { // testing
+                    Imgproc.circle(irisMat, corners[i], 2, new Scalar(255,255,255));
+                }
             }
             normalized = normalizeIrisCenter(irisCenter);
             output.testingMats[2] = detector.opening;
@@ -264,80 +278,77 @@ public class Model implements ContractInterface.Model {
     }
 
     @Override
-    public DetectionOutput classifyGaze(Mat rgbMat) { @OptIn(markerClass = ExperimentalGetImage.class)
+    public DetectionOutput classifyGaze(Mat rgbaMat) { @OptIn(markerClass = ExperimentalGetImage.class)
         // Punto de entrada principal para cada frame de cÃƒÂ¡mara.
         // Devuelve un DetectionOutput con la mirada clasificada para ese frame.
 
         Mat leftEye = null, rightEye = null;
-        Bitmap bmp;
 
         // Create a new detection output for each frame to avoid race conditions with the UI thread
         DetectionOutput frameOutput = new DetectionOutput();
         frameOutput.initialize(4);
         
-        // Convierte el frame OpenCV a Bitmap para que MediaPipe pueda analizarlo.
-        Mat rgbaMat = new Mat(rgbMat.rows(), rgbMat.cols(), CvType.CV_8UC4);
-        Imgproc.cvtColor(rgbMat, rgbaMat, Imgproc.COLOR_BGR2RGBA);
-        bmp = Bitmap.createBitmap(rgbaMat.cols(), rgbaMat.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(rgbaMat, bmp);
-        faceDetector.detect(bmp);
-
-        if (faceDetector.leftEyeContour == null && faceDetector.rightEyeContour == null) { // no eye detection
-            rgbaMat.release();
-            return frameOutput;
+        // Reutilizar bitmap para MediaPipe
+        if (reusableBitmap == null || reusableBitmap.getWidth() != rgbaMat.cols() || reusableBitmap.getHeight() != rgbaMat.rows()) {
+            if (reusableBitmap != null) reusableBitmap.recycle();
+            reusableBitmap = Bitmap.createBitmap(rgbaMat.cols(), rgbaMat.rows(), Bitmap.Config.ARGB_8888);
+        }
         
-        } else if (faceDetector.leftEyeOpenProb <= 0.1 && faceDetector.rightEyeOpenProb <= 0.1) { // check if eyes are closed
-            frameOutput.setEyeData(0, true, 5, 1, faceDetector.leftEyeOpenProb);
-            frameOutput.setEyeData(1, true, 5, 1, faceDetector.rightEyeOpenProb);
-        } else if (faceDetector.leftEyeOpenProb <= 0.1 && faceDetector.rightEyeOpenProb > 0.5) { // Wink left -> Borrar
-            frameOutput.setEyeData(0, true, 3, 1, faceDetector.leftEyeOpenProb);
-            frameOutput.setEyeData(1, true, 3, 1, faceDetector.rightEyeOpenProb);
-        } else if (faceDetector.rightEyeOpenProb <= 0.1 && faceDetector.leftEyeOpenProb > 0.5) { // Wink right -> Borrar
-            frameOutput.setEyeData(0, true, 3, 1, faceDetector.leftEyeOpenProb);
-            frameOutput.setEyeData(1, true, 3, 1, faceDetector.rightEyeOpenProb);
-        } else {
-            if (faceDetector.leftEyeContour != null) { // left eye available
+        Utils.matToBitmap(rgbaMat, reusableBitmap);
+        faceDetector.detect(reusableBitmap);
 
+        // Wink/Closed detection logic
+        float leftBlink = faceDetector.leftEyeBlinkScore;
+        float rightBlink = faceDetector.rightEyeBlinkScore;
+
+        boolean leftClosed = leftBlink > WINK_SCORE_THRESHOLD;
+        boolean rightClosed = rightBlink > WINK_SCORE_THRESHOLD;
+
+        if (leftClosed && rightClosed) { 
+            winkLength++;
+            if (winkLength >= WINK_DWELL_THRESHOLD) {
+                // Both closed -> Borrar (5)
+                frameOutput.setEyeData(0, true, 5, 1, leftBlink);
+                frameOutput.setEyeData(1, true, 5, 1, rightBlink);
+            }
+        } else {
+            winkLength = 0;
+            if (faceDetector.leftEyeContour != null) { 
                 List<PointF> leftEyePoints = faceDetector.leftEyeContour;
-                Rect leftEyeBound = getBoundingBox(leftEyePoints, rgbMat);
+                Rect leftEyeBound = getBoundingBox(leftEyePoints, rgbaMat);
 
                 if (leftEyeBound != null) {
-                    leftEye = new Mat(rgbMat, leftEyeBound);
+                    leftEye = new Mat(rgbaMat, leftEyeBound);
                     
-                    // Store high-res eye for UI display
                     Mat highResEye = new Mat();
                     leftEye.copyTo(highResEye);
                     frameOutput.testingMats[3] = highResEye;
 
-                    // image processing
-                    Mat processedLeft = new Mat();
-                    Imgproc.resize(leftEye, processedLeft, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_LINEAR);
-                    Imgproc.cvtColor(processedLeft, processedLeft, Imgproc.COLOR_RGB2GRAY);
+                    Mat grayEye = new Mat();
+                    Imgproc.cvtColor(leftEye, grayEye, Imgproc.COLOR_RGBA2GRAY);
                     
                     if (userDataManager.checkCalibrationFiles()) {
-                        leftTemplateError = detector.runEyeModel(frameOutput, processedLeft, 0);
+                        leftTemplateError = detector.runEyeModel(frameOutput, grayEye, 0);
                     }
                     
-                    frameOutput.testingMats[0] = processedLeft;
+                    frameOutput.testingMats[0] = grayEye;
                 }
             }
-            if (faceDetector.rightEyeContour != null) { // right eye available
-
+            if (faceDetector.rightEyeContour != null) { 
                 List<PointF> rightEyePoints = faceDetector.rightEyeContour;
-                Rect rightEyeBound = getBoundingBox(rightEyePoints, rgbMat);
+                Rect rightEyeBound = getBoundingBox(rightEyePoints, rgbaMat);
 
                 if (rightEyeBound != null) {
-                    rightEye = new Mat(rgbMat, rightEyeBound);
+                    rightEye = new Mat(rgbaMat, rightEyeBound);
                     
-                    Mat processedRight = new Mat();
-                    Imgproc.resize(rightEye, processedRight, new Size(IMAGE_WIDTH, IMAGE_HEIGHT), Imgproc.INTER_LINEAR);
-                    Imgproc.cvtColor(processedRight, processedRight, Imgproc.COLOR_RGB2GRAY);
+                    Mat grayEye = new Mat();
+                    Imgproc.cvtColor(rightEye, grayEye, Imgproc.COLOR_RGBA2GRAY);
 
                     if (userDataManager.checkCalibrationFiles()) {
-                        rightTemplateError = detector.runEyeModel(frameOutput, processedRight, 1);
+                        rightTemplateError = detector.runEyeModel(frameOutput, grayEye, 1);
                     }
                     
-                    frameOutput.testingMats[1] = processedRight;
+                    frameOutput.testingMats[1] = grayEye;
                 }
             }
         }
@@ -348,11 +359,6 @@ public class Model implements ContractInterface.Model {
         // Analyze final gaze using the frame's specific data
         analyzeFrameGaze(frameOutput);
         
-        rgbaMat.release();
-        // Do NOT release leftEye/rightEye here if they were used to create sub-Mats without copying
-        // But here we are using them as sources for resize/copy.
-        // Actually, 'leftEye = new Mat(rgbMat, leftEyeBound)' is a header.
-        // If we release it, it's fine.
         if (leftEye != null) leftEye.release();
         if (rightEye != null) rightEye.release();
         
@@ -360,4 +366,3 @@ public class Model implements ContractInterface.Model {
     }
 
 }
-
