@@ -222,7 +222,8 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         int rotationDegrees = image.getImageInfo().getRotationDegrees();
                         Mat rgbaMat = imageToMat(image);
 
-                        // Rotate Mat based on rotation degrees to keep it upright
+                        Mat processingMat;
+                        // Rotate Mat based on rotation degrees to keep it upright (optimized without cloning)
                         if (rotationDegrees != 0) {
                             if (rotationDegrees == 90) {
                                 org.opencv.core.Core.rotate(rgbaMat, rotatedMat, org.opencv.core.Core.ROTATE_90_CLOCKWISE);
@@ -232,26 +233,30 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                                 org.opencv.core.Core.rotate(rgbaMat, rotatedMat, org.opencv.core.Core.ROTATE_90_COUNTERCLOCKWISE);
                             }
                             rgbaMat.release(); // The original mat is no longer needed
-                            rgbaMat = rotatedMat.clone(); // We clone to keep rotatedMat reusable
+                            processingMat = rotatedMat;
+                        } else {
+                            processingMat = rgbaMat;
                         }
 
                         // Mirroring for front camera to feel natural to the user
-                        org.opencv.core.Core.flip(rgbaMat, rgbaMat, 1);
+                        org.opencv.core.Core.flip(processingMat, processingMat, 1);
 
                         // Pass RGBA directly to the presenter (optimized)
-                        presenter.onFrame(rgbaMat);
+                        presenter.onFrame(processingMat);
                         
                         // Update UI preview - reuse bitmap
-                        if (uiBitmap == null || uiBitmap.getWidth() != rgbaMat.cols() || uiBitmap.getHeight() != rgbaMat.rows()) {
-                            uiBitmap = Bitmap.createBitmap(rgbaMat.cols(), rgbaMat.rows(), Bitmap.Config.ARGB_8888);
+                        if (uiBitmap == null || uiBitmap.getWidth() != processingMat.cols() || uiBitmap.getHeight() != processingMat.rows()) {
+                            uiBitmap = Bitmap.createBitmap(processingMat.cols(), processingMat.rows(), Bitmap.Config.ARGB_8888);
                         }
-                        Utils.matToBitmap(rgbaMat, uiBitmap);
+                        Utils.matToBitmap(processingMat, uiBitmap);
                         
                         runOnUiThread(() -> {
                            binding.imageView.setImageBitmap(uiBitmap);
                         });
 
-                        rgbaMat.release(); 
+                        if (processingMat != rotatedMat) {
+                            processingMat.release();
+                        }
                         image.close();
                     }
                 });
@@ -352,7 +357,8 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         binding.calibrationLayout.imageView5,
                         binding.calibrationLayout.imageView6,
                         binding.calibrationLayout.imageView7,
-                        binding.calibrationLayout.imageView8
+                        binding.calibrationLayout.imageView8,
+                        binding.calibrationLayout.imageView9
                 };
                 for (int i = 0; i < views.length; i++) {
                     if (i < appLiveData.leftTemplates.length && appLiveData.leftTemplates[i] != null) {
@@ -361,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                 }
             }
 
-            if (appLiveData.calibrationState == 6) { // Finished
+            if (appLiveData.calibrationState == 7) { // Finished
                 binding.calibrationLayout.buttonContinue.setText("Finish");
                 binding.calibrationLayout.buttonContinue.setOnClickListener(v -> {
                    Toast.makeText(this, "Finishing calibration", Toast.LENGTH_SHORT).show();

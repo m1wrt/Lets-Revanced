@@ -42,7 +42,7 @@ public class Presenter implements ContractInterface.Presenter {
     private int selectSoundId;
     private int lastGazeType = 0; // Para evitar repeticiones por frame
     private boolean captureRequested = false;
-    private final String[] calibrationMessages = {"Look straight", "Look left and down", "Look right and down", "Look up", "Look left and up", "Look right and up"};
+    private final String[] calibrationMessages = {"Look straight", "Look left and down", "Look right and down", "Look up", "Look left and up", "Look right and up", "Close your eyes"};
     
     // instantiating the objects of View and Model Interface
     public Presenter(ContractInterface.View mainView, ContractInterface.Model model) {

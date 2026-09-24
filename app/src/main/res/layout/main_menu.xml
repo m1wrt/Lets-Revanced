@@ -61,7 +61,7 @@
             android:layout_height="40dp"
             android:layout_marginStart="-12dp"
             android:layout_marginTop="-12dp"
-            android:src="@drawable/ic_eye"
+            android:src="@drawable/ic_gaze_arriba_izq"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -112,7 +112,7 @@
             android:layout_height="40dp"
             android:layout_marginTop="-12dp"
             android:layout_marginEnd="-12dp"
-            android:src="@drawable/ic_eye"
+            android:src="@drawable/ic_gaze_arriba_der"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -163,7 +163,7 @@
             android:layout_height="40dp"
             android:layout_marginStart="-12dp"
             android:layout_marginBottom="-12dp"
-            android:src="@drawable/ic_eye"
+            android:src="@drawable/ic_gaze_abajo_izq"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -214,7 +214,7 @@
             android:layout_height="40dp"
             android:layout_marginEnd="-12dp"
             android:layout_marginBottom="-12dp"
-            android:src="@drawable/ic_eye"
+            android:src="@drawable/ic_gaze_abajo_der"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -246,7 +246,7 @@
                 android:layout_height="45dp"
                 android:layout_weight="1"
                 android:background="@drawable/panel_background"
-                android:drawableStart="@drawable/ic_eye_closed"
+                android:drawableStart="@drawable/ic_gaze_cerrado"
                 android:paddingStart="8dp"
                 android:text="CAMBIAR"
                 android:textColor="@color/black"
@@ -259,7 +259,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:background="@drawable/panel_background"
-                android:drawableStart="@drawable/ic_eye"
+                android:drawableStart="@drawable/ic_gaze_arriba"
                 android:paddingStart="8dp"
                 android:text="BORRAR"
                 android:textColor="@color/black"

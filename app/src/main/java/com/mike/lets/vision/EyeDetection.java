@@ -27,7 +27,7 @@ import com.mike.lets.UserDataManager;
 public class EyeDetection {
     UserDataManager userDataManager;
     public Mat finalMat, opening;
-    Integer[] tags = new Integer[]{0, 1, 2, 3, 6, 7}; // matches the calibration order to the gaze data order
+    Integer[] tags = new Integer[]{0, 1, 2, 3, 6, 7, 5}; // matches the calibration order to the gaze data order
     Mat[] leftTemplates, rightTemplates;
     public float thresholdValue = 18f;
     public float sensitivity = 0.015f;

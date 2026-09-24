@@ -40,7 +40,7 @@ public class UserDataManager extends Application {
     private int lightingThreshold = 0; // lighting threshold
     private int textEntryMode = 2;
     private int calibrationState = -1; // -1 = sin calibraciÃƒÂ³n iniciada, 0..5 = paso de calibraciÃƒÂ³n actual
-    public final int calibrationTemplateNum = 6; // nÃƒÂºmero de direcciones de mirada usadas para calibrar
+    public final int calibrationTemplateNum = 7; // número de direcciones de mirada usadas para calibrar
     private int sentenceGenerationModel = 0;
     private int sensitivity = 20;
     private String language = "Spanish"; // Default to Spanish as requested
@@ -53,8 +53,8 @@ public class UserDataManager extends Application {
 
     private Bitmap[] leftCalibrationData;
     private Bitmap[] rightCalibrationData;
-    String[] leftEyeFileNames = {"left_straight", "left_left", "left_right", "left_up", "left_left_up", "left_right_up"};
-    String[] rightEyeFileNames = {"right_straight", "right_left", "right_right", "right_up", "right_left_up", "right_right_up"};
+    String[] leftEyeFileNames = {"left_straight", "left_left", "left_right", "left_up", "left_left_up", "left_right_up", "left_closed"};
+    String[] rightEyeFileNames = {"right_straight", "right_left", "right_right", "right_up", "right_left_up", "right_right_up", "right_closed"};
     private final String[] reference = {"Straight", "Left", "Right", "Up", "Down", "Closed", "Left Up", "Right Up"};
     @Override
     public void onCreate() { // initialize the shared preferences
@@ -96,12 +96,12 @@ public class UserDataManager extends Application {
         if (getCalibrationFiles(mContext, leftEyeFileNames) != null) {
             leftCalibrationData = getCalibrationFiles(mContext, leftEyeFileNames);
         } else {
-            leftCalibrationData = new Bitmap[6];
+            leftCalibrationData = new Bitmap[7];
         }
         if (getCalibrationFiles(mContext, rightEyeFileNames) != null) {
             rightCalibrationData = getCalibrationFiles(mContext, rightEyeFileNames);
         } else {
-            rightCalibrationData = new Bitmap[6];
+            rightCalibrationData = new Bitmap[7];
         }
     }
 
