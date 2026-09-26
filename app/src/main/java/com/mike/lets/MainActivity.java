@@ -490,13 +490,24 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         }
 
                         // Highlight active panel
-                        binding.mainMenuLayout.panelTopLeft.setBackgroundResource(gazeType == 6 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                        binding.mainMenuLayout.panelTopRight.setBackgroundResource(gazeType == 7 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                        binding.mainMenuLayout.panelBottomLeft.setBackgroundResource(gazeType == 1 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                        binding.mainMenuLayout.panelBottomRight.setBackgroundResource(gazeType == 2 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                        
-                        binding.mainMenuLayout.btnCambiar.setBackgroundResource(gazeType == 5 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                        binding.mainMenuLayout.btnBorrar.setBackgroundResource(gazeType == 3 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        boolean isPopupShowing = (popupView != null && popupDialog != null && popupDialog.isShowing()) || "Popup".equals(presenter.getMode());
+                        if (isPopupShowing) {
+                            binding.mainMenuLayout.panelTopLeft.setBackgroundResource(R.drawable.panel_background);
+                            binding.mainMenuLayout.panelTopRight.setBackgroundResource(R.drawable.panel_background);
+                            binding.mainMenuLayout.panelBottomLeft.setBackgroundResource(R.drawable.panel_background);
+                            binding.mainMenuLayout.panelBottomRight.setBackgroundResource(R.drawable.panel_background);
+                            
+                            binding.mainMenuLayout.btnCambiar.setBackgroundResource(R.drawable.panel_background);
+                            binding.mainMenuLayout.btnBorrar.setBackgroundResource(R.drawable.panel_background);
+                        } else {
+                            binding.mainMenuLayout.panelTopLeft.setBackgroundResource(gazeType == 6 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.panelTopRight.setBackgroundResource(gazeType == 7 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.panelBottomLeft.setBackgroundResource(gazeType == 1 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.panelBottomRight.setBackgroundResource(gazeType == 2 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            
+                            binding.mainMenuLayout.btnCambiar.setBackgroundResource(gazeType == 5 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.btnBorrar.setBackgroundResource(gazeType == 3 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                        }
                     }
                     
                     // Highlight Popup buttons if visible
