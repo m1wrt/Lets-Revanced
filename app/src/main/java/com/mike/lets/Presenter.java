@@ -41,6 +41,8 @@ public class Presenter implements ContractInterface.Presenter {
     private SoundPool soundPool;
     private int selectSoundId;
     private int lastGazeType = 0; // Para evitar repeticiones por frame
+    private long lastPopupActionTimestamp = 0L; // Cooldown de tiempo para Popup
+    private static final long POPUP_COOLDOWN_MS = 1000L; // 1 segundo (1000 ms) de delay para Popup
     private boolean captureRequested = false;
     private final String[] calibrationMessages = {"Look straight", "Look left and down", "Look right and down", "Look up", "Look left and up", "Look right and up", "Close your eyes"};
     
@@ -270,16 +272,21 @@ public class Presenter implements ContractInterface.Presenter {
                         mainView.showCompletoPopup(textEntryManager.getCurrentText(), textEntryManager.getLlmPrediction());
                     }
                 } else if (Objects.equals(mode, "Popup")) {
-                    if (gazeType == 1) { // Bottom Left -> Hablar
-                        String textToSpeak = textEntryManager.getLlmPrediction();
-                        if (textToSpeak == null || textToSpeak.isEmpty()) {
-                            textToSpeak = textEntryManager.getCurrentText();
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastPopupActionTimestamp >= POPUP_COOLDOWN_MS) {
+                        if (gazeType == 1) { // Bottom Left -> Hablar
+                            lastPopupActionTimestamp = currentTime;
+                            String textToSpeak = textEntryManager.getLlmPrediction();
+                            if (textToSpeak == null || textToSpeak.isEmpty()) {
+                                textToSpeak = textEntryManager.getCurrentText();
+                            }
+                            mainView.speakText(textToSpeak);
+                            clearSelection();
+                            mainView.closePopup();
+                        } else if (gazeType == 7) { // Top Right -> Volver
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.closePopup();
                         }
-                        mainView.speakText(textToSpeak);
-                        clearSelection();
-                        mainView.closePopup();
-                    } else if (gazeType == 7) { // Top Right -> Volver
-                        mainView.closePopup();
                     }
                 }
             }

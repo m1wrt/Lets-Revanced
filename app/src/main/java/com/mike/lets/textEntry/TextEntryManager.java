@@ -24,6 +24,14 @@ public class TextEntryManager {
     public int wordIndex = -1;
     public int predictionPage = 0;
 
+    // Control unificado de tiempo/delay (1 segundo para TODAS las acciones)
+    private final java.util.Map<Integer, Long> lastActionTimestamps = new java.util.HashMap<>();
+    private static final long ACTION_COOLDOWN_MS = 1000L; // 1 segundo (1000 ms) para todas las acciones
+
+    private long getCooldownForType(int gazeType) {
+        return ACTION_COOLDOWN_MS;
+    }
+
     public void initialize(android.content.Context context, String contextText) {
         this.conversationContext = contextText != null ? contextText : "";
         
@@ -67,6 +75,18 @@ public class TextEntryManager {
 
     public int manageUserInput(int gazeType, boolean isLive) {
         if (gazeType == 0) return 0; // Straight/Nothing
+
+        // Aplicar cooldown unificado basado en tiempo real (milisegundos)
+        long currentTime = System.currentTimeMillis();
+        long cooldownMs = getCooldownForType(gazeType);
+        Long lastTime = lastActionTimestamps.get(gazeType);
+
+        if (lastTime != null && (currentTime - lastTime < cooldownMs)) {
+            Log.d("TextEntryManager", "Entrada " + gazeType + " ignorada por cooldown (" + (currentTime - lastTime) + "ms < " + cooldownMs + "ms)");
+            return 0;
+        }
+
+        lastActionTimestamps.put(gazeType, currentTime);
 
         if (letterModeUI) {
             return handleLetterMode(gazeType);
@@ -123,7 +143,7 @@ public class TextEntryManager {
         int wordsInPage = 3;
         int startIdx = predictionPage * wordsInPage;
 
-        if (gazeType == 2) { // BR (MAS PALABRAS)
+        if (gazeType == 2) { // BR (MÁS PALABRAS)
             int nextStart = (predictionPage + 1) * wordsInPage;
             if (nextStart < currentPredictions.size()) {
                 predictionPage++;
@@ -293,8 +313,8 @@ public class TextEntryManager {
             @Override
             public void onSuccess(String prediction) {
                 lastLlmInput = fullInput;
-                
-                // Limpiar "oracion:" antes de traducir para evitar que ML Kit traduzca el prefijo
+                // ESTO DEBE SER RETIRADO CUANDO HAGA MODELOS DE OTROS IDIOMAS
+                //! Limpiar "oracion:" antes de traducir para evitar que ML Kit traduzca el prefijo
                 String cleanedSpanish = prediction.replaceAll("(?i)^(oraci[oó]n:?\\s*)", "").trim();
 
                 // Traducir de vuelta al idioma original si no es español
@@ -369,6 +389,7 @@ public class TextEntryManager {
         predictionPage = 0;
         wordIndex = -1;
         justSelectedWord = true; // Forza la limpieza de contexto en MainActivity
+        lastActionTimestamps.clear();
     }
 
     public void release() {
