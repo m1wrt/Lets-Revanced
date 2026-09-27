@@ -46,6 +46,7 @@ public interface ContractInterface {
         void updateContext(String context);
         void setLlmPrediction(String prediction);
         void loadLlmModel(String path);
+        void reloadPackage();
         void setLanguage(String language);
         void clearSelection();
     }

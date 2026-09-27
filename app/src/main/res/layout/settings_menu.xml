@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="24dp"
             android:gravity="center"
-            android:text="Aquí podrás configurar los parámetros del modelo Llama.cpp (Gemma-2b) en futuras actualizaciones."
+            android:text="Aquí podrás importar y gestionar paquetes de lenguaje e IA (.zip)."
             android:textColor="@color/status_text_color"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -58,7 +58,7 @@
                 android:layout_height="60dp"
                 android:layout_weight="1"
                 android:background="@drawable/panel_background"
-                android:text="IMPORTAR MODELO (.GGUF)"
+                android:text="IMPORTAR PAQUETE (.ZIP)"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
 
@@ -75,15 +75,50 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/tv_model_status"
-            android:layout_width="wrap_content"
+            android:id="@+id/tv_package_title"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Modelo: Predeterminado (gemma3-1b.gguf)"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            android:gravity="center"
+            android:text="Spanish v1.0"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llm_model_container" />
+
+        <TextView
+            android:id="@+id/tv_package_description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="24dp"
+            android:gravity="center"
+            android:text="Descripción: null"
             android:textColor="@color/status_text_color"
             android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="@id/llm_model_container"
-            app:layout_constraintTop_toBottomOf="@id/llm_model_container" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_package_title" />
+
+        <TextView
+            android:id="@+id/tv_model_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="24dp"
+            android:gravity="center"
+            android:text="Modelo: Predeterminado (gemma3-1b.gguf)"
+            android:textColor="@color/status_text_color"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_package_description" />
 
         <Button
             android:id="@+id/btn_back_settings"

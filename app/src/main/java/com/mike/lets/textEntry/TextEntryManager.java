@@ -38,13 +38,37 @@ public class TextEntryManager {
         UserDataManager userDataManager = (UserDataManager) context.getApplicationContext();
         this.currentLanguage = userDataManager.getLanguage();
         
-        blurryInput.initialize(context, contextText);
+        String wordListPath = userDataManager.getPackageWordListPath();
+        blurryInput.initialize(context, contextText, wordListPath);
         
         translationManager.initialize(context, this.currentLanguage, v -> {
             Log.d("TextEntryManager", "Translation initialized for " + currentLanguage);
         });
 
-        String savedPath = userDataManager.getLlmModelPath();
+        String savedPath = userDataManager.getPackageModelPath();
+        if (savedPath == null || savedPath.isEmpty()) {
+            savedPath = userDataManager.getLlmModelPath();
+        }
+        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.gguf";
+
+        loadModel(context, modelToLoad);
+    }
+
+    public void reloadPackage(android.content.Context context) {
+        UserDataManager userDataManager = (UserDataManager) context.getApplicationContext();
+        this.currentLanguage = userDataManager.getLanguage();
+
+        String wordListPath = userDataManager.getPackageWordListPath();
+        blurryInput.initialize(context, this.conversationContext, wordListPath);
+
+        translationManager.initialize(context, this.currentLanguage, v -> {
+            Log.d("TextEntryManager", "Translation initialized for " + currentLanguage);
+        });
+
+        String savedPath = userDataManager.getPackageModelPath();
+        if (savedPath == null || savedPath.isEmpty()) {
+            savedPath = userDataManager.getLlmModelPath();
+        }
         String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.gguf";
 
         loadModel(context, modelToLoad);

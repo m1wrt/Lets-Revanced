@@ -32,11 +32,20 @@ import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements ContractInterface.View {
 
@@ -60,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
-                    processImportedModel(uri);
+                    processImportedPackage(uri);
                 }
             }
     );
@@ -151,18 +160,14 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         
         binding.settingsMenuLayout.btnClearModel.setOnClickListener(v -> {
             UserDataManager userDataManager = (UserDataManager) getApplicationContext();
-            userDataManager.setLlmModelPath("");
-            presenter.loadLlmModel("gemma3-1b.gguf");
-            binding.settingsMenuLayout.tvModelStatus.setText("Modelo: Predeterminado (gemma3-1b.gguf)");
-            Toast.makeText(this, "Modelo predeterminado restaurado", Toast.LENGTH_SHORT).show();
+            userDataManager.clearPackage();
+            presenter.reloadPackage();
+            updatePackageUI();
+            Toast.makeText(this, "Paquete predeterminado restaurado", Toast.LENGTH_SHORT).show();
         });
 
         // Initialize status text
-        UserDataManager udm = (UserDataManager) getApplicationContext();
-        String currentPath = udm.getLlmModelPath();
-        if (currentPath != null && !currentPath.isEmpty()) {
-            binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + new java.io.File(currentPath).getName());
-        }
+        updatePackageUI();
 
         binding.mainMenuLayout.editContext.addTextChangedListener(new android.text.TextWatcher() {
             @Override
@@ -636,37 +641,168 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
     public native String stringFromJNI();
 
-    private void processImportedModel(Uri uri) {
+    private void updatePackageUI() {
+        UserDataManager udm = (UserDataManager) getApplicationContext();
+        String lang = udm.getPackageLanguage();
+        String ver = udm.getPackageVersion();
+        String desc = udm.getPackageDescription();
+        String modelPath = udm.getPackageModelPath();
+
+        String titleText = (lang != null && !lang.isEmpty() ? lang : "Spanish") +
+                           (ver != null && !ver.isEmpty() ? " v" + ver : " v1.0");
+        String descText = "Descripción: " + (desc != null && !desc.isEmpty() ? desc : "null");
+        
+        String modelName = "Predeterminado (gemma3-1b.gguf)";
+        if (modelPath != null && !modelPath.isEmpty()) {
+            modelName = new File(modelPath).getName();
+        }
+
+        binding.settingsMenuLayout.tvPackageTitle.setText(titleText);
+        binding.settingsMenuLayout.tvPackageDescription.setText(descText);
+        binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + modelName);
+    }
+
+    private void processImportedPackage(Uri uri) {
         try {
             String fileName = getFileName(uri);
-            if (fileName == null || !fileName.endsWith(".gguf")) {
-                Toast.makeText(this, "Por favor selecciona un archivo .gguf", Toast.LENGTH_SHORT).show();
+            if (fileName == null || (!fileName.toLowerCase().endsWith(".zip") && !fileName.toLowerCase().endsWith(".rar"))) {
+                Toast.makeText(this, "Por favor selecciona un archivo .zip", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Copy file to internal storage
-            java.io.File destFile = new java.io.File(getFilesDir(), fileName);
-            try (java.io.InputStream is = getContentResolver().openInputStream(uri);
-                 java.io.FileOutputStream os = new java.io.FileOutputStream(destFile)) {
-                byte[] buffer = new byte[1024 * 4];
-                int read;
-                while ((read = is.read(buffer)) != -1) {
-                    os.write(buffer, 0, read);
+            File packageDir = new File(getFilesDir(), "active_package");
+            deleteDirectory(packageDir);
+            if (!packageDir.mkdirs()) {
+                Log.e("MainActivity", "Failed to create package directory");
+            }
+
+            try (InputStream is = getContentResolver().openInputStream(uri);
+                 ZipInputStream zis = new ZipInputStream(new java.io.BufferedInputStream(is))) {
+                
+                ZipEntry ze;
+                byte[] buffer = new byte[1024 * 8];
+                while ((ze = zis.getNextEntry()) != null) {
+                    String zeName = ze.getName();
+                    File targetFile = new File(packageDir, zeName);
+                    if (!targetFile.getCanonicalPath().startsWith(packageDir.getCanonicalPath())) {
+                        throw new SecurityException("Zip entry is outside target dir: " + zeName);
+                    }
+
+                    if (ze.isDirectory()) {
+                        targetFile.mkdirs();
+                    } else {
+                        File parent = targetFile.getParentFile();
+                        if (parent != null && !parent.exists()) {
+                            parent.mkdirs();
+                        }
+                        try (FileOutputStream fos = new FileOutputStream(targetFile)) {
+                            int count;
+                            while ((count = zis.read(buffer)) != -1) {
+                                fos.write(buffer, 0, count);
+                            }
+                        }
+                    }
+                    zis.closeEntry();
                 }
             }
 
+            File packageJsonFile = findFile(packageDir, "Package.json");
+            if (packageJsonFile == null || !packageJsonFile.exists()) {
+                Toast.makeText(this, "Error: No se encontró el archivo Package.json en el .zip", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            File baseDir = packageJsonFile.getParentFile();
+
+            String jsonText = readFileToString(packageJsonFile).trim();
+            JSONObject pkgObj = null;
+            if (jsonText.startsWith("[")) {
+                JSONArray arr = new JSONArray(jsonText);
+                if (arr.length() > 0) {
+                    pkgObj = arr.getJSONObject(0);
+                }
+            } else if (jsonText.startsWith("{")) {
+                pkgObj = new JSONObject(jsonText);
+            }
+
+            if (pkgObj == null) {
+                Toast.makeText(this, "Error: Formato inválido en Package.json", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            String language = pkgObj.optString("Language", "Spanish");
+            String wordListFileName = pkgObj.optString("WordList", "");
+            String modelFileName = pkgObj.optString("ModelFile", "");
+            String description = pkgObj.optString("description", "null");
+            String version = pkgObj.optString("version", "1.0");
+
+            File wordListFile = new File(baseDir, wordListFileName);
+            File modelFile = new File(baseDir, modelFileName);
+
+            if (!wordListFile.exists()) {
+                Log.w("MainActivity", "WordList file not found in package: " + wordListFileName);
+            }
+            if (!modelFile.exists()) {
+                Log.w("MainActivity", "Model file not found in package: " + modelFileName);
+            }
+
             UserDataManager userDataManager = (UserDataManager) getApplicationContext();
-            userDataManager.setLlmModelPath(destFile.getAbsolutePath());
-            
-            presenter.loadLlmModel(destFile.getAbsolutePath());
-            
-            binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + fileName);
-            Toast.makeText(this, "Modelo importado: " + fileName, Toast.LENGTH_SHORT).show();
+            userDataManager.setPackageLanguage(language);
+            userDataManager.setPackageVersion(version);
+            userDataManager.setPackageDescription(description);
+            userDataManager.setPackageWordListPath(wordListFile.exists() ? wordListFile.getAbsolutePath() : "");
+            userDataManager.setPackageModelPath(modelFile.exists() ? modelFile.getAbsolutePath() : "");
+            userDataManager.setLanguage(language);
+
+            presenter.reloadPackage();
+            updatePackageUI();
+
+            Toast.makeText(this, "Paquete " + language + " v" + version + " cargado con éxito", Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
-            Log.e("MainActivity", "Error importing model", e);
-            Toast.makeText(this, "Error al importar modelo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Log.e("MainActivity", "Error processing package", e);
+            Toast.makeText(this, "Error al importar paquete: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void deleteDirectory(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            File[] children = dir.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    deleteDirectory(child);
+                }
+            }
+        }
+        if (dir != null) {
+            dir.delete();
+        }
+    }
+
+    private File findFile(File dir, String fileName) {
+        if (dir == null || !dir.exists()) return null;
+        File[] files = dir.listFiles();
+        if (files == null) return null;
+        for (File f : files) {
+            if (f.isFile() && f.getName().equalsIgnoreCase(fileName)) {
+                return f;
+            } else if (f.isDirectory()) {
+                File found = findFile(f, fileName);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    private String readFileToString(File file) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new java.io.FileInputStream(file), java.nio.charset.StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        }
+        return sb.toString();
     }
 
     private String getFileName(Uri uri) {

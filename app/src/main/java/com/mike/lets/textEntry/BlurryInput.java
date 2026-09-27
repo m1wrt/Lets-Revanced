@@ -39,6 +39,10 @@ public class BlurryInput {
      * Inicializa el sistema y carga el diccionario.
      */
     public void initialize(Context context, String contextText) {
+        initialize(context, contextText, null);
+    }
+
+    public void initialize(Context context, String contextText, String wordListPath) {
         this.context = context;
         this.currentContext = contextText != null ? contextText.toLowerCase() : "";
         
@@ -53,10 +57,17 @@ public class BlurryInput {
             wordToCodeMap.put(letter, encode(letter));
         }
 
-        // 2. Cargar diccionario principal (Solo Español)
-        String dictionaryFile = "SpanishWords.txt";
-        
-        loadWordsFromAssets(context, dictionaryFile);
+        // 2. Cargar diccionario principal
+        if (wordListPath != null && !wordListPath.isEmpty()) {
+            java.io.File customFile = new java.io.File(wordListPath);
+            if (customFile.exists()) {
+                loadWordsFromFile(customFile);
+            } else {
+                loadWordsFromAssets(context, wordListPath);
+            }
+        } else {
+            loadWordsFromAssets(context, "SpanishWords.txt");
+        }
         
         rebuildCodeMap();
     }
@@ -78,6 +89,20 @@ public class BlurryInput {
             if (!wordToCodeMap.containsKey(word)) {
                 wordToCodeMap.put(word, encode(normalize(word)));
             }
+        }
+    }
+
+    private void loadWordsFromFile(java.io.File file) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new java.io.FileInputStream(file), java.nio.charset.StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String word = line.trim().toLowerCase();
+                if (!word.isEmpty()) {
+                    wordList.add(word);
+                }
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Error loading dictionary from file: " + file.getAbsolutePath(), e);
         }
     }
 

@@ -221,6 +221,11 @@ public class Presenter implements ContractInterface.Presenter {
     }
 
     @Override
+    public void reloadPackage() {
+        textEntryManager.reloadPackage(applicationContext);
+    }
+
+    @Override
     public void setLanguage(String language) {
         userDataManager.setLanguage(language);
         textEntryManager.initialize(applicationContext, textEntryManager.getCurrentText());

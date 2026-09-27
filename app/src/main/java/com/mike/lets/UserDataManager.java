@@ -50,6 +50,11 @@ public class UserDataManager extends Application {
     private String accessTokenSecret = "";
     private String geminiApiKey = "";
     private String llmModelPath = "";
+    private String packageLanguage = "Spanish";
+    private String packageVersion = "1.0";
+    private String packageDescription = "null";
+    private String packageWordListPath = "";
+    private String packageModelPath = "";
 
     private Bitmap[] leftCalibrationData;
     private Bitmap[] rightCalibrationData;
@@ -74,6 +79,11 @@ public class UserDataManager extends Application {
         defaultSettings.put("SentenceGenerationModel", "1");
         defaultSettings.put("GeminiApiKey", "");
         defaultSettings.put("LlmModelPath", "");
+        defaultSettings.put("PackageLanguage", "Spanish");
+        defaultSettings.put("PackageVersion", "1.0");
+        defaultSettings.put("PackageDescription", "null");
+        defaultSettings.put("PackageWordListPath", "");
+        defaultSettings.put("PackageModelPath", "");
     }
 
 
@@ -91,6 +101,11 @@ public class UserDataManager extends Application {
         sentenceGenerationModel = Integer.parseInt(getString("SentenceGenerationModel"));
         geminiApiKey = getString("GeminiApiKey");
         llmModelPath = getString("LlmModelPath");
+        packageLanguage = getString("PackageLanguage");
+        packageVersion = getString("PackageVersion");
+        packageDescription = getString("PackageDescription");
+        packageWordListPath = getString("PackageWordListPath");
+        packageModelPath = getString("PackageModelPath");
 
         // get calibration files
         if (getCalibrationFiles(mContext, leftEyeFileNames) != null) {
@@ -330,6 +345,46 @@ public class UserDataManager extends Application {
     public void setLlmModelPath(String llmModelPath) {
         this.llmModelPath = llmModelPath;
         setString("LlmModelPath", llmModelPath);
+    }
+
+    public String getPackageLanguage() { return packageLanguage; }
+    public void setPackageLanguage(String lang) {
+        this.packageLanguage = lang;
+        setString("PackageLanguage", lang);
+    }
+
+    public String getPackageVersion() { return packageVersion; }
+    public void setPackageVersion(String version) {
+        this.packageVersion = version;
+        setString("PackageVersion", version);
+    }
+
+    public String getPackageDescription() { return packageDescription; }
+    public void setPackageDescription(String desc) {
+        this.packageDescription = desc;
+        setString("PackageDescription", desc);
+    }
+
+    public String getPackageWordListPath() { return packageWordListPath; }
+    public void setPackageWordListPath(String path) {
+        this.packageWordListPath = path;
+        setString("PackageWordListPath", path);
+    }
+
+    public String getPackageModelPath() { return packageModelPath; }
+    public void setPackageModelPath(String path) {
+        this.packageModelPath = path;
+        setString("PackageModelPath", path);
+    }
+
+    public void clearPackage() {
+        setPackageLanguage("Spanish");
+        setPackageVersion("1.0");
+        setPackageDescription("null");
+        setPackageWordListPath("");
+        setPackageModelPath("");
+        setLlmModelPath("");
+        setLanguage("Spanish");
     }
 }
 
