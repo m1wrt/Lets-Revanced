@@ -1,0 +1,9 @@
+[
+    {
+        "Language": "Spanish",
+        "WordList": "SpanishWords.txt",
+        "Dataset": "SpanishSentences.json",
+        "ModelFile": "SpanishSentGemma3.gguf",
+        "description": "null"
+    }
+]
