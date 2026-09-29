@@ -71,9 +71,8 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeInit(JNIEnv* env, jobject, jst
     state->ctx = ctx;
     state->smpl = llama_sampler_chain_init(llama_sampler_chain_default_params());
 
-    // Sampling configuration
-    llama_sampler_chain_add(state->smpl, llama_sampler_init_temp(0.3f));
-    llama_sampler_chain_add(state->smpl, llama_sampler_init_dist(42));
+    // Greedy sampling for deterministic, fine-tuned model outputs
+    llama_sampler_chain_add(state->smpl, llama_sampler_init_greedy());
 
     env->ReleaseStringUTFChars(modelPath, path);
     LOGD("Llama initialized successfully");
@@ -101,9 +100,20 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
     // Reset sampler state to ensure no "memory" or state from previous generations remains
     llama_sampler_reset(state->smpl);
 
-    std::vector<llama_token> tokens;
-    tokens.resize(prompt_str.length() + 1);
-    int n_tokens = (int)llama_tokenize(vocab, prompt_str.c_str(), (int)prompt_str.length(), tokens.data(), (int)tokens.size(), true, true);
+    // 2-pass tokenization allocation to prevent truncation
+    int n_tokens_alloc = -llama_tokenize(vocab, prompt_str.c_str(), (int)prompt_str.length(), nullptr, 0, true, true);
+    if (n_tokens_alloc <= 0) {
+        n_tokens_alloc = (int)prompt_str.length() + 32;
+    } else {
+        n_tokens_alloc += 16;
+    }
+
+    std::vector<llama_token> tokens(n_tokens_alloc);
+    int n_tokens = llama_tokenize(vocab, prompt_str.c_str(), (int)prompt_str.length(), tokens.data(), (int)tokens.size(), true, true);
+    if (n_tokens < 0) {
+        LOGE("llama_tokenize failed with code: %d", n_tokens);
+        return env->NewStringUTF("");
+    }
     tokens.resize(n_tokens);
 
     if (n_tokens <= 0) return env->NewStringUTF("");
@@ -117,7 +127,7 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
     auto t_prompt = std::chrono::high_resolution_clock::now();
 
     std::string response;
-    int n_predict = 40;
+    int n_predict = 64; // Exactamente 64 max_new_tokens como en el script de entrenamiento
 
     for (int i = 0; i < n_predict; i++) {
         llama_token curr_token = llama_sampler_sample(state->smpl, state->ctx, -1);
@@ -125,14 +135,16 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
         if (llama_vocab_is_eog(vocab, curr_token)) break;
 
         char buf[128];
-        int n = llama_token_to_piece(vocab, curr_token, buf, sizeof(buf), 0, true);
+        int n = llama_token_to_piece(vocab, curr_token, buf, sizeof(buf), 0, false);
         if (n > 0) {
-            response.append(buf, n);
+            std::string piece(buf, n);
+            response.append(piece);
 
-            // Check for stop sequences in response
-            if (response.find("<end_of_turn>") != std::string::npos ||
+            // Stop sequences: ### or special tags or double-newline
+            if (response.find("###") != std::string::npos ||
+                response.find("<end_of_turn>") != std::string::npos ||
                 response.find("<eos>") != std::string::npos ||
-                response.find("model") != std::string::npos) {
+                response.find("\n\n") != std::string::npos) {
                 break;
             }
         }
@@ -143,6 +155,32 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
             break;
         }
     }
+
+    LOGD("PROMPT SENT:\n%s", prompt_str.c_str());
+
+    // Trim stop markers
+    size_t pos = response.find("###");
+    if (pos != std::string::npos) {
+        response = response.substr(0, pos);
+    }
+    pos = response.find("<");
+    if (pos != std::string::npos) {
+        response = response.substr(0, pos);
+    }
+    pos = response.find("\n\n");
+    if (pos != std::string::npos) {
+        response = response.substr(0, pos);
+    }
+
+    // Trim leading/trailing whitespace and newlines
+    while (!response.empty() && (response.front() == ' ' || response.front() == '\t' || response.front() == '\r' || response.front() == '\n')) {
+        response.erase(0, 1);
+    }
+    while (!response.empty() && (response.back() == ' ' || response.back() == '\t' || response.back() == '\r' || response.back() == '\n')) {
+        response.pop_back();
+    }
+
+    LOGD("RESPONSE FINAL:\n%s", response.c_str());
 
     auto t_end = std::chrono::high_resolution_clock::now();
     double ms_total = std::chrono::duration<double, std::milli>(t_end - t_start).count();

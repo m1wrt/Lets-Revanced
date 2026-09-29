@@ -5,6 +5,10 @@
             "oracion": "Tengo hambre, quiero pasta."
         },
         {
+            "palabras": "hambre",
+            "oracion": "Tengo hambre."
+        },
+        {
             "palabras": "cambiar canal",
             "oracion": "Quiero cambiar el canal de la televisión."
         },
@@ -66,10 +70,6 @@
         },
         {
             "palabras": "baño",
-            "oracion": "baño"
-        },
-        {
-            "palabras": "baño",
             "oracion": "Necesito ir al baño."
         },
         {
@@ -94,7 +94,7 @@
         },
         {
             "palabras": "Hola",
-            "oracion": "Hola, ¿Cómo estas?"
+            "oracion": "¡Hola! ¿Cómo estás?"
         },
         {
             "palabras": "como estas",
@@ -111,10 +111,6 @@
         {
             "palabras": "feliz",
             "oracion": "Me siento feliz."
-        },
-        {
-            "palabras": "hola",
-            "oracion": "bien tu"
         },
         {
             "palabras": "bien tu",
@@ -329,9 +325,13 @@
             "palabras": "miedo mujer",
             "oracion": "Tengo miedo de la mujer."
         },
-                {
+        {
             "palabras": "bonito chico",
             "oracion": "El chico es muy bonito."
+        },
+        {
+            "palabras": "hola juan estas",
+            "oracion": "Hola Juan, ¿cómo estás?"
         }
     ]
 }

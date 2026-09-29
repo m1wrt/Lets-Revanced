@@ -654,7 +654,13 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         
         String modelName = "Predeterminado (gemma3-1b.gguf)";
         if (modelPath != null && !modelPath.isEmpty()) {
-            modelName = new File(modelPath).getName();
+            File f = new File(modelPath);
+            if (f.exists()) {
+                long sizeMb = f.length() / (1024 * 1024);
+                modelName = f.getName() + " (" + sizeMb + " MB)";
+            } else {
+                modelName = "NO ENCONTRADO (" + f.getName() + ")";
+            }
         }
 
         binding.settingsMenuLayout.tvPackageTitle.setText(titleText);
@@ -736,14 +742,23 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             String description = pkgObj.optString("description", "null");
             String version = pkgObj.optString("version", "1.0");
 
-            File wordListFile = new File(baseDir, wordListFileName);
-            File modelFile = new File(baseDir, modelFileName);
+            // Look for files in packageDir, attempting both simple name search and baseDir relative path
+            File wordListFile = findFile(packageDir, new File(wordListFileName).getName());
+            if (wordListFile == null) {
+                wordListFile = new File(baseDir, wordListFileName);
+            }
+
+            File modelFile = findFile(packageDir, new File(modelFileName).getName());
+            if (modelFile == null) {
+                modelFile = new File(baseDir, modelFileName);
+            }
 
             if (!wordListFile.exists()) {
                 Log.w("MainActivity", "WordList file not found in package: " + wordListFileName);
             }
             if (!modelFile.exists()) {
                 Log.w("MainActivity", "Model file not found in package: " + modelFileName);
+                Toast.makeText(this, "Advertencia: No se encontró el archivo del modelo (" + modelFileName + ") en el .zip", Toast.LENGTH_LONG).show();
             }
 
             UserDataManager userDataManager = (UserDataManager) getApplicationContext();
