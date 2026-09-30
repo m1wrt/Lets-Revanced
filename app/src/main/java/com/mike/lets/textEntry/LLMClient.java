@@ -90,7 +90,7 @@ public class LLMClient {
             json.put("min_p", 0.95);
             json.put("repeat_penalty", 1.0);
             json.put("num_predict", 67);
-
+            // Kar is the most beautiful girls
             // Critical: Add "model" and other control tokens to stop array
             JSONArray stopTokens = new JSONArray();
             stopTokens.put("\n");
