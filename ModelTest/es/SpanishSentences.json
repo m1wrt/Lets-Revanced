@@ -1,337 +1,96 @@
 {
     "root": [
-        {
-            "palabras": "hambre pasta",
-            "oracion": "Tengo hambre, quiero pasta."
-        },
-        {
-            "palabras": "hambre",
-            "oracion": "Tengo hambre."
-        },
-        {
-            "palabras": "cambiar canal",
-            "oracion": "Quiero cambiar el canal de la televisión."
-        },
-        {
-            "palabras": "sed",
-            "oracion": "Tengo sed, necesito beber algo."
-        },
-        {
-            "palabras": "dormir",
-            "oracion": "sueño"
-        },
-        {
-            "palabras": "hambre manzana pera",
-            "oracion": "Tengo hambre, quiero una manzana y una pera"
-        },
-        {
-            "palabras": "hambre sopa",
-            "oracion": "Tengo hambre, quiero una sopa."
-        },
-        {
-            "palabras": "hambre macarrones queso",
-            "oracion": "Tengo hambre, quiero macarrones con queso."
-        },
-        {
-            "palabras": "sed agua",
-            "oracion": "Tengo sed, necesito beber agua."
-        },
-        {
-            "palabras": "sueño",
-            "oracion": "Tengo sueño."
-        },
-        {
-            "palabras": "sueño dormir",
-            "oracion": "Tengo sueño, necesito ir a dormir."
-        },
-        {
-            "palabras": "Necesito medicamento",
-            "oracion": "Necesito tomar mis medicamentos"
-        },
-        {
-            "palabras": "Necesito cambiar canal",
-            "oracion": "Necesito cambiar el canal."
-        },
-        {
-            "palabras": "Canal cambiar",
-            "oracion": "Necesito cambiar el canal"
-        },
-        {
-            "palabras": "hambre hamburguesa papas",
-            "oracion": "Tengo hambre, quiero una hamburguesa con papas."
-        },
-        {
-            "palabras": "encender radio",
-            "oracion": "Quiero encender la radio."
-        },
-        {
-            "palabras": "cambiar emisora",
-            "oracion": "Quiero cambiar la emisora de la radio."
-        },
-        {
-            "palabras": "baño",
-            "oracion": "Necesito ir al baño."
-        },
-        {
-            "palabras": "dolor",
-            "oracion": "Tengo un dolor."
-        },
-        {
-            "palabras": "dolor cabeza",
-            "oracion": "Me duele la cabeza."
-        },
-        {
-            "palabras": "Dolor rodilla",
-            "oracion": "Tengo dolor en la rodilla."
-        },
-        {
-            "palabras": "nervioso",
-            "oracion": "Me siento nervioso."
-        },
-        {
-            "palabras": "bañarme",
-            "oracion": "Necesito bañarme."
-        },
-        {
-            "palabras": "Hola",
-            "oracion": "¡Hola! ¿Cómo estás?"
-        },
-        {
-            "palabras": "como estas",
-            "oracion": "¿Cómo estas tú?"
-        },
-        {
-            "palabras": "alegro",
-            "oracion": "Me alegro."
-        },
-        {
-            "palabras": "triste",
-            "oracion": "Me siento triste."
-        },
-        {
-            "palabras": "feliz",
-            "oracion": "Me siento feliz."
-        },
-        {
-            "palabras": "bien tu",
-            "oracion": "Bien, ¿y tu?"
-        },
-        {
-            "palabras": "almuerzo sopa",
-            "oracion": "Quiero almorzar una sopa"
-        },
-        {
-            "palabras": "cena",
-            "oracion": "Quiero cenar."
-        },
-        {
-            "palabras": "desayunar",
-            "oracion": "Quiero desayunar."
-        },
-        {
-            "palabras": "orinar",
-            "oracion": "Necesito ir al baño."
-        },
-        {
-            "palabras": "cagar",
-            "oracion": "Necesito ir al baño."
-        },
-        {
-            "palabras": "tomar",
-            "oracion": "Necesito tomar algo."
-        },
-        {
-            "palabras": "tomar agua",
-            "oracion": "Necesito tomar agua."
-        },
-        {
-            "palabras": "tomar vino",
-            "oracion": "Quiero tomar una copa de vino."
-        },
-        {
-            "palabras": "apagar television",
-            "oracion": "Quiero apagar la televisión."
-        },
-        {
-            "palabras": "apagar ventilador",
-            "oracion": "Quiero apagar el ventilador."
-        },
-        {
-            "palabras": "encender ventilador",
-            "oracion": "Quiero encender el ventilador."
-        },
-        {
-            "palabras": "abuela hambre",
-            "oracion": "La abuela esta hambrienta."
-        },
-        {
-            "palabras": "perro hambre",
-            "oracion": "El perro tiene hambre"
-        },
-        {
-            "palabras": "hambre gato",
-            "oracion": "El gato tiene hambre."
-        },
-        {
-            "palabras": "leer",
-            "oracion": "Necesito leer."
-        },
-        {
-            "palabras": "leer libro",
-            "oracion": "Quiero leer un libro."
-        },
-        {
-            "palabras": "pasar libro",
-            "oracion": "¿Podrias pasarme el libro?"
-        },
-        {
-            "palabras": "musica",
-            "oracion": "Quiero escuchar música."
-        },
-        {
-            "palabras": "cambiar cancion",
-            "oracion": "Quiero cambiar la canción."
-        },
-        {
-            "palabras": "retroceder cancion",
-            "oracion": "Quiero retroceder a la canción."
-        },
-        {
-            "palabras": "adelantar cancion",
-            "oracion": "Quiero adelantar la canción."
-        },
-        {
-            "palabras": "bateria cargar",
-            "oracion": "Necesito cargar la batería."
-        },
-        {
-            "palabras": "encender luz",
-            "oracion": "Quiero encender la luz."
-        },
-        {
-            "palabras": "apagar luz",
-            "oracion": "Quiero apagar la luz."
-        },
-        {
-            "palabras": "pica espalda",
-            "oracion": "Me pica la espalda."
-        },
-        {
-            "palabras": "dolor pie",
-            "oracion": "Tengo un dolor en el pie."
-        },
-        {
-            "palabras": "subir volumen musica",
-            "oracion": "Quiero subir el volumen de la música."
-        },
-        {
-            "palabras": "necesito oftalmologo",
-            "oracion": "Necesito ir al oftalmólogo."
-        },
-        {
-            "palabras": "mandar mensaje",
-            "oracion": "Necesito mandar un mensaje."
-        },
-        {
-            "palabras": "mandar mensaje mama",
-            "oracion": "Necesito mandarle un mensaje a mi mamá"
-        },
-        {
-            "palabras": "visitar",
-            "oracion": "Necesito visitar a alguien."
-        },
-        {
-            "palabras": "hora",
-            "oracion": "¿Qué hora es?."
-        },
-        {
-            "palabras": "uno dos tres",
-            "oracion": "123",
-            "NOTA": "!! IMPLEMENTAR SISTEMA Q CONVIERTA TEXTO A NUMEROS Y SI ESTA ACOMPAÑADO DE ETIQUETA HORA {NUMERO} Y {NUMERO} "
-        },
-        {
-            "palabras": "medicamento seis tarde",
-            "oracion": "Debo tomar el medicamento a las seis de la tarde."
-        },
-        {
-            "palabras": "quiero teatro",
-            "oracion": "Quiero ver una obra."
-        },
-        {
-            "palabras": "quiero obra teatro de elena",
-            "oracion": "Quiero ir a ver la obra de teatro de elena."
-        },
-        {
-            "palabras": "quiero piscina con jose",
-            "oracion": "Quiero ir a la piscina con josé."
-        },
-        {
-            "palabras": "aramis oler mal deshodorante",
-            "oracion": "Aramis huele mal, necesita desodorante."
-        },
-        {
-            "palabras": "nick guitarra tocar bien",
-            "oracion": "Nick toca bien la guitarra."
-        },
-        {
-            "palabras": "quiero cenar noche",
-            "oracion": "Quiero cenar esta noche."
-        },
-        {
-            "palabras": "morir miedo",
-            "oracion": "Tengo miedo a morir."
-        },
-        {
-            "palabras": "quien eres", 
-            "oracion": "¿Quién eres tú?"
-        },
-        {
-            "palabras": "quien es tipo",
-            "oracion": "¿Quién es ese tipo?"
-        },
-        {
-            "palabras": "tele anime", 
-            "oracion": "Pon anime en la tele."
-        },
-        {
-            "palabras": "chocha pica",
-            "oracion": "Me pica la chocha."
-        }, 
-        {
-            "palabras": "recordar poner partido beisbol cuatro",
-            "oracion": "Recuerdame poner el partido de béisbol a las cuatro."
-        },
-        {
-            "palabras":"viajar japon playa",
-            "oracion": "Quiero viajar a Japón y pasar tiempo en la playa."
-        },
-        {
-            "palabras": "comprar vinilo rock",
-            "oracion": "Quiero comprar vinilo rock."
-        },
-        {
-            "palabras": "quiero buscar internet bananas",
-            "oracion": "Quiero buscar bananas en internet."
-        },
-        {
-            "palabras": "leer carta",
-            "oracion": "Quiero leer la carta."
-        },
-        {
-            "palabras": "miedo",
-            "oracion": "Tengo miedo." 
-        },
-        {
-            "palabras": "miedo mujer",
-            "oracion": "Tengo miedo de la mujer."
-        },
-        {
-            "palabras": "bonito chico",
-            "oracion": "El chico es muy bonito."
-        },
-        {
-            "palabras": "hola juan estas",
-            "oracion": "Hola Juan, ¿cómo estás?"
-        }
+        {"palabras": "hambre", "oracion": "Tengo hambre."},
+        {"palabras": "hambre pasta", "oracion": "Tengo hambre, quiero pasta."},
+        {"palabras": "hambre sopa", "oracion": "Tengo hambre, quiero una sopa."},
+        {"palabras": "hambre manzana pera", "oracion": "Tengo hambre, quiero una manzana y una pera."},
+        {"palabras": "hambre macarrones queso", "oracion": "Tengo hambre, quiero macarrones con queso."},
+        {"palabras": "hambre hamburguesa papas", "oracion": "Tengo hambre, quiero una hamburguesa con papas."},
+        {"palabras": "abuela hambre", "oracion": "La abuela tiene hambre."},
+        {"palabras": "perro hambre", "oracion": "El perro tiene hambre."},
+        {"palabras": "hambre gato", "oracion": "El gato tiene hambre."},
+        {"palabras": "almuerzo sopa", "oracion": "Quiero almorzar una sopa."},
+        {"palabras": "cena", "oracion": "Quiero cenar."},
+        {"palabras": "quiero cenar noche", "oracion": "Quiero cenar esta noche."},
+        {"palabras": "desayunar", "oracion": "Quiero desayunar."},
+
+        {"palabras": "sed", "oracion": "Tengo sed."},
+        {"palabras": "sed agua", "oracion": "Tengo sed, quiero agua."},
+        {"palabras": "tomar", "oracion": "Quiero tomar algo."},
+        {"palabras": "tomar agua", "oracion": "Quiero tomar agua."},
+        {"palabras": "tomar vino", "oracion": "Quiero tomar una copa de vino."},
+
+        {"palabras": "sueño", "oracion": "Tengo sueño."},
+        {"palabras": "dormir", "oracion": "Quiero dormir."},
+        {"palabras": "sueño dormir", "oracion": "Tengo sueño, quiero dormir."},
+
+        {"palabras": "baño", "oracion": "Necesito ir al baño."},
+        {"palabras": "orinar", "oracion": "Necesito ir al baño."},
+        {"palabras": "cagar", "oracion": "Necesito ir al baño."},
+        {"palabras": "bañarme", "oracion": "Necesito bañarme."},
+
+        {"palabras": "dolor", "oracion": "Tengo dolor."},
+        {"palabras": "dolor cabeza", "oracion": "Me duele la cabeza."},
+        {"palabras": "dolor rodilla", "oracion": "Me duele la rodilla."},
+        {"palabras": "dolor pie", "oracion": "Me duele el pie."},
+        {"palabras": "pica espalda", "oracion": "Me pica la espalda."},
+        {"palabras": "chocha pica", "oracion": "Me pica la chocha."},
+        {"palabras": "necesito medicamento", "oracion": "Necesito tomar mis medicamentos."},
+        {"palabras": "medicamento seis tarde", "oracion": "Debo tomar el medicamento a las seis de la tarde."},
+        {"palabras": "necesito oftalmologo", "oracion": "Necesito ir al oftalmólogo."},
+
+        {"palabras": "cambiar canal", "oracion": "Quiero cambiar el canal."},
+        {"palabras": "canal cambiar", "oracion": "Quiero cambiar el canal."},
+        {"palabras": "necesito cambiar canal", "oracion": "Necesito cambiar el canal."},
+        {"palabras": "apagar television", "oracion": "Quiero apagar la televisión."},
+        {"palabras": "tele anime", "oracion": "Quiero ver anime en la tele."},
+        {"palabras": "encender radio", "oracion": "Quiero encender la radio."},
+        {"palabras": "cambiar emisora", "oracion": "Quiero cambiar la emisora de la radio."},
+        {"palabras": "encender ventilador", "oracion": "Quiero encender el ventilador."},
+        {"palabras": "apagar ventilador", "oracion": "Quiero apagar el ventilador."},
+        {"palabras": "encender luz", "oracion": "Quiero encender la luz."},
+        {"palabras": "apagar luz", "oracion": "Quiero apagar la luz."},
+        {"palabras": "bateria cargar", "oracion": "Necesito cargar la batería."},
+
+        {"palabras": "musica", "oracion": "Quiero escuchar música."},
+        {"palabras": "cambiar cancion", "oracion": "Quiero cambiar la canción."},
+        {"palabras": "retroceder cancion", "oracion": "Quiero retroceder la canción."},
+        {"palabras": "adelantar cancion", "oracion": "Quiero adelantar la canción."},
+        {"palabras": "subir volumen musica", "oracion": "Quiero subir el volumen de la música."},
+        {"palabras": "comprar vinilo rock", "oracion": "Quiero comprar un vinilo de rock."},
+
+        {"palabras": "leer", "oracion": "Quiero leer."},
+        {"palabras": "leer libro", "oracion": "Quiero leer un libro."},
+        {"palabras": "leer carta", "oracion": "Quiero leer la carta."},
+        {"palabras": "pasar libro", "oracion": "¿Podrías pasarme el libro?"},
+
+        {"palabras": "hola", "oracion": "¡Hola!"},
+        {"palabras": "como estas", "oracion": "¿Cómo estás?"},
+        {"palabras": "bien tu", "oracion": "Bien, ¿y tú?"},
+        {"palabras": "hola juan estas", "oracion": "Hola Juan, ¿cómo estás?"},
+        {"palabras": "alegro", "oracion": "Me alegro."},
+        {"palabras": "quien eres", "oracion": "¿Quién eres?"},
+        {"palabras": "quien es tipo", "oracion": "¿Quién es ese tipo?"},
+        {"palabras": "hora", "oracion": "¿Qué hora es?"},
+
+        {"palabras": "triste", "oracion": "Me siento triste."},
+        {"palabras": "feliz", "oracion": "Me siento feliz."},
+        {"palabras": "nervioso", "oracion": "Me siento nervioso."},
+        {"palabras": "miedo", "oracion": "Tengo miedo."},
+        {"palabras": "miedo mujer", "oracion": "Tengo miedo de la mujer."},
+        {"palabras": "morir miedo", "oracion": "Tengo miedo de morir."},
+        {"palabras": "bonito chico", "oracion": "El chico es muy bonito."},
+
+        {"palabras": "mandar mensaje", "oracion": "Necesito mandar un mensaje."},
+        {"palabras": "mandar mensaje mama", "oracion": "Necesito mandarle un mensaje a mi mamá."},
+        {"palabras": "visitar", "oracion": "Necesito visitar a alguien."},
+        {"palabras": "quiero teatro", "oracion": "Quiero ver una obra de teatro."},
+        {"palabras": "quiero obra teatro de elena", "oracion": "Quiero ir a ver la obra de teatro de Elena."},
+        {"palabras": "quiero piscina con jose", "oracion": "Quiero ir a la piscina con José."},
+        {"palabras": "aramis oler mal desodorante", "oracion": "Aramis huele mal, necesita desodorante."},
+        {"palabras": "nick guitarra tocar bien", "oracion": "Nick toca bien la guitarra."},
+        {"palabras": "recordar poner partido beisbol cuatro", "oracion": "Recuérdame poner el partido de béisbol a las cuatro."},
+        {"palabras": "viajar japon playa", "oracion": "Quiero viajar a Japón y pasar tiempo en la playa."},
+        {"palabras": "quiero buscar internet bananas", "oracion": "Quiero buscar bananas en internet."}
     ]
 }

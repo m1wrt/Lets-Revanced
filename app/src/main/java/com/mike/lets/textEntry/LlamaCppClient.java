@@ -24,16 +24,16 @@ public class LlamaCppClient {
 
     public void initialize(Context context, String modelNameOrPath, LLMCallback callback) {
         synchronized (this) {
-            if (nativePtr != 0) {
-                release(); // Release existing model if any
-            }
             if (isInitializing) {
                 callback.onError("Model is already loading...");
                 return;
             }
             isInitializing = true;
+            if (nativePtr != 0) {
+                release(); // Release existing model if any
+            }
         }
-        
+
         llmExecutor.execute(() -> {
             try {
                 String modelPath;
@@ -51,7 +51,7 @@ public class LlamaCppClient {
                         nativePtr = ptr;
                         isInitializing = false;
                     }
-                    if (nativePtr != 0) {
+                    if (ptr != 0) {
                         callback.onSuccess("Model loaded");
                     } else {
                         callback.onError("Failed to initialize native Llama");
@@ -72,16 +72,17 @@ public class LlamaCppClient {
     }
 
     public void getCompletion(String contextText, String keywords, LLMCallback callback) {
+        if (keywords == null || keywords.trim().isEmpty()) {
+            callback.onError("Sin palabras clave");
+            return;
+        }
+
         synchronized (this) {
             if (nativePtr == 0) {
                 Log.e(TAG, "Llama not initialized");
                 callback.onError("Llama not initialized");
                 return;
             }
-            
-            // Cancel pending task if any (only works if task hasn't started)
-            // But since it's a SingleThreadExecutor, we can't easily "remove" from queue.
-            // A better way is to use a volatile variable to hold the latest keywords.
         }
 
         llmExecutor.execute(() -> {
@@ -89,15 +90,15 @@ public class LlamaCppClient {
             synchronized (this) {
                 currentPtr = nativePtr;
             }
-            
+
             if (currentPtr == 0) return;
 
             try {
-                String prompt = formatPrompt(contextText, keywords);
-                Log.d(TAG, "Executing LLM request: " + keywords);
+                String prompt = formatPrompt(keywords);
+                Log.d(TAG, "Prompt enviado:\n" + prompt);
                 String result = nativeGetCompletion(currentPtr, prompt);
                 if (result != null) {
-                    callback.onSuccess(result.trim());
+                    callback.onSuccess(cleanOutput(result));
                 } else {
                     callback.onError("Generation failed");
                 }
@@ -108,14 +109,26 @@ public class LlamaCppClient {
         });
     }
 
-    private String formatPrompt(String contextText, String keywords) {
-        // Template exacto solicitado: <start_of_turn>user\nCrea una oración con: {{ .Prompt }}.<end_of_turn>\n<start_of_turn>model\n
-        // Se ignora contextText por completo para que la LLM local sea puramente sin memoria (stateless) de inputs anteriores
-        String prompt = keywords;
-        
+    /**
+     * Mismo formato que el entrenamiento (chat template de Gemma 3):
+     * un solo turno de usuario con el campo "input" del dataset, sin prefijos ni system prompt.
+     * contextText se ignora: el modelo no vio contexto al entrenar.
+     *
+     * NO se incluye <bos>: llama.cpp lo agrega al tokenizar (add_special = true).
+     * Si en tu codigo nativo tokenizas con add_special = false, antepon "<bos>" aqui.
+     */
+    private String formatPrompt(String keywords) {
         return "<start_of_turn>user\n" +
-               "Crea una oracion con: " + prompt + ".<end_of_turn>\n" +
-               "<start_of_turn>model\n";
+                keywords.trim() + "<end_of_turn>\n" +
+                "<start_of_turn>model\n";
+    }
+
+    // Por seguridad, corta cualquier resto de tokens de control.
+    private String cleanOutput(String raw) {
+        String out = raw;
+        int fin = out.indexOf("<end_of_turn>");
+        if (fin >= 0) out = out.substring(0, fin);
+        return out.trim();
     }
 
     private String copyModelFromAssets(Context context, String modelName) {

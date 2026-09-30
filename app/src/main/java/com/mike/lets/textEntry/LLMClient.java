@@ -68,11 +68,29 @@ public class LLMClient {
             userMsg.put("content", userContent);
             messages.put(userMsg);
 
+            /*
+                ##############################################
+                This is the modelfile from the generated model
+                ##############################################
+
+                PARAMETER stop "<end_of_turn>"
+                PARAMETER stop "<eos>"
+                PARAMETER temperature 1.0
+                PARAMETER min_p 0.0
+                PARAMETER top_k 64
+                PARAMETER top_p 0.95
+                PARAMETER num_predict 32768
+            * */
             json.put("messages", messages);
             json.put("max_tokens", 40); // Matching num_predict from Modelfile
-            json.put("temperature", 0.3);
-            json.put("top_p", 0.9);
-            
+            json.put("temperature", 0.5); // Whoops... I forget this...
+            // json.put("min_p", 0.0); // Esto está asi debido a que debo revisar si está bien.
+            json.put("top_k", 64);
+            json.put("top_p", 0.95);
+            json.put("min_p", 0.95);
+            json.put("repeat_penalty", 1.0);
+            json.put("num_predict", 67);
+
             // Critical: Add "model" and other control tokens to stop array
             JSONArray stopTokens = new JSONArray();
             stopTokens.put("\n");

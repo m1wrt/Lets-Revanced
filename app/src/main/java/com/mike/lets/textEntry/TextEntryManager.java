@@ -100,14 +100,18 @@ public class TextEntryManager {
     public int manageUserInput(int gazeType, boolean isLive) {
         if (gazeType == 0) return 0; // Straight/Nothing
 
-        // Aplicar cooldown unificado basado en tiempo real (milisegundos)
         long currentTime = System.currentTimeMillis();
-        long cooldownMs = getCooldownForType(gazeType);
-        Long lastTime = lastActionTimestamps.get(gazeType);
 
-        if (lastTime != null && (currentTime - lastTime < cooldownMs)) {
-            Log.d("TextEntryManager", "Entrada " + gazeType + " ignorada por cooldown (" + (currentTime - lastTime) + "ms < " + cooldownMs + "ms)");
-            return 0;
+        // Aplicar cooldown basado en tiempo real solo para la entrada por mirada en vivo (isLive == true).
+        // Al tocar los botones manualmente (isLive == false), se procesa de inmediato sin cooldown.
+        if (isLive) {
+            long cooldownMs = getCooldownForType(gazeType);
+            Long lastTime = lastActionTimestamps.get(gazeType);
+
+            if (lastTime != null && (currentTime - lastTime < cooldownMs)) {
+                Log.d("TextEntryManager", "Entrada " + gazeType + " ignorada por cooldown (" + (currentTime - lastTime) + "ms < " + cooldownMs + "ms)");
+                return 0;
+            }
         }
 
         lastActionTimestamps.put(gazeType, currentTime);

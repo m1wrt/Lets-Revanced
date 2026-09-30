@@ -136,6 +136,13 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             presenter.updateCalibration();
         });
 
+        binding.calibrationLayout.btnSkipCalibration.setOnClickListener(v -> {
+            Toast.makeText(this, "Calibración omitida (Depuración)", Toast.LENGTH_SHORT).show();
+            binding.calibrationLayout.getRoot().setVisibility(View.GONE);
+            binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("Menu");
+        });
+
         // Set up the main menu buttons
         binding.mainMenuLayout.panelTopLeft.setOnClickListener(v -> presenter.onGazeButtonClicked(6));
         binding.mainMenuLayout.panelTopRight.setOnClickListener(v -> presenter.onGazeButtonClicked(7));
