@@ -514,13 +514,13 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                             binding.mainMenuLayout.btnCambiar.setBackgroundResource(R.drawable.panel_background);
                             binding.mainMenuLayout.btnBorrar.setBackgroundResource(R.drawable.panel_background);
                         } else {
-                            binding.mainMenuLayout.panelTopLeft.setBackgroundResource(gazeType == 6 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                            binding.mainMenuLayout.panelTopRight.setBackgroundResource(gazeType == 7 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                            binding.mainMenuLayout.panelBottomLeft.setBackgroundResource(gazeType == 1 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                            binding.mainMenuLayout.panelBottomRight.setBackgroundResource(gazeType == 2 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.panelTopLeft.setBackgroundResource(gazeType == 6 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.panelTopRight.setBackgroundResource(gazeType == 7 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.panelBottomLeft.setBackgroundResource(gazeType == 1 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.panelBottomRight.setBackgroundResource(gazeType == 2 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
                             
-                            binding.mainMenuLayout.btnCambiar.setBackgroundResource(gazeType == 5 ? R.drawable.llm_area_background : R.drawable.panel_background);
-                            binding.mainMenuLayout.btnBorrar.setBackgroundResource(gazeType == 3 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.btnCambiar.setBackgroundResource(gazeType == 5 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                            binding.mainMenuLayout.btnBorrar.setBackgroundResource(gazeType == 3 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
                         }
                     }
                     
@@ -529,10 +529,10 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         android.view.View btnHablar = popupView.findViewById(R.id.btn_popup_hablar);
                         android.view.View btnVolver = popupView.findViewById(R.id.btn_popup_volver);
                         if (btnHablar != null) {
-                            btnHablar.setBackgroundResource(gazeType == 1 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            btnHablar.setBackgroundResource(gazeType == 1 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
                         }
                         if (btnVolver != null) {
-                            btnVolver.setBackgroundResource(gazeType == 7 ? R.drawable.llm_area_background : R.drawable.panel_background);
+                            btnVolver.setBackgroundResource(gazeType == 7 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
                         }
                     }
                 }

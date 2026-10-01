@@ -7,16 +7,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class LlamaCppClient {
     private static final String TAG = "LlamaCppClient";
 
-    private Engine engine = null;
     private boolean isInitializing = false;
     private final ExecutorService llmExecutor = Executors.newSingleThreadExecutor();
+    private volatile Future<?> currentGenerationFuture = null;
 
     public interface LLMCallback {
         void onSuccess(String prediction);
@@ -30,13 +30,14 @@ public class LlamaCppClient {
                 return;
             }
             isInitializing = true;
-            if (engine != null) {
+            if (LlmRuntimeManager.isReady()) {
                 release();
             }
         }
 
         llmExecutor.execute(() -> {
             try {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 Log.d(TAG, "Iniciando carga del modelo: " + modelNameOrPath);
                 String modelPath;
                 if (modelNameOrPath.startsWith("/")) {
@@ -48,23 +49,42 @@ public class LlamaCppClient {
                 if (modelPath != null && new File(modelPath).exists()) {
                     Log.d(TAG, "Ruta del archivo de modelo encontrada: " + modelPath + ", tamaño: " + new File(modelPath).length());
 
-                    EngineConfig engineConfig = new EngineConfig(
+                    ModelConfig modelConfig = new ModelConfig(
                         modelPath,
-                        new Backend.CPU(4, 4), // CPU backend (4 threads, 4 batch threads)
-                        null,
-                        null,
-                        null,   // maxNumTokens (context size n_ctx = 64)
-                        null,
-                        context.getCacheDir().getAbsolutePath()
+                        context.getCacheDir().getAbsolutePath(),
+                        4,
+                        4
                     );
 
-                    Log.d(TAG, "Inicializando Engine con LiteRT-LM...");
-                    Engine eng = new Engine(engineConfig);
-                    eng.initialize();
-                    Log.d(TAG, "Engine inicializado correctamente.");
+                    Log.d(TAG, "Inicializando runtime con LlmRuntimeManager...");
+                    kotlinx.coroutines.BuildersKt.runBlocking(
+                        kotlinx.coroutines.Dispatchers.getDefault(),
+                        (coroutineScope, continuation) -> {
+                            try {
+                                if (LlmRuntimeManager.canUseGpu(context)) {
+                                    try {
+                                        LlmRuntimeManager.INSTANCE.initModelWithGpu(context, modelConfig, continuation);
+                                    } catch (Exception gpuEx) {
+                                        Log.w(TAG, "GPU init failed, falling back to CPU", gpuEx);
+                                        LlmRuntimeManager.INSTANCE.initModelWithCpu(context, modelConfig, continuation);
+                                    }
+                                } else {
+                                    LlmRuntimeManager.INSTANCE.initModelWithCpu(context, modelConfig, continuation);
+                                }
+                            } catch (Throwable t) {
+                                if (isOpenClError(t)) {
+                                    Log.w(TAG, "OpenCL error during GPU init, falling back to CPU", t);
+                                    LlmRuntimeManager.INSTANCE.initModelWithCpu(context, modelConfig, continuation);
+                                } else {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                            return kotlin.Unit.INSTANCE;
+                        }
+                    );
+                    Log.d(TAG, "Runtime inicializado correctamente.");
 
                     synchronized (this) {
-                        this.engine = eng;
                         isInitializing = false;
                     }
                     callback.onSuccess("Model loaded");
@@ -86,45 +106,36 @@ public class LlamaCppClient {
         });
     }
 
-    public void getCompletion(String contextText, String keywords, LLMCallback callback) {
+    public synchronized void getCompletion(String contextText, String keywords, LLMCallback callback) {
         if (keywords == null || keywords.trim().isEmpty()) {
             callback.onError("Sin palabras clave");
             return;
         }
 
-        Engine currentEngine;
-        synchronized (this) {
-            currentEngine = engine;
-            if (currentEngine == null) {
-                Log.e(TAG, "LiteRT-LM engine not initialized");
-                callback.onError("LiteRT-LM not initialized");
-                return;
-            }
+        if (!LlmRuntimeManager.isReady()) {
+            Log.e(TAG, "LiteRT-LM engine not initialized");
+            callback.onError("LiteRT-LM not initialized");
+            return;
         }
 
-        llmExecutor.execute(() -> {
-            Conversation conv = null;
+        if (currentGenerationFuture != null && !currentGenerationFuture.isDone()) {
+            currentGenerationFuture.cancel(true);
+        }
+
+        currentGenerationFuture = llmExecutor.submit(() -> {
             try {
-                SamplerConfig samplerConfig = new SamplerConfig(
-                    64,   // topK
-                    0.95, // topP
-                    0.5,  // temperature
-                    0     // seed
-                );
-                ConversationConfig convConfig = new ConversationConfig(
-                    null,
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    samplerConfig
-                );
-
-                conv = currentEngine.createConversation(convConfig);
-
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 String prompt = formatPrompt(keywords);
                 Log.d(TAG, "Prompt enviado (fresh session):\n" + prompt);
                 
-                Message responseMessage = conv.sendMessage(prompt);
-                String result = extractText(responseMessage);
+                String result = kotlinx.coroutines.BuildersKt.runBlocking(
+                    kotlinx.coroutines.Dispatchers.getDefault(),
+                    (coroutineScope, continuation) -> LlmRuntimeManager.INSTANCE.safeGenerate(prompt, continuation)
+                );
+                
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
                 
                 if (result != null) {
                     String cleaned = cleanOutput(result);
@@ -136,27 +147,30 @@ public class LlamaCppClient {
                     callback.onError("Generation failed");
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error during completion", e);
-                callback.onError(e.getMessage());
-            } finally {
-                if (conv != null) {
-                    try {
-                        conv.close();
-                    } catch (Exception ignored) {}
+                if (e instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
+                    Log.d(TAG, "LLM generation interrupted/cancelled");
+                } else {
+                    Log.e(TAG, "Error during completion", e);
+                    callback.onError(e.getMessage());
                 }
             }
         });
     }
 
-    private String extractText(Message msg) {
-        if (msg == null || msg.getContents() == null) return "";
-        StringBuilder sb = new StringBuilder();
-        for (Object c : msg.getContents().getContents()) {
-            if (c instanceof Content.Text) {
-                sb.append(((Content.Text) c).getText());
+    private boolean isOpenClError(Throwable t) {
+        Throwable curr = t;
+        while (curr != null) {
+            String msg = curr.getMessage() != null ? curr.getMessage() : "";
+            String clsName = curr.getClass().getName();
+            if (clsName.contains("LiteRtLmJniException") ||
+                msg.contains("OpenCL") ||
+                msg.contains("libOpenCL") ||
+                msg.contains("Can not find OpenCL")) {
+                return true;
             }
+            curr = curr.getCause();
         }
-        return sb.toString();
+        return false;
     }
 
     private String formatPrompt(String keywords) {
@@ -194,17 +208,15 @@ public class LlamaCppClient {
     }
 
     public synchronized void release() {
-        if (engine != null) {
-            try {
-                engine.close();
-            } catch (Exception ignored) {}
-            engine = null;
+        if (currentGenerationFuture != null) {
+            currentGenerationFuture.cancel(true);
         }
+        LlmRuntimeManager.cleanupCurrentModel();
         Log.d(TAG, "LiteRT-LM released");
     }
 
     public synchronized boolean isReady() {
-        return engine != null;
+        return LlmRuntimeManager.isReady();
     }
 
     public static void test(Context context) {

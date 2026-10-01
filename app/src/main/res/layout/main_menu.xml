@@ -55,15 +55,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_top_left" />
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="-12dp"
-            android:layout_marginTop="-12dp"
-            android:src="@drawable/ic_gaze_arriba_izq"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Top Right Panel -->
@@ -106,15 +97,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_top_right" />
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="-12dp"
-            android:layout_marginEnd="-12dp"
-            android:src="@drawable/ic_gaze_arriba_der"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Bottom Left Panel -->
@@ -157,15 +139,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_bottom_left" />
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="-12dp"
-            android:layout_marginBottom="-12dp"
-            android:src="@drawable/ic_gaze_abajo_izq"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Bottom Right Panel -->
@@ -208,15 +181,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_bottom_right" />
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-12dp"
-            android:layout_marginBottom="-12dp"
-            android:src="@drawable/ic_gaze_abajo_der"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Center Area -->
@@ -361,5 +325,46 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.68" />
+
+    <!-- Gaze Indicator Icons (Root-level siblings to prevent clipping and render fully on top) -->
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="-20dp"
+        android:layout_marginTop="-20dp"
+        android:elevation="24dp"
+        android:src="@drawable/ic_gaze_arriba_izq"
+        app:layout_constraintStart_toStartOf="@id/panel_top_left"
+        app:layout_constraintTop_toTopOf="@id/panel_top_left" />
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="-20dp"
+        android:layout_marginEnd="-20dp"
+        android:elevation="24dp"
+        android:src="@drawable/ic_gaze_arriba_der"
+        app:layout_constraintEnd_toEndOf="@id/panel_top_right"
+        app:layout_constraintTop_toTopOf="@id/panel_top_right" />
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="-20dp"
+        android:layout_marginBottom="-20dp"
+        android:elevation="24dp"
+        android:src="@drawable/ic_gaze_abajo_izq"
+        app:layout_constraintBottom_toBottomOf="@id/panel_bottom_left"
+        app:layout_constraintStart_toStartOf="@id/panel_bottom_left" />
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="-20dp"
+        android:layout_marginBottom="-20dp"
+        android:elevation="24dp"
+        android:src="@drawable/ic_gaze_abajo_der"
+        app:layout_constraintBottom_toBottomOf="@id/panel_bottom_right"
+        app:layout_constraintEnd_toEndOf="@id/panel_bottom_right" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -377,9 +377,16 @@ public class Model implements ContractInterface.Model {
         // Ejecuta la detección facial y cálculo de landmarks con MediaPipe
         faceDetector.detect(reusableBitmap);
 
-        // Extrae las puntuaciones de parpadeo/guiño obtenidas por MediaPipe Blendshapes
-        float leftBlink = faceDetector.leftEyeBlinkScore;
-        float rightBlink = faceDetector.rightEyeBlinkScore;
+        // Extrae las puntuaciones de parpadeo/guiño obtenidas por MediaPipe Blendshapes y EAR geométrico
+        float leftBlinkScore = faceDetector.leftEyeBlinkScore;
+        float rightBlinkScore = faceDetector.rightEyeBlinkScore;
+        
+        float leftEarClosed = 1.0f - faceDetector.leftEyeOpenProb;
+        float rightEarClosed = 1.0f - faceDetector.rightEyeOpenProb;
+
+        // Fusión ponderada (50% Blendshapes, 50% EAR geométrico) para prevenir falsos positivos por expresiones
+        float leftBlink = 0.5f * leftBlinkScore + 0.5f * leftEarClosed;
+        float rightBlink = 0.5f * rightBlinkScore + 0.5f * rightEarClosed;
 
         // Determina si cada ojo individual está cerrado o abierto
         boolean leftClosed = leftBlink > WINK_SCORE_THRESHOLD;
