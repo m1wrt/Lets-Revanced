@@ -49,7 +49,7 @@ public class TextEntryManager {
         if (savedPath == null || savedPath.isEmpty()) {
             savedPath = userDataManager.getLlmModelPath();
         }
-        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.gguf";
+        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.litertlm";
 
         loadModel(context, modelToLoad);
     }
@@ -69,7 +69,7 @@ public class TextEntryManager {
         if (savedPath == null || savedPath.isEmpty()) {
             savedPath = userDataManager.getLlmModelPath();
         }
-        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.gguf";
+        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.litertlm";
 
         loadModel(context, modelToLoad);
     }
@@ -87,6 +87,7 @@ public class TextEntryManager {
             @Override
             public void onError(String error) {
                 Log.e("TextEntryManager", "LLM Init Error: " + error);
+                llmPrediction = "Error de modelo: " + error;
             }
         });
     }
@@ -298,7 +299,9 @@ public class TextEntryManager {
 
         if (!llmClient.isReady()) {
             Log.d("TextEntryManager", "LLM not ready yet");
-            llmPrediction = "Cargando modelo de lenguaje...";
+            if (llmPrediction.isEmpty()) {
+                llmPrediction = "Cargando modelo de lenguaje...";
+            }
             lastLlmInput = ""; 
             return;
         }

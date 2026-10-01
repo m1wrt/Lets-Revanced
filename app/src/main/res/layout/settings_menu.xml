@@ -113,7 +113,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="24dp"
             android:gravity="center"
-            android:text="Modelo: Predeterminado (gemma3-1b.gguf)"
+            android:text="Modelo: Predeterminado (gemma3-1b.litertlm)"
             android:textColor="@color/status_text_color"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"

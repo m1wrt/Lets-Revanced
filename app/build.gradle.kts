@@ -72,6 +72,7 @@ dependencies {
 
     // LLM Integration
     implementation(libs.localbroadcastmanager)
+    implementation("com.google.ai.edge.litertlm:litertlm-android:latest.release")
 
     // ML Kit Translation
     implementation("com.google.mlkit:translate:17.0.3")

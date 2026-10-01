@@ -661,7 +661,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                            (ver != null && !ver.isEmpty() ? " v" + ver : " v1.0");
         String descText = "Descripción: " + (desc != null && !desc.isEmpty() ? desc : "null");
         
-        String modelName = "Predeterminado (gemma3-1b.gguf)";
+        String modelName = "Predeterminado (gemma3-1b.litertlm)";
         if (modelPath != null && !modelPath.isEmpty()) {
             File f = new File(modelPath);
             if (f.exists()) {

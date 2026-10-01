@@ -2,20 +2,21 @@ package com.mike.lets.textEntry;
 
 import android.content.Context;
 import android.util.Log;
+import com.google.ai.edge.litertlm.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LlamaCppClient {
     private static final String TAG = "LlamaCppClient";
-    private long nativePtr = 0;
-    private boolean isInitializing = false;
-    private final java.util.concurrent.ExecutorService llmExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
 
-    static {
-        System.loadLibrary("lets");
-    }
+    private Engine engine = null;
+    private boolean isInitializing = false;
+    private final ExecutorService llmExecutor = Executors.newSingleThreadExecutor();
 
     public interface LLMCallback {
         void onSuccess(String prediction);
@@ -29,44 +30,58 @@ public class LlamaCppClient {
                 return;
             }
             isInitializing = true;
-            if (nativePtr != 0) {
-                release(); // Release existing model if any
+            if (engine != null) {
+                release();
             }
         }
 
         llmExecutor.execute(() -> {
             try {
+                Log.d(TAG, "Iniciando carga del modelo: " + modelNameOrPath);
                 String modelPath;
                 if (modelNameOrPath.startsWith("/")) {
-                    // It's already an absolute path
                     modelPath = modelNameOrPath;
                 } else {
-                    // It's a name in assets
                     modelPath = copyModelFromAssets(context, modelNameOrPath);
                 }
 
                 if (modelPath != null && new File(modelPath).exists()) {
-                    long ptr = nativeInit(modelPath);
+                    Log.d(TAG, "Ruta del archivo de modelo encontrada: " + modelPath + ", tamaño: " + new File(modelPath).length());
+
+                    EngineConfig engineConfig = new EngineConfig(
+                        modelPath,
+                        new Backend.CPU(4, 4), // CPU backend (4 threads, 4 batch threads)
+                        null,
+                        null,
+                        null,   // maxNumTokens (context size n_ctx = 64)
+                        null,
+                        context.getCacheDir().getAbsolutePath()
+                    );
+
+                    Log.d(TAG, "Inicializando Engine con LiteRT-LM...");
+                    Engine eng = new Engine(engineConfig);
+                    eng.initialize();
+                    Log.d(TAG, "Engine inicializado correctamente.");
+
                     synchronized (this) {
-                        nativePtr = ptr;
+                        this.engine = eng;
                         isInitializing = false;
                     }
-                    if (ptr != 0) {
-                        callback.onSuccess("Model loaded");
-                    } else {
-                        callback.onError("Failed to initialize native Llama");
-                    }
+                    callback.onSuccess("Model loaded");
                 } else {
                     synchronized (this) {
                         isInitializing = false;
                     }
-                    callback.onError("Model file not found: " + modelNameOrPath);
+                    String err = "Archivo de modelo no encontrado: " + modelNameOrPath;
+                    Log.e(TAG, err);
+                    callback.onError(err);
                 }
             } catch (Exception e) {
                 synchronized (this) {
                     isInitializing = false;
                 }
-                callback.onError(e.getMessage());
+                Log.e(TAG, "Error crítico al inicializar LiteRT-LM", e);
+                callback.onError(e.getMessage() != null ? e.getMessage() : e.getClass().getName());
             }
         });
     }
@@ -77,53 +92,79 @@ public class LlamaCppClient {
             return;
         }
 
+        Engine currentEngine;
         synchronized (this) {
-            if (nativePtr == 0) {
-                Log.e(TAG, "Llama not initialized");
-                callback.onError("Llama not initialized");
+            currentEngine = engine;
+            if (currentEngine == null) {
+                Log.e(TAG, "LiteRT-LM engine not initialized");
+                callback.onError("LiteRT-LM not initialized");
                 return;
             }
         }
 
         llmExecutor.execute(() -> {
-            long currentPtr;
-            synchronized (this) {
-                currentPtr = nativePtr;
-            }
-
-            if (currentPtr == 0) return;
-
+            Conversation conv = null;
             try {
+                SamplerConfig samplerConfig = new SamplerConfig(
+                    64,   // topK
+                    0.95, // topP
+                    0.5,  // temperature
+                    0     // seed
+                );
+                ConversationConfig convConfig = new ConversationConfig(
+                    null,
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    samplerConfig
+                );
+
+                conv = currentEngine.createConversation(convConfig);
+
                 String prompt = formatPrompt(keywords);
-                Log.d(TAG, "Prompt enviado:\n" + prompt);
-                String result = nativeGetCompletion(currentPtr, prompt);
+                Log.d(TAG, "Prompt enviado (fresh session):\n" + prompt);
+                
+                Message responseMessage = conv.sendMessage(prompt);
+                String result = extractText(responseMessage);
+                
                 if (result != null) {
-                    callback.onSuccess(cleanOutput(result));
+                    String cleaned = cleanOutput(result);
+                    Log.d(TAG, "SALIDA LLM (Raw):\n" + result);
+                    Log.d(TAG, "SALIDA LLM (Cleaned):\n" + cleaned);
+                    callback.onSuccess(cleaned);
                 } else {
+                    Log.e(TAG, "Generation failed: result is null");
                     callback.onError("Generation failed");
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error during completion", e);
                 callback.onError(e.getMessage());
+            } finally {
+                if (conv != null) {
+                    try {
+                        conv.close();
+                    } catch (Exception ignored) {}
+                }
             }
         });
     }
 
-    /**
-     * Mismo formato que el entrenamiento (chat template de Gemma 3):
-     * un solo turno de usuario con el campo "input" del dataset, sin prefijos ni system prompt.
-     * contextText se ignora: el modelo no vio contexto al entrenar.
-     *
-     * NO se incluye <bos>: llama.cpp lo agrega al tokenizar (add_special = true).
-     * Si en tu codigo nativo tokenizas con add_special = false, antepon "<bos>" aqui.
-     */
+    private String extractText(Message msg) {
+        if (msg == null || msg.getContents() == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (Object c : msg.getContents().getContents()) {
+            if (c instanceof Content.Text) {
+                sb.append(((Content.Text) c).getText());
+            }
+        }
+        return sb.toString();
+    }
+
     private String formatPrompt(String keywords) {
         return "<start_of_turn>user\n" +
                 keywords.trim() + "<end_of_turn>\n" +
                 "<start_of_turn>model\n";
     }
 
-    // Por seguridad, corta cualquier resto de tokens de control.
     private String cleanOutput(String raw) {
         String out = raw;
         int fin = out.indexOf("<end_of_turn>");
@@ -147,23 +188,26 @@ public class LlamaCppClient {
             os.flush();
             return file.getAbsolutePath();
         } catch (IOException e) {
-            Log.e(TAG, "Error copying model", e);
+            Log.e(TAG, "Error copying model from assets: " + modelName, e);
             return null;
         }
     }
 
     public synchronized void release() {
-        if (nativePtr != 0) {
-            nativeRelease(nativePtr);
-            nativePtr = 0;
+        if (engine != null) {
+            try {
+                engine.close();
+            } catch (Exception ignored) {}
+            engine = null;
         }
+        Log.d(TAG, "LiteRT-LM released");
     }
 
     public synchronized boolean isReady() {
-        return nativePtr != 0;
+        return engine != null;
     }
 
-    private native long nativeInit(String modelPath);
-    private native String nativeGetCompletion(long ptr, String prompt);
-    private native void nativeRelease(long ptr);
+    public static void test(Context context) {
+        // no-op test helper
+    }
 }
