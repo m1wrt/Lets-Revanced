@@ -43,19 +43,6 @@ public class LLMClient {
             json.put("model", MODEL_NAME);
             
             JSONArray messages = new JSONArray();
-            
-            // Strict System Prompt from User
-            JSONObject systemMsg = new JSONObject();
-            systemMsg.put("role", "system");
-            systemMsg.put("content", "Eres un asistente de IA para que los pacientes con enfermedades de las neuronas motoras se comuniquen. " +
-                    "Tu ÚNICO objetivo es convertir las palabras clave en una oración completa y natural. " +
-                    "REGLAS CRÍTICAS:\n" +
-                    "1. DEBES usar todas las palabras clave proporcionadas.\n" +
-                    "2. NO inventes información que no esté en las palabras clave.\n" +
-                    "3. Si las palabras clave son 'hola dame', NO respondas '¿cómo estás?', sino algo como 'Hola, dame eso'.\n" +
-                    "4. Los grupos entre corchetes como '[A-F G-M]' representan una palabra que se está escribiendo actualmente. Úsalos para predecir la palabra más probable que encaje en la oración.\n" +
-                    "5. Responde ÚNICAMENTE con la oración final.");
-            messages.put(systemMsg);
 
             // Simplified Prompt to match the Modelfile template: "Crea una oración con: {{ .Prompt }}"
             JSONObject userMsg = new JSONObject();

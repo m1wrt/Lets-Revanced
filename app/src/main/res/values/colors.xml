@@ -8,7 +8,17 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- New Modern Palette -->
+    <color name="main_background">#EFEBE9</color>
+    <color name="top_bar_background">#1F1B24</color>
+    <color name="panel_background">#607D8B</color>
+    <color name="llm_background">#757575</color>
+    <color name="text_area_background">#757575</color>
+    <color name="button_color">#455A64</color>
+    <color name="status_text_color">#FFFFFFFF</color>
+    <color name="red">#FF0000</color>
+
+    <!-- Old Color Palette -->
+    <!--
     <color name="main_background">#121212</color>
     <color name="top_bar_background">#1F1B24</color>
     <color name="panel_background">#3700B3</color>
@@ -16,5 +26,5 @@
     <color name="text_area_background">#1E1E1E</color>
     <color name="button_color">#BB86FC</color>
     <color name="status_text_color">#03DAC5</color>
-    <color name="red">#FF0000</color>
+    <color name="red">#FF0000</color> -->
 </resources>

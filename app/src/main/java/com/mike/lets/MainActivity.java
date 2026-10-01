@@ -23,6 +23,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.material.color.DynamicColors;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.mike.lets.databinding.ActivityMainBinding;
 import com.mike.lets.vision.Model;
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        DynamicColors.applyToActivityIfAvailable(this);
         super.onCreate(savedInstanceState);
 
         // Edge-to-edge support
