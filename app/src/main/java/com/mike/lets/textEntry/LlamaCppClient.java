@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -21,6 +22,7 @@ public class LlamaCppClient {
     public interface LLMCallback {
         void onSuccess(String prediction);
         void onError(String error);
+        default void onPartial(String partialPrediction) {}
     }
 
     public void initialize(Context context, String modelNameOrPath, LLMCallback callback) {
@@ -49,11 +51,12 @@ public class LlamaCppClient {
                 if (modelPath != null && new File(modelPath).exists()) {
                     Log.d(TAG, "Ruta del archivo de modelo encontrada: " + modelPath + ", tamaño: " + new File(modelPath).length());
 
+                    int cores = 2;
                     ModelConfig modelConfig = new ModelConfig(
                         modelPath,
                         context.getCacheDir().getAbsolutePath(),
-                        4,
-                        4
+                        cores,
+                        cores
                     );
 
                     Log.d(TAG, "Inicializando runtime con LlmRuntimeManager...");
@@ -126,24 +129,36 @@ public class LlamaCppClient {
             try {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 String prompt = formatPrompt(keywords);
-                Log.d(TAG, "Prompt enviado (fresh session):\n" + prompt);
+                Log.d(TAG, "Prompt enviado:\n" + prompt);
                 
+                long startTime = System.currentTimeMillis();
+
                 String result = kotlinx.coroutines.BuildersKt.runBlocking(
                     kotlinx.coroutines.Dispatchers.getDefault(),
                     (coroutineScope, continuation) -> LlmRuntimeManager.INSTANCE.safeGenerate(prompt, continuation)
                 );
+
+                long elapsedTimeMs = System.currentTimeMillis() - startTime;
+                double elapsedSeconds = elapsedTimeMs / 1000.0;
                 
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
                 
-                if (result != null) {
+                if (result != null && !result.trim().isEmpty()) {
                     String cleaned = cleanOutput(result);
-                    Log.d(TAG, "SALIDA LLM (Raw):\n" + result);
-                    Log.d(TAG, "SALIDA LLM (Cleaned):\n" + cleaned);
+                    String logBanner = String.format(Locale.US,
+                        "\n============================================================\n" +
+                        " [LlamaCppClient] INFERENCIA COMPLETADA\n" +
+                        " -> Tiempo de procesamiento: %.2f segundos (%d ms)\n" +
+                        " -> Resultado (Limpio)     : %s\n" +
+                        "============================================================",
+                        elapsedSeconds, elapsedTimeMs, cleaned
+                    );
+                    Log.i(TAG, logBanner);
                     callback.onSuccess(cleaned);
                 } else {
-                    Log.e(TAG, "Generation failed: result is null");
+                    Log.e(TAG, "Generation failed: result is null or empty");
                     callback.onError("Generation failed");
                 }
             } catch (Exception e) {
@@ -183,6 +198,7 @@ public class LlamaCppClient {
         String out = raw;
         int fin = out.indexOf("<end_of_turn>");
         if (fin >= 0) out = out.substring(0, fin);
+        out = out.replaceAll("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*|result:?\\s*)", "");
         return out.trim();
     }
 

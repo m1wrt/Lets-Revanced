@@ -13,7 +13,7 @@ public class TextEntryManager {
     private String conversationContext = "";
     private String lastLlmInput = "";
     private List<String> currentPredictions = new ArrayList<>();
-    private String llmPrediction = "";
+    private volatile String llmPrediction = "";
     private String translatedSentence = "";
     private String translatedWord = "";
     private String currentLanguage = "Spanish";
@@ -93,9 +93,17 @@ public class TextEntryManager {
     }
 
     public void setConversationContext(String context) {
-        this.conversationContext = context != null ? context : "";
-        // Usamos updateContext para evitar reiniciar el buffer de entrada y el diccionario
+        String newContext = context != null ? context : "";
+        if (this.conversationContext.equals(newContext)) {
+            // El contexto no cambió; no reiniciar lastLlmInput ni enviar un prompt duplicado
+            return;
+        }
+        this.conversationContext = newContext;
         blurryInput.updateContext(this.conversationContext);
+        this.lastLlmInput = "";
+        if (!currentSentence.isEmpty()) {
+            triggerLLM();
+        }
     }
 
     public int manageUserInput(int gazeType, boolean isLive) {
@@ -251,6 +259,7 @@ public class TextEntryManager {
         blurryInput.updateContext(""); // Limpiar también el contexto del buscador de palabras sin reiniciar todo
         this.justSelectedWord = true;
         this.llmPrediction = ""; // Limpiar la predicción anterior para no mezclar
+        this.lastLlmInput = ""; // Resetear lastLlmInput para forzar el envío del nuevo prompt
         triggerLLM(); // Consulta al LLM al confirmar palabra
     }
 
@@ -265,6 +274,7 @@ public class TextEntryManager {
         }
         updateLiveSentenceTranslation();
         this.llmPrediction = "";
+        this.lastLlmInput = ""; // Resetear lastLlmInput para forzar el envío del nuevo prompt
         triggerLLM();
     }
 
@@ -340,13 +350,36 @@ public class TextEntryManager {
             return;
         }
 
+        lastLlmInput = fullInput;
+        setLlmPrediction(""); // Reiniciar predicción vacía para ir concatenando tokens en streaming real
+
         llmClient.getCompletion(spanishContext, spanishKeywords, new LlamaCppClient.LLMCallback() {
             @Override
+            public void onPartial(String chunk) {
+                if (chunk == null || chunk.isEmpty()) return;
+
+                if (!"Spanish".equalsIgnoreCase(currentLanguage)) {
+                    translationManager.translateFromSpanish(chunk, new TranslationManager.TranslationCallback() {
+                        @Override
+                        public void onSuccess(String translatedChunk) {
+                            appendLlmPrediction(translatedChunk);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            appendLlmPrediction(chunk);
+                        }
+                    });
+                } else {
+                    appendLlmPrediction(chunk);
+                }
+            }
+
+            @Override
             public void onSuccess(String prediction) {
-                lastLlmInput = fullInput;
                 // ESTO DEBE SER RETIRADO CUANDO HAGA MODELOS DE OTROS IDIOMAS
                 //! Limpiar "oracion:" antes de traducir para evitar que ML Kit traduzca el prefijo
-                String cleanedSpanish = prediction.replaceAll("(?i)^(oraci[oó]n:?\\s*)", "").trim();
+                String cleanedSpanish = prediction.replaceAll("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*)", "").trim();
 
                 // Traducir de vuelta al idioma original si no es español
                 translationManager.translateFromSpanish(cleanedSpanish, new TranslationManager.TranslationCallback() {
@@ -371,7 +404,19 @@ public class TextEntryManager {
         });
     }
 
-    public void setLlmPrediction(String prediction) {
+    public synchronized void appendLlmPrediction(String chunk) {
+        if (chunk == null) return;
+        this.llmPrediction += chunk;
+
+        String cleaned = this.llmPrediction;
+        if (cleaned.startsWith("SP-")) {
+            cleaned = cleaned.substring(3);
+        }
+        cleaned = cleaned.replaceAll("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*)", "");
+        this.llmPrediction = cleaned;
+    }
+
+    public synchronized void setLlmPrediction(String prediction) {
         if (prediction == null) {
             this.llmPrediction = "";
             return;

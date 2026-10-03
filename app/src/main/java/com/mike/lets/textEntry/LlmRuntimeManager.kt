@@ -2,25 +2,41 @@ package com.mike.lets.textEntry
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import com.google.ai.edge.litertlm.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
+import java.util.Locale
 
 data class ModelConfig(
     val modelPath: String,
     val cacheDir: String,
-    val numThreads: Int = 4,
-    val numBatchThreads: Int = 4
+    val numThreads: Int = 2,
+    val numBatchThreads: Int = 2
 )
 
 object LlmRuntimeManager {
-    private const val TAG = "LlmRuntimeManager"
-    private var engine: Engine? = null
-    private val mutex = Mutex()
+    private const val TAG = "LlamaCppClient"
+    @Volatile private var engine: Engine? = null
     private var storedContext: Context? = null
     private var storedModelConfig: ModelConfig? = null
+    private val executionMutex = Mutex()
+
+    @JvmStatic
+    fun isTensorDevice(): Boolean {
+        val soc = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Build.SOC_MODEL.lowercase(Locale.ROOT)
+        } else {
+            ""
+        }
+        val hardware = Build.HARDWARE.lowercase(Locale.ROOT)
+        val board = Build.BOARD.lowercase(Locale.ROOT)
+        val model = Build.MODEL.lowercase(Locale.ROOT)
+        return soc.contains("tensor") || hardware.contains("tensor") || board.contains("tensor") ||
+               hardware.contains("zumapro") || model.contains("pixel")
+    }
 
     @JvmStatic
     fun hasOpenCL(): Boolean {
@@ -61,76 +77,96 @@ object LlmRuntimeManager {
 
     @JvmStatic
     fun canUseGpu(context: Context): Boolean {
-        return hasOpenCL() || hasVulkan(context)
+        return false
+    }
+
+    private fun logMotorState(modelPath: String, backendName: String, numThreads: Int, details: String) {
+        val banner = """
+            
+            ============================================================
+             [LlamaCppClient] MOTOR LLM EN EJECUCIÓN (ESTABLE Y SEGURO)
+             -> Backend Activo  : $backendName
+             -> Detalle Backend : $details
+             -> Ruta del Modelo : $modelPath
+             -> Hilos / Batch   : $numThreads / $numThreads
+             -> Max Tokens      : 128 (Optimizado)
+             -> Dispositivo     : ${Build.MANUFACTURER} ${Build.MODEL} (${Build.HARDWARE})
+            ============================================================
+        """.trimIndent()
+        Log.i(TAG, banner)
     }
 
     @JvmStatic
     suspend fun initModelWithGpu(context: Context, modelConfig: ModelConfig) {
-        mutex.withLock {
+        synchronized(this) {
             storedContext = context.applicationContext
             storedModelConfig = modelConfig
             cleanupCurrentModelInternal()
-            Log.d(TAG, "Initializing model with safe backend (CPU fallback to prevent VK_ERROR_DEVICE_LOST): ${modelConfig.modelPath}")
-            // Use Backend.CPU for stability and to prevent GPU device lost crashes (VK_ERROR_DEVICE_LOST)
+
+            Log.i(TAG, "[LlamaCppClient] Inicializando motor seguro en CPU Alto Rendimiento...")
             val backend = Backend.CPU(modelConfig.numThreads, modelConfig.numBatchThreads)
             val config = EngineConfig(
                 modelConfig.modelPath,
                 backend,
                 null,
                 null,
-                null,
+                128,
                 null,
                 modelConfig.cacheDir
             )
             val eng = Engine(config)
             eng.initialize()
             engine = eng
-            Log.d(TAG, "Engine initialized successfully.")
+            logMotorState(modelConfig.modelPath, backend.name, modelConfig.numThreads, "CPU Alto Rendimiento (${modelConfig.numThreads} hilos)")
         }
     }
 
     @JvmStatic
     suspend fun initModelWithCpu(context: Context, modelConfig: ModelConfig) {
-        mutex.withLock {
+        synchronized(this) {
             storedContext = context.applicationContext
             storedModelConfig = modelConfig
             cleanupCurrentModelInternal()
-            Log.d(TAG, "Initializing model with CPU backend: ${modelConfig.modelPath}")
+
+            Log.i(TAG, "[LlamaCppClient] Inicializando motor explícito en CPU Alto Rendimiento...")
             val backend = Backend.CPU(modelConfig.numThreads, modelConfig.numBatchThreads)
             val config = EngineConfig(
                 modelConfig.modelPath,
                 backend,
                 null,
                 null,
-                null,
+                128,
                 null,
                 modelConfig.cacheDir
             )
             val eng = Engine(config)
             eng.initialize()
             engine = eng
-            Log.d(TAG, "Engine initialized with CPU successfully.")
+            logMotorState(modelConfig.modelPath, backend.name, modelConfig.numThreads, "CPU Explícito (${modelConfig.numThreads} hilos)")
         }
     }
 
     @JvmStatic
-    suspend fun safeGenerate(prompt: String): String {
-        val currentEngine = mutex.withLock {
+    suspend fun safeGenerate(prompt: String): String = executionMutex.withLock {
+        val currentEngine = synchronized(this) {
             engine ?: throw IllegalStateException("Engine not initialized")
         }
 
-        val samplerConfig = SamplerConfig(64, 0.95, 0.5, 0)
+        val samplerConfig = SamplerConfig(40, 0.9, 0.4, 0)
         val conversationConfig = ConversationConfig(null, ArrayList(), ArrayList(), samplerConfig)
 
         var conv: Conversation? = null
         try {
             conv = currentEngine.createConversation(conversationConfig)
-            val message = conv.sendMessage(prompt)
-            return extractText(message)
+            val message = conv.sendMessage(
+                text = prompt,
+                maxOutputToken = 25
+            )
+            return cleanOutput(extractText(message))
         } catch (e: Throwable) {
             if (isOpenClError(e)) {
-                Log.w(TAG, "OpenCL/LiteRtLmJniException error detected during generation. Re-initializing with CPU and retrying once...", e)
-                mutex.withLock {
+                Log.w(TAG, "[LlamaCppClient] Error detectado durante generación. Re-inicializando con CPU...", e)
+                synchronized(this) {
                     cleanupCurrentModelInternal()
                     val ctx = storedContext
                     val cfg = storedModelConfig
@@ -141,26 +177,30 @@ object LlmRuntimeManager {
                             backend,
                             null,
                             null,
-                            null,
+                            64,
                             null,
                             cfg.cacheDir
                         )
                         val eng = Engine(engineConfig)
                         eng.initialize()
                         engine = eng
+                        logMotorState(cfg.modelPath, backend.name, cfg.numThreads, "CPU Fallback por Error en Generación")
                     } else {
                         throw e
                     }
                 }
 
-                val retryEngine = mutex.withLock {
+                val retryEngine = synchronized(this) {
                     engine ?: throw IllegalStateException("CPU fallback engine initialization failed")
                 }
                 var retryConv: Conversation? = null
                 try {
                     retryConv = retryEngine.createConversation(conversationConfig)
-                    val retryMessage = retryConv.sendMessage(prompt)
-                    return extractText(retryMessage)
+                    val retryMessage = retryConv.sendMessage(
+                        text = prompt,
+                        maxOutputToken = 25
+                    )
+                    return cleanOutput(extractText(retryMessage))
                 } finally {
                     try { retryConv?.close() } catch (ignored: Exception) {}
                 }
@@ -180,12 +220,21 @@ object LlmRuntimeManager {
             if (clsName.contains("LiteRtLmJniException", ignoreCase = true) ||
                 msg.contains("OpenCL", ignoreCase = true) ||
                 msg.contains("libOpenCL", ignoreCase = true) ||
-                msg.contains("Can not find OpenCL", ignoreCase = true)) {
+                msg.contains("Can not find OpenCL", ignoreCase = true) ||
+                msg.contains("nativeSendMessage", ignoreCase = true)) {
                 return true
             }
             curr = curr.cause
         }
         return false
+    }
+
+    private fun cleanOutput(raw: String): String {
+        var out = raw
+        val fin = out.indexOf("<end_of_turn>")
+        if (fin >= 0) out = out.substring(0, fin)
+        out = out.replace(Regex("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*|result:?\\s*)"), "")
+        return out.trim()
     }
 
     private fun extractText(msg: Message?): String {
