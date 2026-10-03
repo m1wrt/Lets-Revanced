@@ -109,6 +109,8 @@ public class LlamaCppClient {
         });
     }
 
+    private volatile kotlinx.coroutines.Job currentStreamJob = null;
+
     public synchronized void getCompletion(String contextText, String keywords, LLMCallback callback) {
         if (keywords == null || keywords.trim().isEmpty()) {
             callback.onError("Sin palabras clave");
@@ -121,55 +123,43 @@ public class LlamaCppClient {
             return;
         }
 
-        if (currentGenerationFuture != null && !currentGenerationFuture.isDone()) {
-            currentGenerationFuture.cancel(true);
+        // Cancelar inmediatamente cualquier streaming activo anterior
+        if (currentStreamJob != null && currentStreamJob.isActive()) {
+            Log.d(TAG, "Cancelando streaming activo anterior para enviar nuevo prompt: " + keywords);
+            currentStreamJob.cancel(null);
         }
 
-        currentGenerationFuture = llmExecutor.submit(() -> {
-            try {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                String prompt = formatPrompt(keywords);
-                Log.d(TAG, "Prompt enviado:\n" + prompt);
-                
-                long startTime = System.currentTimeMillis();
+        String prompt = formatPrompt(keywords);
+        Log.d(TAG, "Enviando nuevo prompt (stream):\n" + prompt);
+        long startTime = System.currentTimeMillis();
 
-                String result = kotlinx.coroutines.BuildersKt.runBlocking(
-                    kotlinx.coroutines.Dispatchers.getDefault(),
-                    (coroutineScope, continuation) -> LlmRuntimeManager.INSTANCE.safeGenerate(prompt, continuation)
-                );
-
+        currentStreamJob = LlmRuntimeManager.safeGenerateStream(
+            prompt,
+            chunk -> {
+                callback.onPartial(chunk);
+                return kotlin.Unit.INSTANCE;
+            },
+            fullResult -> {
                 long elapsedTimeMs = System.currentTimeMillis() - startTime;
                 double elapsedSeconds = elapsedTimeMs / 1000.0;
-                
-                if (Thread.currentThread().isInterrupted()) {
-                    return;
-                }
-                
-                if (result != null && !result.trim().isEmpty()) {
-                    String cleaned = cleanOutput(result);
-                    String logBanner = String.format(Locale.US,
-                        "\n============================================================\n" +
-                        " [LlamaCppClient] INFERENCIA COMPLETADA\n" +
-                        " -> Tiempo de procesamiento: %.2f segundos (%d ms)\n" +
-                        " -> Resultado (Limpio)     : %s\n" +
-                        "============================================================",
-                        elapsedSeconds, elapsedTimeMs, cleaned
-                    );
-                    Log.i(TAG, logBanner);
-                    callback.onSuccess(cleaned);
-                } else {
-                    Log.e(TAG, "Generation failed: result is null or empty");
-                    callback.onError("Generation failed");
-                }
-            } catch (Exception e) {
-                if (e instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
-                    Log.d(TAG, "LLM generation interrupted/cancelled");
-                } else {
-                    Log.e(TAG, "Error during completion", e);
-                    callback.onError(e.getMessage());
-                }
+                String logBanner = String.format(Locale.US,
+                    "\n============================================================\n" +
+                    " [LlamaCppClient] INFERENCIA STREAM COMPLETADA\n" +
+                    " -> Tiempo de procesamiento: %.2f segundos (%d ms)\n" +
+                    " -> Resultado (Limpio)     : %s\n" +
+                    "============================================================",
+                    elapsedSeconds, elapsedTimeMs, fullResult
+                );
+                Log.i(TAG, logBanner);
+                callback.onSuccess(fullResult);
+                return kotlin.Unit.INSTANCE;
+            },
+            error -> {
+                Log.e(TAG, "Error en stream: " + error);
+                callback.onError(error);
+                return kotlin.Unit.INSTANCE;
             }
-        });
+        );
     }
 
     private boolean isOpenClError(Throwable t) {

@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import com.google.ai.edge.litertlm.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
@@ -156,13 +157,17 @@ object LlmRuntimeManager {
         val conversationConfig = ConversationConfig(null, ArrayList(), ArrayList(), samplerConfig)
 
         var conv: Conversation? = null
+        val startTime = System.currentTimeMillis()
         try {
             conv = currentEngine.createConversation(conversationConfig)
             val message = conv.sendMessage(
                 text = prompt,
                 maxOutputToken = 25
             )
-            return cleanOutput(extractText(message))
+            val elapsedTimeMs = System.currentTimeMillis() - startTime
+            val result = cleanOutput(extractText(message))
+            logLiteRtPerformance(prompt, result, elapsedTimeMs)
+            return result
         } catch (e: Throwable) {
             if (isOpenClError(e)) {
                 Log.w(TAG, "[LlamaCppClient] Error detectado durante generación. Re-inicializando con CPU...", e)
@@ -194,13 +199,17 @@ object LlmRuntimeManager {
                     engine ?: throw IllegalStateException("CPU fallback engine initialization failed")
                 }
                 var retryConv: Conversation? = null
+                val retryStartTime = System.currentTimeMillis()
                 try {
                     retryConv = retryEngine.createConversation(conversationConfig)
                     val retryMessage = retryConv.sendMessage(
                         text = prompt,
                         maxOutputToken = 25
                     )
-                    return cleanOutput(extractText(retryMessage))
+                    val retryElapsedTimeMs = System.currentTimeMillis() - retryStartTime
+                    val retryResult = cleanOutput(extractText(retryMessage))
+                    logLiteRtPerformance(prompt, retryResult, retryElapsedTimeMs)
+                    return retryResult
                 } finally {
                     try { retryConv?.close() } catch (ignored: Exception) {}
                 }
@@ -210,6 +219,116 @@ object LlmRuntimeManager {
         } finally {
             try { conv?.close() } catch (ignored: Exception) {}
         }
+    }
+
+    @JvmStatic
+    fun safeGenerateStream(
+        prompt: String,
+        onPartial: (String) -> Unit,
+        onComplete: (String) -> Unit,
+        onError: (String) -> Unit
+    ): Job {
+        return CoroutineScope(Dispatchers.Default).launch {
+            try {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
+            } catch (ignored: Exception) {}
+
+            executionMutex.withLock {
+                val currentEngine = synchronized(this@LlmRuntimeManager) {
+                    engine ?: run {
+                        onError("Engine not initialized")
+                        return@launch
+                    }
+                }
+
+                val samplerConfig = SamplerConfig(40, 0.9, 0.4, 0)
+                val conversationConfig = ConversationConfig(null, ArrayList(), ArrayList(), samplerConfig)
+
+                var conv: Conversation? = null
+                val startTime = System.currentTimeMillis()
+                try {
+                    conv = currentEngine.createConversation(conversationConfig)
+                    val accumulatedText = StringBuilder()
+
+                    conv.sendMessageStream(prompt).collect { chunk ->
+                        accumulatedText.append(chunk)
+                        onPartial(chunk)
+                    }
+
+                    val elapsedTimeMs = System.currentTimeMillis() - startTime
+                    val fullResult = cleanOutput(accumulatedText.toString())
+                    logLiteRtPerformance(prompt, fullResult, elapsedTimeMs)
+                    onComplete(fullResult)
+
+                } catch (e: Throwable) {
+                    if (e is CancellationException) {
+                        Log.d(TAG, "Stream cancelled cleanly for prompt: $prompt")
+                    } else {
+                        Log.e(TAG, "Error in stream generation", e)
+                        onError(e.message ?: "Stream error")
+                    }
+                } finally {
+                    try { conv?.close() } catch (ignored: Exception) {}
+                }
+            }
+        }
+    }
+
+    private fun logLiteRtPerformance(
+        prompt: String,
+        fullOutput: String,
+        elapsedTimeMs: Long
+    ) {
+        val runtime = Runtime.getRuntime()
+        val usedMemoryMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
+        val maxMemoryMb = runtime.maxMemory() / (1024 * 1024)
+
+        val context = storedContext
+        val totalRamGb = if (context != null) LiteRTLMHardwareManager.getTotalRamInGb(context) else 0.0f
+        val socModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Build.SOC_MODEL.ifEmpty { Build.HARDWARE }
+        } else {
+            Build.HARDWARE
+        }
+
+        val tokenCount = fullOutput.split(Regex("\\s+")).filter { it.isNotEmpty() }.size.coerceAtLeast(1)
+        val tokensPerSecond = if (elapsedTimeMs > 0) {
+            (tokenCount.toDouble() / (elapsedTimeMs / 1000.0))
+        } else {
+            0.0
+        }
+
+        val numThreads = storedModelConfig?.numThreads ?: 2
+
+        val logBanner = String.format(
+            Locale.US,
+            "\n============================================================\n" +
+            " LITERTM PERFORMANCE AND RESOURCE DIAGNOSTICS\n" +
+            "------------------------------------------------------------\n" +
+            " Execution Metrics:\n" +
+            "   - Output Generation Time : %d ms (%.2f s)\n" +
+            "   - Output Tokens Generated: %d tokens\n" +
+            "   - Inference Speed        : %.2f tokens/sec\n" +
+            " Resource Allocation:\n" +
+            "   - Active Backend         : CPU High-Performance\n" +
+            "   - CPU Threads Allocated  : %d threads\n" +
+            "   - Java Heap Memory Used  : %d MB / %d MB\n" +
+            "   - Total System RAM       : %.2f GB\n" +
+            " Hardware Identification:\n" +
+            "   - Device Model           : %s %s\n" +
+            "   - Hardware / SoC         : %s (%s)\n" +
+            "============================================================",
+            elapsedTimeMs, elapsedTimeMs / 1000.0,
+            tokenCount,
+            tokensPerSecond,
+            numThreads,
+            usedMemoryMb, maxMemoryMb,
+            totalRamGb,
+            Build.MANUFACTURER, Build.MODEL,
+            Build.HARDWARE, socModel
+        )
+
+        Log.i("litert", logBanner)
     }
 
     private fun isOpenClError(t: Throwable): Boolean {
