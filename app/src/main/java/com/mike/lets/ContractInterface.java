@@ -25,6 +25,7 @@ public interface ContractInterface {
         void showCompletoPopup(String userText, String llmText);
         void speakText(String text);
         void closePopup();
+        void openToolsMenu();
     }
 
     interface Model {

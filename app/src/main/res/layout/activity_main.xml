@@ -93,4 +93,12 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- Include Tools Menu as an overlay -->
+    <include
+        android:id="@+id/toolsMenuLayout"
+        layout="@layout/tools_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -194,6 +194,9 @@ public class Presenter implements ContractInterface.Presenter {
                 mainView.speakText(textToSpeak);
                 clearSelection();
                 mainView.closePopup();
+            } else if (input == 2) { // Bottom Right -> Herramientas
+                mainView.closePopup();
+                mainView.openToolsMenu();
             } else if (input == 7) { // Top Right -> Volver
                 mainView.closePopup();
             }
@@ -288,6 +291,10 @@ public class Presenter implements ContractInterface.Presenter {
                             mainView.speakText(textToSpeak);
                             clearSelection();
                             mainView.closePopup();
+                        } else if (gazeType == 2) { // Bottom Right -> Herramientas
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.closePopup();
+                            mainView.openToolsMenu();
                         } else if (gazeType == 7) { // Top Right -> Volver
                             lastPopupActionTimestamp = currentTime;
                             mainView.closePopup();

@@ -175,6 +175,12 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             Toast.makeText(this, "Paquete predeterminado restaurado", Toast.LENGTH_SHORT).show();
         });
 
+        binding.toolsMenuLayout.getRoot().setOnClickListener(v -> {
+            binding.toolsMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("Menu");
+        });
+
         // Initialize status text
         updatePackageUI();
 
@@ -528,11 +534,15 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                     if (popupView != null && popupDialog != null && popupDialog.isShowing()) {
                         android.view.View btnHablar = popupView.findViewById(R.id.btn_popup_hablar);
                         android.view.View btnVolver = popupView.findViewById(R.id.btn_popup_volver);
+                        android.view.View btnHerramientas = popupView.findViewById(R.id.btn_popup_herramientas);
                         if (btnHablar != null) {
                             btnHablar.setBackgroundResource(gazeType == 1 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
                         }
                         if (btnVolver != null) {
                             btnVolver.setBackgroundResource(gazeType == 7 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        }
+                        if (btnHerramientas != null) {
+                            btnHerramientas.setBackgroundResource(gazeType == 2 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
                         }
                     }
                 }
@@ -610,6 +620,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             // Manual click handlers
             popupView.findViewById(R.id.btn_popup_volver).setOnClickListener(v -> closePopup());
             popupView.findViewById(R.id.btn_popup_hablar).setOnClickListener(v -> presenter.onGazeButtonClicked(1));
+            popupView.findViewById(R.id.btn_popup_herramientas).setOnClickListener(v -> presenter.onGazeButtonClicked(2));
         });
     }
 
@@ -633,6 +644,14 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
     @Override
     public void openSettings() {
+    }
+
+    @Override
+    public void openToolsMenu() {
+        runOnUiThread(() -> {
+            binding.toolsMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("Tools");
+        });
     }
 
     @Override
