@@ -7,6 +7,6 @@ Funciona mediante el uso de MediaPipe Face Landmarker, OpenCV y un algoritmo de 
 | Idioma | Progreso | Porcentaje | Descripcion |
 | :--- | :--- | :---: | :---: |
 | **Español** | [█████████░░░░░░░░░░░░] | 45% |Presenta Errores en oraciones complejas | 
-| **Inglés** | [██░░░░░░░░░░░░░░░░░░░] | 10% | Dataset presente pero aún no desarrollado|
+| **Inglés** | [██░░░░░░░░░░░░░░░░░░░] | 10% | Dataset presente pero aún no desarrollado, presente en la 26w41a|
 
  *(Se añadiran mas idiomas pronto)*
