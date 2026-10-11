@@ -56,7 +56,7 @@ public class GeminiManager {
     public void generate(String keywords, String context, String language, String modelName) {
         try {
             JSONObject json = new JSONObject();
-            json.put("model", modelName != null && !modelName.isEmpty() ? modelName : "gemma-4-E2B-it.litertlm");
+            json.put("model", modelName != null && !modelName.isEmpty() ? modelName : "gemma-4-E2B-it.gguf");
             
             JSONArray messages = new JSONArray();
             

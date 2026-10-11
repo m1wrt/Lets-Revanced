@@ -14,8 +14,20 @@
 // Global mutex to ensure thread-safety across native calls
 static std::mutex g_llm_mutex;
 
+static void llama_log_callback_android(ggml_log_level level, const char * text, void * user_data) {
+    if (!text) return;
+    if (level == GGML_LOG_LEVEL_ERROR) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "%s", text);
+    } else if (level == GGML_LOG_LEVEL_WARN) {
+        __android_log_print(ANDROID_LOG_WARN, TAG, "%s", text);
+    } else {
+        __android_log_print(ANDROID_LOG_DEBUG, TAG, "%s", text);
+    }
+}
+
 extern "C" JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM* vm, void* reserved) {
+    llama_log_set(llama_log_callback_android, nullptr);
     llama_backend_init();
     return JNI_VERSION_1_6;
 }

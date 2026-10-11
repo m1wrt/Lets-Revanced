@@ -49,7 +49,7 @@ public class TextEntryManager {
         if (savedPath == null || savedPath.isEmpty()) {
             savedPath = userDataManager.getLlmModelPath();
         }
-        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.litertlm";
+        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.gguf";
 
         loadModel(context, modelToLoad);
     }
@@ -69,7 +69,7 @@ public class TextEntryManager {
         if (savedPath == null || savedPath.isEmpty()) {
             savedPath = userDataManager.getLlmModelPath();
         }
-        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.litertlm";
+        String modelToLoad = (savedPath != null && !savedPath.isEmpty()) ? savedPath : "gemma3-1b.gguf";
 
         loadModel(context, modelToLoad);
     }

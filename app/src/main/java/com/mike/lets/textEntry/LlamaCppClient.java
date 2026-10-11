@@ -2,7 +2,6 @@ package com.mike.lets.textEntry;
 
 import android.content.Context;
 import android.util.Log;
-import com.google.ai.edge.litertlm.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +14,20 @@ import java.util.concurrent.Future;
 public class LlamaCppClient {
     private static final String TAG = "LlamaCppClient";
 
+    static {
+        try {
+            System.loadLibrary("lets");
+            Log.d(TAG, "LlamaCpp native library 'lets' loaded successfully");
+        } catch (UnsatisfiedLinkError e) {
+            Log.e(TAG, "Failed to load native library 'lets'", e);
+        }
+    }
+
+    private native long nativeInit(String modelPath);
+    private native String nativeGetCompletion(long ptr, String prompt);
+    private native void nativeRelease(long ptr);
+
+    private volatile long nativeHandle = 0;
     private boolean isInitializing = false;
     private final ExecutorService llmExecutor = Executors.newSingleThreadExecutor();
     private volatile Future<?> currentGenerationFuture = null;
@@ -32,7 +45,7 @@ public class LlamaCppClient {
                 return;
             }
             isInitializing = true;
-            if (LlmRuntimeManager.isReady()) {
+            if (isReady()) {
                 release();
             }
         }
@@ -40,7 +53,7 @@ public class LlamaCppClient {
         llmExecutor.execute(() -> {
             try {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                Log.d(TAG, "Iniciando carga del modelo: " + modelNameOrPath);
+                Log.d(TAG, "Iniciando carga del modelo llama.cpp: " + modelNameOrPath);
                 String modelPath;
                 if (modelNameOrPath.startsWith("/")) {
                     modelPath = modelNameOrPath;
@@ -51,46 +64,22 @@ public class LlamaCppClient {
                 if (modelPath != null && new File(modelPath).exists()) {
                     Log.d(TAG, "Ruta del archivo de modelo encontrada: " + modelPath + ", tamaño: " + new File(modelPath).length());
 
-                    int cores = 2;
-                    ModelConfig modelConfig = new ModelConfig(
-                        modelPath,
-                        context.getCacheDir().getAbsolutePath(),
-                        cores,
-                        cores
-                    );
-
-                    Log.d(TAG, "Inicializando runtime con LlmRuntimeManager...");
-                    kotlinx.coroutines.BuildersKt.runBlocking(
-                        kotlinx.coroutines.Dispatchers.getDefault(),
-                        (coroutineScope, continuation) -> {
-                            try {
-                                if (LlmRuntimeManager.canUseGpu(context)) {
-                                    try {
-                                        LlmRuntimeManager.INSTANCE.initModelWithGpu(context, modelConfig, continuation);
-                                    } catch (Exception gpuEx) {
-                                        Log.w(TAG, "GPU init failed, falling back to CPU", gpuEx);
-                                        LlmRuntimeManager.INSTANCE.initModelWithCpu(context, modelConfig, continuation);
-                                    }
-                                } else {
-                                    LlmRuntimeManager.INSTANCE.initModelWithCpu(context, modelConfig, continuation);
-                                }
-                            } catch (Throwable t) {
-                                if (isOpenClError(t)) {
-                                    Log.w(TAG, "OpenCL error during GPU init, falling back to CPU", t);
-                                    LlmRuntimeManager.INSTANCE.initModelWithCpu(context, modelConfig, continuation);
-                                } else {
-                                    throw new RuntimeException(t);
-                                }
-                            }
-                            return kotlin.Unit.INSTANCE;
+                    long handle = nativeInit(modelPath);
+                    if (handle != 0) {
+                        synchronized (this) {
+                            nativeHandle = handle;
+                            isInitializing = false;
                         }
-                    );
-                    Log.d(TAG, "Runtime inicializado correctamente.");
-
-                    synchronized (this) {
-                        isInitializing = false;
+                        Log.d(TAG, "Motor llama.cpp nativo inicializado correctamente con handle: " + handle);
+                        callback.onSuccess("Model loaded");
+                    } else {
+                        synchronized (this) {
+                            isInitializing = false;
+                        }
+                        String err = "Error al inicializar el modelo nativo llama.cpp (nativeInit retorno 0)";
+                        Log.e(TAG, err);
+                        callback.onError(err);
                     }
-                    callback.onSuccess("Model loaded");
                 } else {
                     synchronized (this) {
                         isInitializing = false;
@@ -103,13 +92,11 @@ public class LlamaCppClient {
                 synchronized (this) {
                     isInitializing = false;
                 }
-                Log.e(TAG, "Error crítico al inicializar LiteRT-LM", e);
+                Log.e(TAG, "Error crítico al inicializar llama.cpp", e);
                 callback.onError(e.getMessage() != null ? e.getMessage() : e.getClass().getName());
             }
         });
     }
-
-    private volatile kotlinx.coroutines.Job currentStreamJob = null;
 
     public synchronized void getCompletion(String contextText, String keywords, LLMCallback callback) {
         if (keywords == null || keywords.trim().isEmpty()) {
@@ -117,65 +104,44 @@ public class LlamaCppClient {
             return;
         }
 
-        if (!LlmRuntimeManager.isReady()) {
-            Log.e(TAG, "LiteRT-LM engine not initialized");
-            callback.onError("LiteRT-LM not initialized");
+        final long handle = nativeHandle;
+        if (handle == 0) {
+            Log.e(TAG, "Motor llama.cpp no inicializado");
+            callback.onError("llama.cpp not initialized");
             return;
         }
 
-        // Cancelar inmediatamente cualquier streaming activo anterior
-        if (currentStreamJob != null && currentStreamJob.isActive()) {
-            Log.d(TAG, "Cancelando streaming activo anterior para enviar nuevo prompt: " + keywords);
-            currentStreamJob.cancel(null);
+        if (currentGenerationFuture != null && !currentGenerationFuture.isDone()) {
+            currentGenerationFuture.cancel(true);
         }
 
         String prompt = formatPrompt(keywords);
-        Log.d(TAG, "Enviando nuevo prompt (stream):\n" + prompt);
+        Log.d(TAG, "Enviando prompt a llama.cpp:\n" + prompt);
         long startTime = System.currentTimeMillis();
 
-        currentStreamJob = LlmRuntimeManager.safeGenerateStream(
-            prompt,
-            chunk -> {
-                callback.onPartial(chunk);
-                return kotlin.Unit.INSTANCE;
-            },
-            fullResult -> {
+        currentGenerationFuture = llmExecutor.submit(() -> {
+            try {
+                String rawResult = nativeGetCompletion(handle, prompt);
                 long elapsedTimeMs = System.currentTimeMillis() - startTime;
                 double elapsedSeconds = elapsedTimeMs / 1000.0;
+                String fullResult = cleanOutput(rawResult);
+
                 String logBanner = String.format(Locale.US,
                     "\n============================================================\n" +
-                    " [LlamaCppClient] INFERENCIA STREAM COMPLETADA\n" +
+                    " [LlamaCppClient] INFERENCIA NATIVA LLAMA.CPP COMPLETADA\n" +
                     " -> Tiempo de procesamiento: %.2f segundos (%d ms)\n" +
                     " -> Resultado (Limpio)     : %s\n" +
                     "============================================================",
                     elapsedSeconds, elapsedTimeMs, fullResult
                 );
                 Log.i(TAG, logBanner);
-                callback.onSuccess(fullResult);
-                return kotlin.Unit.INSTANCE;
-            },
-            error -> {
-                Log.e(TAG, "Error en stream: " + error);
-                callback.onError(error);
-                return kotlin.Unit.INSTANCE;
-            }
-        );
-    }
 
-    private boolean isOpenClError(Throwable t) {
-        Throwable curr = t;
-        while (curr != null) {
-            String msg = curr.getMessage() != null ? curr.getMessage() : "";
-            String clsName = curr.getClass().getName();
-            if (clsName.contains("LiteRtLmJniException") ||
-                msg.contains("OpenCL") ||
-                msg.contains("libOpenCL") ||
-                msg.contains("Can not find OpenCL")) {
-                return true;
+                callback.onSuccess(fullResult);
+            } catch (Exception e) {
+                Log.e(TAG, "Error durante la inferencia en llama.cpp", e);
+                callback.onError(e.getMessage() != null ? e.getMessage() : "Inference error");
             }
-            curr = curr.getCause();
-        }
-        return false;
+        });
     }
 
     private String formatPrompt(String keywords) {
@@ -185,6 +151,7 @@ public class LlamaCppClient {
     }
 
     private String cleanOutput(String raw) {
+        if (raw == null) return "";
         String out = raw;
         int fin = out.indexOf("<end_of_turn>");
         if (fin >= 0) out = out.substring(0, fin);
@@ -217,12 +184,15 @@ public class LlamaCppClient {
         if (currentGenerationFuture != null) {
             currentGenerationFuture.cancel(true);
         }
-        LlmRuntimeManager.cleanupCurrentModel();
-        Log.d(TAG, "LiteRT-LM released");
+        if (nativeHandle != 0) {
+            nativeRelease(nativeHandle);
+            nativeHandle = 0;
+            Log.d(TAG, "llama.cpp native handle released");
+        }
     }
 
     public synchronized boolean isReady() {
-        return LlmRuntimeManager.isReady();
+        return nativeHandle != 0;
     }
 
     public static void test(Context context) {
