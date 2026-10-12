@@ -55,6 +55,7 @@ public class UserDataManager extends Application {
     private String packageDescription = "null";
     private String packageWordListPath = "";
     private String packageModelPath = "";
+    private String packageFastActionsPath = "";
 
     private Bitmap[] leftCalibrationData;
     private Bitmap[] rightCalibrationData;
@@ -84,6 +85,7 @@ public class UserDataManager extends Application {
         defaultSettings.put("PackageDescription", "null");
         defaultSettings.put("PackageWordListPath", "");
         defaultSettings.put("PackageModelPath", "");
+        defaultSettings.put("PackageFastActionsPath", "");
     }
 
 
@@ -106,6 +108,7 @@ public class UserDataManager extends Application {
         packageDescription = getString("PackageDescription");
         packageWordListPath = getString("PackageWordListPath");
         packageModelPath = getString("PackageModelPath");
+        packageFastActionsPath = getString("PackageFastActionsPath");
 
         // get calibration files
         if (getCalibrationFiles(mContext, leftEyeFileNames) != null) {
@@ -377,7 +380,19 @@ public class UserDataManager extends Application {
         setString("PackageModelPath", path);
     }
 
+    public String getPackageFastActionsPath() { return packageFastActionsPath; }
+    public void setPackageFastActionsPath(String path) {
+        this.packageFastActionsPath = path;
+        setString("PackageFastActionsPath", path);
+    }
+
     public void clearPackage() {
+        setPackageLanguage("Spanish");
+        setPackageVersion("1.0");
+        setPackageDescription("null");
+        setPackageWordListPath("");
+        setPackageModelPath("");
+        setPackageFastActionsPath("");
         setPackageLanguage("Spanish");
         setPackageVersion("1.0");
         setPackageDescription("null");

@@ -1,0 +1,66 @@
+{
+  "language": "English",
+  "version": "1.0",
+  "categories": [
+    {
+      "id": "NecesidadesBasicas",
+      "title": "BASIC NEEDS",
+      "buttonText": "Basic needs",
+      "phrases": [
+        "I want to eat something",
+        "I want to go to the bathroom",
+        "I want to drink water",
+        "I want to rest",
+        "I want to sleep"
+      ]
+    },
+    {
+      "id": "ControlAmbiental",
+      "title": "ENVIRONMENTAL CONTROL",
+      "buttonText": "Environmental control",
+      "phrases": [
+        "I'm hot",
+        "It's too noisy",
+        "It's too bright",
+        "It's too dark",
+        "I feel cold"
+      ]
+    },
+    {
+      "id": "ActividadesSociales",
+      "title": "SOCIAL ACTIVITIES",
+      "buttonText": "Social Activities and Recreation",
+      "phrases": [
+        "I want to go outside",
+        "I want to listen to music",
+        "I want to watch television",
+        "I want to listen to the radio",
+        "I want to read the newspaper"
+      ]
+    },
+    {
+      "id": "NecesidadesMedicas",
+      "title": "MEDICAL NEEDS",
+      "buttonText": "Medical needs",
+      "phrases": [
+        "I feel some pain",
+        "I need to take my pills",
+        "I need to go to the hospital",
+        "I feel fine",
+        "I feel a pain"
+      ]
+    },
+    {
+      "id": "Emociones",
+      "title": "EMOTIONS",
+      "buttonText": "Emotions",
+      "phrases": [
+        "I'm happy",
+        "I'm angry",
+        "I'm scared",
+        "I'm confused",
+        "I'm calm"
+      ]
+    }
+  ]
+}

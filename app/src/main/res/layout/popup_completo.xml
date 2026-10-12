@@ -1,12 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="450dp"
-    android:layout_height="250dp"
+    android:layout_width="520dp"
+    android:layout_height="280dp"
     android:background="@drawable/llm_area_background"
     android:padding="16dp">
 
-    <!-- Volver Button (Top Right) -->
+    <!-- Comunicación Rápida Button (Top Left - Gaze 6) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_popup_comunicacion_rapida"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/panel_background"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/img_popup_comunicacion_rapida"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:elevation="12dp"
+            android:src="@drawable/ic_gaze_arriba_izq"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_comunicacion_rapida"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="COMUNICACIÓN RÁPIDA"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/img_popup_comunicacion_rapida"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Volver Button (Top Right - Gaze 7) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/btn_popup_volver"
         android:layout_width="wrap_content"
@@ -22,7 +57,7 @@
             android:layout_height="wrap_content"
             android:text="REGRESAR"
             android:textColor="@color/black"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -45,18 +80,18 @@
         android:id="@+id/popup_content_text"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
         android:gravity="center"
         android:text="LLM: All ALS patients should have a voice in the digital world."
         android:textColor="@color/white"
-        android:textSize="20sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/btn_popup_hablar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_popup_volver" />
+        app:layout_constraintTop_toBottomOf="@id/btn_popup_comunicacion_rapida" />
 
-    <!-- Hablar Button (Bottom Left) -->
+    <!-- Hablar Button (Bottom Left - Gaze 1) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/btn_popup_hablar"
         android:layout_width="wrap_content"
@@ -72,7 +107,7 @@
             android:layout_height="wrap_content"
             android:text="HABLAR"
             android:textColor="@color/black"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -90,7 +125,7 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Herramientas Button (Bottom Right) -->
+    <!-- Herramientas Button (Bottom Right - Gaze 2) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/btn_popup_herramientas"
         android:layout_width="wrap_content"
@@ -106,7 +141,7 @@
             android:layout_height="wrap_content"
             android:text="HERRAMIENTAS"
             android:textColor="@color/black"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"

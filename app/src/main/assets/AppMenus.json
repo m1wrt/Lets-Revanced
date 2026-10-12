@@ -1,0 +1,280 @@
+{
+  "appName": "Lets",
+  "version": "1.0",
+  "language": "Spanish",
+  "menus": [
+    {
+      "id": "Menu",
+      "title": "ENTRADA DE TEXTO",
+      "type": "keyboard",
+      "description": "Menú principal de entrada de texto con mirada",
+      "options": [
+        {
+          "gazeInput": 6,
+          "position": "TOP_LEFT",
+          "label": "ABCDEF",
+          "action": "select_group_0"
+        },
+        {
+          "gazeInput": 7,
+          "position": "TOP_RIGHT",
+          "label": "GHIJKLM",
+          "action": "select_group_1"
+        },
+        {
+          "gazeInput": 1,
+          "position": "BOTTOM_LEFT",
+          "label": "NOPQRST",
+          "action": "select_group_2"
+        },
+        {
+          "gazeInput": 2,
+          "position": "BOTTOM_RIGHT",
+          "label": "UVWXYZ",
+          "action": "select_group_3"
+        },
+        {
+          "gazeInput": 5,
+          "position": "BOTTOM_MIDDLE",
+          "label": "CAMBIAR",
+          "action": "toggle_page"
+        },
+        {
+          "gazeInput": 3,
+          "position": "BOTH_CLOSED",
+          "label": "BORRAR",
+          "action": "delete_character"
+        }
+      ]
+    },
+    {
+      "id": "ComunicacionRapida",
+      "title": "COMUNICACIÓN RÁPIDA",
+      "type": "navigation_menu",
+      "description": "Menú de selección rápida de categorías",
+      "options": [
+        {
+          "gazeInput": 6,
+          "position": "TOP_LEFT",
+          "targetCategoryId": "NecesidadesBasicas",
+          "label": "Necesidades básicas",
+          "action": "open_subcategory"
+        },
+        {
+          "gazeInput": 7,
+          "position": "TOP_RIGHT",
+          "targetCategoryId": "Emociones",
+          "label": "Emociones",
+          "action": "open_subcategory"
+        },
+        {
+          "gazeInput": 1,
+          "position": "BOTTOM_LEFT",
+          "targetCategoryId": "ControlAmbiental",
+          "label": "Control ambiental",
+          "action": "open_subcategory"
+        },
+        {
+          "gazeInput": 5,
+          "position": "BOTTOM_MIDDLE",
+          "targetCategoryId": "ActividadesSociales",
+          "label": "Actividades Sociales y Recreación",
+          "action": "open_subcategory"
+        },
+        {
+          "gazeInput": 2,
+          "position": "BOTTOM_RIGHT",
+          "targetCategoryId": "NecesidadesMedicas",
+          "label": "Necesidades médicas",
+          "action": "open_subcategory"
+        },
+        {
+          "gazeInput": 4,
+          "position": "TOP_MIDDLE",
+          "label": "Volver a inicio",
+          "action": "go_home"
+        }
+      ]
+    },
+    {
+      "id": "Subcategorias",
+      "title": "SUBCATEGORÍAS DE COMUNICACIÓN RÁPIDA",
+      "type": "phrase_list",
+      "categories": [
+        {
+          "id": "NecesidadesBasicas",
+          "title": "NECESIDADES BÁSICAS",
+          "buttonText": "Necesidades básicas",
+          "phrases": [
+            { "gazeInput": 6, "position": "TOP_LEFT", "text": "Quiero comer algo" },
+            { "gazeInput": 1, "position": "BOTTOM_LEFT", "text": "Quiero ir al baño" },
+            { "gazeInput": 5, "position": "BOTTOM_MIDDLE", "text": "Quiero beber agua" },
+            { "gazeInput": 2, "position": "BOTTOM_RIGHT", "text": "Quiero descansar" },
+            { "gazeInput": 7, "position": "TOP_RIGHT", "text": "Quiero dormir" }
+          ]
+        },
+        {
+          "id": "ControlAmbiental",
+          "title": "CONTROL AMBIENTAL",
+          "buttonText": "Control ambiental",
+          "phrases": [
+            { "gazeInput": 6, "position": "TOP_LEFT", "text": "Tengo calor" },
+            { "gazeInput": 1, "position": "BOTTOM_LEFT", "text": "Hace demasiado ruido" },
+            { "gazeInput": 5, "position": "BOTTOM_MIDDLE", "text": "Hay mucha luz" },
+            { "gazeInput": 2, "position": "BOTTOM_RIGHT", "text": "Está demasiado oscuro" },
+            { "gazeInput": 7, "position": "TOP_RIGHT", "text": "Me siento frío" }
+          ]
+        },
+        {
+          "id": "ActividadesSociales",
+          "title": "ACTIVIDADES SOCIALES",
+          "buttonText": "Actividades Sociales y Recreación",
+          "phrases": [
+            { "gazeInput": 6, "position": "TOP_LEFT", "text": "Quiero ir afuera" },
+            { "gazeInput": 1, "position": "BOTTOM_LEFT", "text": "Quiero escuchar música" },
+            { "gazeInput": 5, "position": "BOTTOM_MIDDLE", "text": "Quiero ver televisión" },
+            { "gazeInput": 2, "position": "BOTTOM_RIGHT", "text": "Quiero escuchar la radio" },
+            { "gazeInput": 7, "position": "TOP_RIGHT", "text": "Quiero leer el periódico" }
+          ]
+        },
+        {
+          "id": "NecesidadesMedicas",
+          "title": "NECESIDADES MÉDICAS",
+          "buttonText": "Necesidades médicas",
+          "phrases": [
+            { "gazeInput": 6, "position": "TOP_LEFT", "text": "Siento algo de dolor" },
+            { "gazeInput": 1, "position": "BOTTOM_LEFT", "text": "Necesito tomar mis pastillas" },
+            { "gazeInput": 5, "position": "BOTTOM_MIDDLE", "text": "Necesito ir al hospital" },
+            { "gazeInput": 2, "position": "BOTTOM_RIGHT", "text": "Me siento bien" },
+            { "gazeInput": 7, "position": "TOP_RIGHT", "text": "Siento un dolor" }
+          ]
+        },
+        {
+          "id": "Emociones",
+          "title": "EMOCIONES",
+          "buttonText": "Emociones",
+          "phrases": [
+            { "gazeInput": 6, "position": "TOP_LEFT", "text": "Estoy feliz" },
+            { "gazeInput": 1, "position": "BOTTOM_LEFT", "text": "Estoy enojado" },
+            { "gazeInput": 5, "position": "BOTTOM_MIDDLE", "text": "Estoy asustado" },
+            { "gazeInput": 2, "position": "BOTTOM_RIGHT", "text": "Estoy confundido" },
+            { "gazeInput": 7, "position": "TOP_RIGHT", "text": "Estoy tranquilo" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Popup",
+      "title": "MENÚ EMERGENTE / ACCIONES",
+      "type": "popup",
+      "description": "Menú de acciones al seleccionar frase o texto de LLM",
+      "options": [
+        {
+          "gazeInput": 1,
+          "position": "BOTTOM_LEFT",
+          "label": "HABLAR",
+          "action": "speak_text"
+        },
+        {
+          "gazeInput": 2,
+          "position": "BOTTOM_RIGHT",
+          "label": "HERRAMIENTAS",
+          "action": "open_tools"
+        },
+        {
+          "gazeInput": 6,
+          "position": "TOP_LEFT",
+          "label": "COMUNICACIÓN RÁPIDA",
+          "action": "open_comunicacion_rapida"
+        },
+        {
+          "gazeInput": 7,
+          "position": "TOP_RIGHT",
+          "label": "REGRESAR",
+          "action": "close_popup"
+        }
+      ]
+    },
+    {
+      "id": "Settings",
+      "title": "AJUSTES DE LLM",
+      "type": "settings",
+      "description": "Aquí podrás importar y gestionar paquetes de lenguaje e IA (.zip).",
+      "options": [
+        {
+          "id": "btn_import_model",
+          "label": "IMPORTAR PAQUETE (.ZIP)",
+          "action": "import_package"
+        },
+        {
+          "id": "btn_clear_model",
+          "label": "X",
+          "action": "clear_package"
+        },
+        {
+          "id": "btn_back_settings",
+          "label": "VOLVER",
+          "action": "close_settings"
+        }
+      ]
+    },
+    {
+      "id": "Tools",
+      "title": "HERRAMIENTAS",
+      "type": "tools",
+      "description": "Menú de herramientas adicionales",
+      "options": [
+        {
+          "id": "btn_back_tools",
+          "label": "VOLVER",
+          "action": "close_tools"
+        }
+      ]
+    },
+    {
+      "id": "Calibration",
+      "title": "CALIBRACIÓN DE OJOS",
+      "type": "calibration",
+      "description": "Sigue los puntos de calibración en pantalla",
+      "options": [
+        {
+          "id": "calibrationInstruction",
+          "label": "Sigue las instrucciones en pantalla",
+          "action": "calibrate_eye"
+        }
+      ]
+    },
+    {
+      "id": "TopBar",
+      "title": "BARRA DE NAVEGACIÓN SUPERIOR",
+      "type": "navigation_bar",
+      "options": [
+        {
+          "id": "btn_home",
+          "label": "INICIO",
+          "action": "go_home"
+        },
+        {
+          "id": "btn_ajustes",
+          "label": "AJUSTES",
+          "action": "open_settings"
+        },
+        {
+          "id": "btn_rapido",
+          "label": "RÁPIDO",
+          "action": "open_comunicacion_rapida"
+        },
+        {
+          "id": "btn_entrada_texto",
+          "label": "ENTRADA DE TEXTO",
+          "action": "open_text_entry"
+        },
+        {
+          "id": "btn_calibracion",
+          "label": "CALIBRACIÓN",
+          "action": "open_calibration"
+        }
+      ]
+    }
+  ]
+}

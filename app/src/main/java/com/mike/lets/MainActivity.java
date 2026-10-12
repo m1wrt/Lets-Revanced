@@ -21,6 +21,7 @@ import android.util.Log;
 import android.util.Size;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.color.DynamicColors;
@@ -64,13 +65,54 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     private ExecutorService cameraExecutor;
     private android.speech.tts.TextToSpeech tts;
     private android.app.AlertDialog popupDialog;
+    private android.app.AlertDialog loadingDialog;
     private android.view.View popupView;
+    private final com.mike.lets.textEntry.FastActionsManager fastActionsManager = new com.mike.lets.textEntry.FastActionsManager();
+
+    private void showLoadingDialog(String title, String subtitle) {
+        runOnUiThread(() -> {
+            if (loadingDialog != null && loadingDialog.isShowing()) {
+                loadingDialog.dismiss();
+            }
+            View view = getLayoutInflater().inflate(R.layout.popup_cargando_modelo, null);
+            TextView tvTitle = view.findViewById(R.id.tv_loading_title);
+            TextView tvSubtitle = view.findViewById(R.id.tv_loading_subtitle);
+            if (title != null && tvTitle != null) tvTitle.setText(title);
+            if (subtitle != null && tvSubtitle != null) tvSubtitle.setText(subtitle);
+
+            loadingDialog = new android.app.AlertDialog.Builder(this)
+                    .setView(view)
+                    .setCancelable(false)
+                    .create();
+
+            if (loadingDialog.getWindow() != null) {
+                loadingDialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            }
+            loadingDialog.show();
+        });
+    }
+
+    private void hideLoadingDialog() {
+        runOnUiThread(() -> {
+            if (loadingDialog != null && loadingDialog.isShowing()) {
+                loadingDialog.dismiss();
+                loadingDialog = null;
+            }
+        });
+    }
 
     private final ActivityResultLauncher<String> importModelLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
-                    processImportedPackage(uri);
+                    showLoadingDialog("Cargando modelo...", "Descomprimiendo e importando paquete .zip");
+                    Executors.newSingleThreadExecutor().execute(() -> {
+                        try {
+                            processImportedPackage(uri);
+                        } finally {
+                            hideLoadingDialog();
+                        }
+                    });
                 }
             }
     );
@@ -168,11 +210,20 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.settingsMenuLayout.btnImportModel.setOnClickListener(v -> importModelLauncher.launch("*/*"));
         
         binding.settingsMenuLayout.btnClearModel.setOnClickListener(v -> {
-            UserDataManager userDataManager = (UserDataManager) getApplicationContext();
-            userDataManager.clearPackage();
-            presenter.reloadPackage();
-            updatePackageUI();
-            Toast.makeText(this, "Paquete predeterminado restaurado", Toast.LENGTH_SHORT).show();
+            showLoadingDialog("Restaurando modelo...", "Cargando modelo predeterminado");
+            Executors.newSingleThreadExecutor().execute(() -> {
+                try {
+                    UserDataManager userDataManager = (UserDataManager) getApplicationContext();
+                    userDataManager.clearPackage();
+                    presenter.reloadPackage();
+                    runOnUiThread(() -> {
+                        updatePackageUI();
+                        Toast.makeText(this, "Paquete predeterminado restaurado", Toast.LENGTH_SHORT).show();
+                    });
+                } finally {
+                    hideLoadingDialog();
+                }
+            });
         });
 
         binding.toolsMenuLayout.getRoot().setOnClickListener(v -> {
@@ -180,6 +231,26 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
             presenter.setMode("Menu");
         });
+
+        binding.comunicacionRapidaLayout.btnRapidaNecesidadesBasicas.setOnClickListener(v -> presenter.onGazeButtonClicked(6));
+        binding.comunicacionRapidaLayout.btnRapidaVolverInicio.setOnClickListener(v -> presenter.onGazeButtonClicked(4));
+        binding.comunicacionRapidaLayout.btnRapidaEmociones.setOnClickListener(v -> presenter.onGazeButtonClicked(7));
+        binding.comunicacionRapidaLayout.btnRapidaControlAmbiental.setOnClickListener(v -> presenter.onGazeButtonClicked(1));
+        binding.comunicacionRapidaLayout.btnRapidaActividadesSociales.setOnClickListener(v -> presenter.onGazeButtonClicked(5));
+        binding.comunicacionRapidaLayout.btnRapidaNecesidadesMedicas.setOnClickListener(v -> presenter.onGazeButtonClicked(2));
+
+        View subTl = findViewById(R.id.btn_sub_tl);
+        View subTm = findViewById(R.id.btn_sub_tm);
+        View subTr = findViewById(R.id.btn_sub_tr);
+        View subBl = findViewById(R.id.btn_sub_bl);
+        View subBm = findViewById(R.id.btn_sub_bm);
+        View subBr = findViewById(R.id.btn_sub_br);
+        if (subTl != null) subTl.setOnClickListener(v -> presenter.onGazeButtonClicked(6));
+        if (subTm != null) subTm.setOnClickListener(v -> presenter.onGazeButtonClicked(4));
+        if (subTr != null) subTr.setOnClickListener(v -> presenter.onGazeButtonClicked(7));
+        if (subBl != null) subBl.setOnClickListener(v -> presenter.onGazeButtonClicked(1));
+        if (subBm != null) subBm.setOnClickListener(v -> presenter.onGazeButtonClicked(5));
+        if (subBr != null) subBr.setOnClickListener(v -> presenter.onGazeButtonClicked(2));
 
         // Initialize status text
         updatePackageUI();
@@ -510,7 +581,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         }
 
                         // Highlight active panel
-                        boolean isPopupShowing = (popupView != null && popupDialog != null && popupDialog.isShowing()) || "Popup".equals(presenter.getMode());
+                        boolean isPopupShowing = (popupView != null && popupDialog != null && popupDialog.isShowing()) || "Popup".equals(presenter.getMode()) || "ComunicacionRapida".equals(presenter.getMode());
                         if (isPopupShowing) {
                             binding.mainMenuLayout.panelTopLeft.setBackgroundResource(R.drawable.panel_background);
                             binding.mainMenuLayout.panelTopRight.setBackgroundResource(R.drawable.panel_background);
@@ -530,11 +601,41 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                         }
                     }
                     
+                    // Highlight ComunicacionRapida overlay panels if active
+                    if ("ComunicacionRapida".equals(presenter.getMode())) {
+                        binding.comunicacionRapidaLayout.btnRapidaNecesidadesBasicas.setBackgroundResource(gazeType == 6 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        binding.comunicacionRapidaLayout.btnRapidaVolverInicio.setBackgroundResource(gazeType == 4 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        binding.comunicacionRapidaLayout.btnRapidaEmociones.setBackgroundResource(gazeType == 7 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        binding.comunicacionRapidaLayout.btnRapidaControlAmbiental.setBackgroundResource(gazeType == 1 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        binding.comunicacionRapidaLayout.btnRapidaActividadesSociales.setBackgroundResource(gazeType == 5 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        binding.comunicacionRapidaLayout.btnRapidaNecesidadesMedicas.setBackgroundResource(gazeType == 2 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                    }
+
+                    // Highlight ComunicacionSubcategoria overlay panels if active
+                    if (presenter.getMode() != null && presenter.getMode().startsWith("Subcategoria_")) {
+                        View subTlView = findViewById(R.id.btn_sub_tl);
+                        View subTmView = findViewById(R.id.btn_sub_tm);
+                        View subTrView = findViewById(R.id.btn_sub_tr);
+                        View subBlView = findViewById(R.id.btn_sub_bl);
+                        View subBmView = findViewById(R.id.btn_sub_bm);
+                        View subBrView = findViewById(R.id.btn_sub_br);
+                        if (subTlView != null) subTlView.setBackgroundResource(gazeType == 6 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        if (subTmView != null) subTmView.setBackgroundResource(gazeType == 4 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        if (subTrView != null) subTrView.setBackgroundResource(gazeType == 7 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        if (subBlView != null) subBlView.setBackgroundResource(gazeType == 1 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        if (subBmView != null) subBmView.setBackgroundResource(gazeType == 5 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        if (subBrView != null) subBrView.setBackgroundResource(gazeType == 2 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                    }
+
                     // Highlight Popup buttons if visible
                     if (popupView != null && popupDialog != null && popupDialog.isShowing()) {
+                        android.view.View btnComRapida = popupView.findViewById(R.id.btn_popup_comunicacion_rapida);
                         android.view.View btnHablar = popupView.findViewById(R.id.btn_popup_hablar);
                         android.view.View btnVolver = popupView.findViewById(R.id.btn_popup_volver);
                         android.view.View btnHerramientas = popupView.findViewById(R.id.btn_popup_herramientas);
+                        if (btnComRapida != null) {
+                            btnComRapida.setBackgroundResource(gazeType == 6 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
+                        }
                         if (btnHablar != null) {
                             btnHablar.setBackgroundResource(gazeType == 1 ? R.drawable.gaze_highlight_background : R.drawable.panel_background);
                         }
@@ -621,6 +722,103 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             popupView.findViewById(R.id.btn_popup_volver).setOnClickListener(v -> closePopup());
             popupView.findViewById(R.id.btn_popup_hablar).setOnClickListener(v -> presenter.onGazeButtonClicked(1));
             popupView.findViewById(R.id.btn_popup_herramientas).setOnClickListener(v -> presenter.onGazeButtonClicked(2));
+            popupView.findViewById(R.id.btn_popup_comunicacion_rapida).setOnClickListener(v -> presenter.onGazeButtonClicked(6));
+        });
+    }
+
+    @Override
+    public void openComunicacionRapidaMenu() {
+        runOnUiThread(() -> {
+            UserDataManager userDataManager = (UserDataManager) getApplicationContext();
+            fastActionsManager.loadFastActions(this, userDataManager.getPackageFastActionsPath());
+
+            com.mike.lets.textEntry.FastActionsManager.Category c1 = fastActionsManager.getCategory("NecesidadesBasicas");
+            com.mike.lets.textEntry.FastActionsManager.Category c2 = fastActionsManager.getCategory("ControlAmbiental");
+            com.mike.lets.textEntry.FastActionsManager.Category c3 = fastActionsManager.getCategory("ActividadesSociales");
+            com.mike.lets.textEntry.FastActionsManager.Category c4 = fastActionsManager.getCategory("NecesidadesMedicas");
+            com.mike.lets.textEntry.FastActionsManager.Category c5 = fastActionsManager.getCategory("Emociones");
+
+            if (c1 != null && c1.buttonText != null) binding.comunicacionRapidaLayout.textRapida1.setText(c1.buttonText);
+            if (c2 != null && c2.buttonText != null) binding.comunicacionRapidaLayout.textRapida4.setText(c2.buttonText);
+            if (c3 != null && c3.buttonText != null) binding.comunicacionRapidaLayout.textRapida5.setText(c3.buttonText);
+            if (c4 != null && c4.buttonText != null) binding.comunicacionRapidaLayout.textRapida6.setText(c4.buttonText);
+            if (c5 != null && c5.buttonText != null) binding.comunicacionRapidaLayout.textRapida3.setText(c5.buttonText);
+
+            binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.toolsMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.settingsMenuLayout.getRoot().setVisibility(View.GONE);
+            binding.calibrationLayout.getRoot().setVisibility(View.GONE);
+            View subLayout = findViewById(R.id.comunicacionSubcategoriaLayout);
+            if (subLayout != null) subLayout.setVisibility(View.GONE);
+            binding.comunicacionRapidaLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("ComunicacionRapida");
+        });
+    }
+
+    @Override
+    public void closeComunicacionRapidaMenu() {
+        runOnUiThread(() -> {
+            View subLayout = findViewById(R.id.comunicacionSubcategoriaLayout);
+            if (subLayout != null) subLayout.setVisibility(View.GONE);
+            binding.comunicacionRapidaLayout.getRoot().setVisibility(View.GONE);
+            binding.mainMenuLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("Menu");
+        });
+    }
+
+    @Override
+    public void openSubcategoriaMenu(String category) {
+        runOnUiThread(() -> {
+            UserDataManager userDataManager = (UserDataManager) getApplicationContext();
+            fastActionsManager.loadFastActions(this, userDataManager.getPackageFastActionsPath());
+            com.mike.lets.textEntry.FastActionsManager.Category cat = fastActionsManager.getCategory(category);
+
+            String title = "SUBCATEGORÍA";
+            String p1 = "", p2 = "", p3 = "", p4 = "", p5 = "";
+
+            if (cat != null) {
+                if (cat.title != null && !cat.title.isEmpty()) {
+                    title = cat.title;
+                }
+                if (cat.phrases != null) {
+                    if (cat.phrases.size() > 0) p1 = cat.phrases.get(0);
+                    if (cat.phrases.size() > 1) p2 = cat.phrases.get(1);
+                    if (cat.phrases.size() > 2) p3 = cat.phrases.get(2);
+                    if (cat.phrases.size() > 3) p4 = cat.phrases.get(3);
+                    if (cat.phrases.size() > 4) p5 = cat.phrases.get(4);
+                }
+            }
+
+            android.widget.TextView tvTitle = findViewById(R.id.tv_subcategoria_titulo);
+            android.widget.TextView textTl = findViewById(R.id.text_sub_tl);
+            android.widget.TextView textBl = findViewById(R.id.text_sub_bl);
+            android.widget.TextView textBm = findViewById(R.id.text_sub_bm);
+            android.widget.TextView textBr = findViewById(R.id.text_sub_br);
+            android.widget.TextView textTr = findViewById(R.id.text_sub_tr);
+            android.widget.TextView textTm = findViewById(R.id.text_sub_tm);
+
+            if (tvTitle != null) tvTitle.setText(title);
+            if (textTl != null) textTl.setText(p1);
+            if (textBl != null) textBl.setText(p2);
+            if (textBm != null) textBm.setText(p3);
+            if (textBr != null) textBr.setText(p4);
+            if (textTr != null) textTr.setText(p5);
+            if (textTm != null) textTm.setText("REGRESAR");
+
+            binding.comunicacionRapidaLayout.getRoot().setVisibility(View.GONE);
+            View subLayout = findViewById(R.id.comunicacionSubcategoriaLayout);
+            if (subLayout != null) subLayout.setVisibility(View.VISIBLE);
+            presenter.setMode("Subcategoria_" + category);
+        });
+    }
+
+    @Override
+    public void closeSubcategoriaMenu() {
+        runOnUiThread(() -> {
+            View subLayout = findViewById(R.id.comunicacionSubcategoriaLayout);
+            if (subLayout != null) subLayout.setVisibility(View.GONE);
+            binding.comunicacionRapidaLayout.getRoot().setVisibility(View.VISIBLE);
+            presenter.setMode("ComunicacionRapida");
         });
     }
 
@@ -700,7 +898,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         try {
             String fileName = getFileName(uri);
             if (fileName == null || (!fileName.toLowerCase().endsWith(".zip") && !fileName.toLowerCase().endsWith(".rar"))) {
-                Toast.makeText(this, "Por favor selecciona un archivo .zip", Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> Toast.makeText(this, "Por favor selecciona un archivo .zip", Toast.LENGTH_SHORT).show());
                 return;
             }
 
@@ -742,7 +940,7 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
             File packageJsonFile = findFile(packageDir, "Package.json");
             if (packageJsonFile == null || !packageJsonFile.exists()) {
-                Toast.makeText(this, "Error: No se encontró el archivo Package.json en el .zip", Toast.LENGTH_LONG).show();
+                runOnUiThread(() -> Toast.makeText(this, "Error: No se encontró el archivo Package.json en el .zip", Toast.LENGTH_LONG).show());
                 return;
             }
 
@@ -760,13 +958,14 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             }
 
             if (pkgObj == null) {
-                Toast.makeText(this, "Error: Formato inválido en Package.json", Toast.LENGTH_LONG).show();
+                runOnUiThread(() -> Toast.makeText(this, "Error: Formato inválido en Package.json", Toast.LENGTH_LONG).show());
                 return;
             }
 
             String language = pkgObj.optString("Language", "Spanish");
             String wordListFileName = pkgObj.optString("WordList", "");
             String modelFileName = pkgObj.optString("ModelFile", "");
+            String fastActionsFileName = pkgObj.optString("FastActions", pkgObj.optString("FastActionsFile", "FastActions.json"));
             String description = pkgObj.optString("description", "null");
             String version = pkgObj.optString("version", "1.0");
 
@@ -781,12 +980,17 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                 modelFile = new File(baseDir, modelFileName);
             }
 
+            File fastActionsFile = findFile(packageDir, new File(fastActionsFileName).getName());
+            if (fastActionsFile == null) {
+                fastActionsFile = new File(baseDir, fastActionsFileName);
+            }
+
             if (!wordListFile.exists()) {
                 Log.w("MainActivity", "WordList file not found in package: " + wordListFileName);
             }
             if (!modelFile.exists()) {
                 Log.w("MainActivity", "Model file not found in package: " + modelFileName);
-                Toast.makeText(this, "Advertencia: No se encontró el archivo del modelo (" + modelFileName + ") en el .zip", Toast.LENGTH_LONG).show();
+                runOnUiThread(() -> Toast.makeText(this, "Advertencia: No se encontró el archivo del modelo (" + modelFileName + ") en el .zip", Toast.LENGTH_LONG).show());
             }
 
             UserDataManager userDataManager = (UserDataManager) getApplicationContext();
@@ -795,16 +999,19 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             userDataManager.setPackageDescription(description);
             userDataManager.setPackageWordListPath(wordListFile.exists() ? wordListFile.getAbsolutePath() : "");
             userDataManager.setPackageModelPath(modelFile.exists() ? modelFile.getAbsolutePath() : "");
+            userDataManager.setPackageFastActionsPath(fastActionsFile != null && fastActionsFile.exists() ? fastActionsFile.getAbsolutePath() : "");
             userDataManager.setLanguage(language);
 
             presenter.reloadPackage();
-            updatePackageUI();
 
-            Toast.makeText(this, "Paquete " + language + " v" + version + " cargado con éxito", Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> {
+                updatePackageUI();
+                Toast.makeText(this, "Paquete " + language + " v" + version + " cargado con éxito", Toast.LENGTH_SHORT).show();
+            });
 
         } catch (Exception e) {
             Log.e("MainActivity", "Error processing package", e);
-            Toast.makeText(this, "Error al importar paquete: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            runOnUiThread(() -> Toast.makeText(this, "Error al importar paquete: " + e.getMessage(), Toast.LENGTH_LONG).show());
         }
     }
 

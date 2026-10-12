@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/comunicacionSubcategoriaLayoutRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_background"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Header Title -->
+    <TextView
+        android:id="@+id/tv_subcategoria_titulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="SUBCATEGORÍA"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Guidelines for 2x3 Grid -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/sub_guideline_h"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.55" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/sub_guideline_v1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.333" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/sub_guideline_v2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.666" />
+
+    <!-- 1. Top Left: Phrase 1 (Gaze 6 - Arriba Izquierda) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_sub_tl"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/panel_background"
+        android:padding="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/sub_guideline_h"
+        app:layout_constraintEnd_toStartOf="@+id/sub_guideline_v1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_subcategoria_titulo">
+
+        <ImageView
+            android:id="@+id/img_sub_tl"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:elevation="8dp"
+            android:src="@drawable/ic_gaze_arriba_izq"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_sub_tl"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="Frase 1"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/img_sub_tl" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 2. Top Middle: REGRESAR (Gaze 4 - Arriba) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_sub_tm"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/panel_background"
+        android:padding="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/sub_guideline_h"
+        app:layout_constraintEnd_toStartOf="@+id/sub_guideline_v2"
+        app:layout_constraintStart_toEndOf="@+id/sub_guideline_v1"
+        app:layout_constraintTop_toBottomOf="@id/tv_subcategoria_titulo">
+
+        <ImageView
+            android:id="@+id/img_sub_tm"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:elevation="8dp"
+            android:src="@drawable/ic_gaze_arriba"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_sub_tm"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="REGRESAR"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/img_sub_tm" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 3. Top Right: Phrase 5 (Gaze 7 - Arriba Derecha) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_sub_tr"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/panel_background"
+        android:padding="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/sub_guideline_h"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/sub_guideline_v2"
+        app:layout_constraintTop_toBottomOf="@id/tv_subcategoria_titulo">
+
+        <ImageView
+            android:id="@+id/img_sub_tr"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:elevation="8dp"
+            android:src="@drawable/ic_gaze_arriba_der"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/text_sub_tr"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="Frase 5"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/img_sub_tr" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 4. Bottom Left: Phrase 2 (Gaze 1 - Abajo Izquierda) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_sub_bl"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/panel_background"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/sub_guideline_v1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sub_guideline_h">
+
+        <TextView
+            android:id="@+id/text_sub_bl"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="4dp"
+            android:gravity="center"
+            android:text="Frase 2"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/img_sub_bl"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/img_sub_bl"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="4dp"
+            android:elevation="8dp"
+            android:src="@drawable/ic_gaze_abajo_izq"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 5. Bottom Middle: Phrase 3 (Gaze 5 - Guiño / Wink) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_sub_bm"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/panel_background"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/sub_guideline_v2"
+        app:layout_constraintStart_toEndOf="@+id/sub_guideline_v1"
+        app:layout_constraintTop_toBottomOf="@+id/sub_guideline_h">
+
+        <TextView
+            android:id="@+id/text_sub_bm"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="4dp"
+            android:gravity="center"
+            android:text="Frase 3"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/img_sub_bm"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/img_sub_bm"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="4dp"
+            android:elevation="8dp"
+            android:src="@drawable/ic_gaze_cerrado"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 6. Bottom Right: Phrase 4 (Gaze 2 - Abajo Derecha) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/btn_sub_br"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/panel_background"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/sub_guideline_v2"
+        app:layout_constraintTop_toBottomOf="@+id/sub_guideline_h">
+
+        <TextView
+            android:id="@+id/text_sub_br"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="4dp"
+            android:gravity="center"
+            android:text="Frase 4"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/img_sub_br"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/img_sub_br"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="4dp"
+            android:elevation="8dp"
+            android:src="@drawable/ic_gaze_abajo_der"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

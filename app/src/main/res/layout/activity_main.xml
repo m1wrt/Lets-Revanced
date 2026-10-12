@@ -101,4 +101,20 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- Include Comunicación Rápida Menu as an overlay -->
+    <include
+        android:id="@+id/comunicacionRapidaLayout"
+        layout="@layout/layout_comunicacion_rapida"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Include Comunicación Subcategoría Menu as an overlay -->
+    <include
+        android:id="@+id/comunicacionSubcategoriaLayout"
+        layout="@layout/layout_comunicacion_subcategoria"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

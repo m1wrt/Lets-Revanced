@@ -4,6 +4,7 @@
         "WordList": "SpanishWords.txt",
         "Dataset": "SpanishSentences.json",
         "ModelFile": "SpanishSentGemma3.gguf",
+        "FastActions": "FastActions.json",
         "description": "null"
     }
 ]

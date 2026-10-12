@@ -26,6 +26,10 @@ public interface ContractInterface {
         void speakText(String text);
         void closePopup();
         void openToolsMenu();
+        void openComunicacionRapidaMenu();
+        void closeComunicacionRapidaMenu();
+        void openSubcategoriaMenu(String category);
+        void closeSubcategoriaMenu();
     }
 
     interface Model {

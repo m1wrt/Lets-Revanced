@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.mike.lets.vision.DetectionOutput;
 import com.mike.lets.textEntry.TextEntryManager;
+import com.mike.lets.textEntry.FastActionsManager;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -31,6 +32,8 @@ public class Presenter implements ContractInterface.Presenter {
     Context mContext;
     Context applicationContext;
     UserDataManager userDataManager;
+    private final FastActionsManager fastActionsManager = new FastActionsManager();
+    private final MenuManager menuManager = new MenuManager();
     public boolean presenterBusy = false;
     public String mode = "Menu"; // Default to Menu
     private final ContractInterface.View mainView; // creating object of View Interface
@@ -73,6 +76,7 @@ public class Presenter implements ContractInterface.Presenter {
         this.applicationContext = applicationContext;
         userDataManager = (UserDataManager) applicationContext;
         userDataManager.getSettings();
+        menuManager.loadAppMenus(mContext);
 
         model.initialize(mContext, applicationContext); // MVP model initialization
         textEntryManager.initialize(mContext, "");
@@ -197,9 +201,52 @@ public class Presenter implements ContractInterface.Presenter {
             } else if (input == 2) { // Bottom Right -> Herramientas
                 mainView.closePopup();
                 mainView.openToolsMenu();
+            } else if (input == 6) { // Top Left -> Comunicación Rápida
+                mainView.closePopup();
+                mainView.openComunicacionRapidaMenu();
             } else if (input == 7) { // Top Right -> Volver
                 mainView.closePopup();
             }
+        } else if (Objects.equals(mode, "ComunicacionRapida")) {
+            if (input == 6) { // Top Left -> Necesidades básicas
+                mainView.openSubcategoriaMenu("NecesidadesBasicas");
+            } else if (input == 4) { // Top Middle -> Volver a la página de inicio
+                mainView.closeComunicacionRapidaMenu();
+            } else if (input == 7) { // Top Right -> Emociones
+                mainView.openSubcategoriaMenu("Emociones");
+            } else if (input == 1) { // Bottom Left -> Control ambiental
+                mainView.openSubcategoriaMenu("ControlAmbiental");
+            } else if (input == 5) { // Bottom Middle -> Actividades Sociales
+                mainView.openSubcategoriaMenu("ActividadesSociales");
+            } else if (input == 2) { // Bottom Right -> Necesidades médicas
+                mainView.openSubcategoriaMenu("NecesidadesMedicas");
+            }
+        } else if (mode != null && mode.startsWith("Subcategoria_")) {
+            handleSubcategoryAction(input);
+        }
+    }
+
+    private void handleSubcategoryAction(int gazeType) {
+        if (gazeType == 4) { // Top Middle -> Regresar
+            mainView.closeSubcategoriaMenu();
+            return;
+        }
+
+        String catId = mode.replace("Subcategoria_", "");
+        fastActionsManager.loadFastActions(mContext, userDataManager.getPackageFastActionsPath());
+        FastActionsManager.Category cat = fastActionsManager.getCategory(catId);
+
+        String phraseToSpeak = "";
+        if (cat != null && cat.phrases != null && !cat.phrases.isEmpty()) {
+            if (gazeType == 6 && cat.phrases.size() > 0) phraseToSpeak = cat.phrases.get(0);
+            else if (gazeType == 1 && cat.phrases.size() > 1) phraseToSpeak = cat.phrases.get(1);
+            else if (gazeType == 5 && cat.phrases.size() > 2) phraseToSpeak = cat.phrases.get(2);
+            else if (gazeType == 2 && cat.phrases.size() > 3) phraseToSpeak = cat.phrases.get(3);
+            else if (gazeType == 7 && cat.phrases.size() > 4) phraseToSpeak = cat.phrases.get(4);
+        }
+
+        if (!phraseToSpeak.isEmpty()) {
+            mainView.speakText(phraseToSpeak);
         }
     }
 
@@ -225,7 +272,12 @@ public class Presenter implements ContractInterface.Presenter {
 
     @Override
     public void reloadPackage() {
+        menuManager.loadAppMenus(applicationContext);
         textEntryManager.reloadPackage(applicationContext);
+    }
+
+    public MenuManager getMenuManager() {
+        return menuManager;
     }
 
     @Override
@@ -295,10 +347,43 @@ public class Presenter implements ContractInterface.Presenter {
                             lastPopupActionTimestamp = currentTime;
                             mainView.closePopup();
                             mainView.openToolsMenu();
+                        } else if (gazeType == 6) { // Top Left -> Comunicación Rápida
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.closePopup();
+                            mainView.openComunicacionRapidaMenu();
                         } else if (gazeType == 7) { // Top Right -> Volver
                             lastPopupActionTimestamp = currentTime;
                             mainView.closePopup();
                         }
+                    }
+                } else if (Objects.equals(mode, "ComunicacionRapida")) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastPopupActionTimestamp >= POPUP_COOLDOWN_MS) {
+                        if (gazeType == 6) { // Top Left -> Necesidades básicas
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.openSubcategoriaMenu("NecesidadesBasicas");
+                        } else if (gazeType == 4) { // Top Middle -> Volver a la página de inicio
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.closeComunicacionRapidaMenu();
+                        } else if (gazeType == 7) { // Top Right -> Emociones
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.openSubcategoriaMenu("Emociones");
+                        } else if (gazeType == 1) { // Bottom Left -> Control ambiental
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.openSubcategoriaMenu("ControlAmbiental");
+                        } else if (gazeType == 5) { // Bottom Middle -> Actividades Sociales
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.openSubcategoriaMenu("ActividadesSociales");
+                        } else if (gazeType == 2) { // Bottom Right -> Necesidades médicas
+                            lastPopupActionTimestamp = currentTime;
+                            mainView.openSubcategoriaMenu("NecesidadesMedicas");
+                        }
+                    }
+                } else if (mode != null && mode.startsWith("Subcategoria_")) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastPopupActionTimestamp >= POPUP_COOLDOWN_MS) {
+                        lastPopupActionTimestamp = currentTime;
+                        handleSubcategoryAction(gazeType);
                     }
                 }
             }

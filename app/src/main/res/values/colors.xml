@@ -16,6 +16,7 @@
     <color name="button_color">#455A64</color>
     <color name="status_text_color">#FFFFFFFF</color>
     <color name="red">#FF0000</color>
+    <color name="dark_gray">#333333</color>
 
     <!-- Old Color Palette -->
     <!--

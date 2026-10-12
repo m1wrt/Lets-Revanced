@@ -6,8 +6,10 @@
         {"palabras": "hambre manzana pera", "oracion": "Tengo hambre, quiero una manzana y una pera."},
         {"palabras": "hambre macarrones queso", "oracion": "Tengo hambre, quiero macarrones con queso."},
         {"palabras": "hambre hamburguesa papas", "oracion": "Tengo hambre, quiero una hamburguesa con papas."},
+        {"palabras": "hambre queso", "oracion": "tengo hambre, quiero comer queso."},
+        
         {"palabras": "abuela hambre", "oracion": "La abuela tiene hambre."},
-        {"palabras": "perro hambre", "oracion": "El perro tiene hambre."},
+        {"palabras": "perro hambre", "oracion": "El perro tiene hambre."}, 
         {"palabras": "hambre gato", "oracion": "El gato tiene hambre."},
         {"palabras": "almuerzo sopa", "oracion": "Quiero almorzar una sopa."},
         {"palabras": "cena", "oracion": "Quiero cenar."},
