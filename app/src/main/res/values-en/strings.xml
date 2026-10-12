@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Lets</string>
+    <string name="settings_title">SETTINGS &amp; CONFIGURATION</string>
+    <string name="settings_content">Here you can manage the app language and import language and AI packages (.zip).</string>
+    <string name="language_section_title">APP LANGUAGE</string>
+    <string name="current_language">Current language: English</string>
+    <string name="btn_change_language">SWITCH TO SPANISH</string>
+    <string name="btn_import_package">IMPORT PACKAGE (.ZIP)</string>
+    <string name="btn_back">BACK</string>
+</resources>

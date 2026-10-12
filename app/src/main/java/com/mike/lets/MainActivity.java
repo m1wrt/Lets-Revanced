@@ -157,10 +157,19 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
+        // Initialize LanguageManager
+        UserDataManager userDataManager = (UserDataManager) getApplicationContext();
+        String savedLang = userDataManager.getLanguage();
+        LanguageManager.getInstance().loadLanguage(this, savedLang);
+
         // Initialize TTS
         tts = new android.speech.tts.TextToSpeech(this, status -> {
             if (status == android.speech.tts.TextToSpeech.SUCCESS) {
-                tts.setLanguage(new java.util.Locale("es", "ES"));
+                if ("English".equalsIgnoreCase(LanguageManager.getInstance().getCurrentLanguage())) {
+                    tts.setLanguage(java.util.Locale.US);
+                } else {
+                    tts.setLanguage(new java.util.Locale("es", "ES"));
+                }
             }
         });
 
@@ -196,9 +205,30 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.mainMenuLayout.btnBorrar.setOnClickListener(v -> presenter.onGazeButtonClicked(3)); // Both closed -> Borrar
 
         binding.mainMenuLayout.btnAdjustLlm.setOnClickListener(v -> {
+            updateSettingsUI();
             binding.mainMenuLayout.getRoot().setVisibility(View.GONE);
             binding.settingsMenuLayout.getRoot().setVisibility(View.VISIBLE);
             presenter.setMode("Settings");
+        });
+
+        binding.settingsMenuLayout.btnChangeLanguage.setOnClickListener(v -> {
+            String current = LanguageManager.getInstance().getCurrentLanguage();
+            String target = "Spanish".equalsIgnoreCase(current) ? "English" : "Spanish";
+
+            LanguageManager.getInstance().loadLanguage(this, target);
+            userDataManager.setLanguage(target);
+            presenter.setLanguage(target);
+
+            if (tts != null) {
+                if ("English".equalsIgnoreCase(target)) {
+                    tts.setLanguage(java.util.Locale.US);
+                } else {
+                    tts.setLanguage(new java.util.Locale("es", "ES"));
+                }
+            }
+
+            updateSettingsUI();
+            Toast.makeText(this, LanguageManager.getInstance().getString("lang_switched_toast"), Toast.LENGTH_SHORT).show();
         });
 
         binding.settingsMenuLayout.btnBackSettings.setOnClickListener(v -> {
@@ -210,15 +240,15 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.settingsMenuLayout.btnImportModel.setOnClickListener(v -> importModelLauncher.launch("*/*"));
         
         binding.settingsMenuLayout.btnClearModel.setOnClickListener(v -> {
-            showLoadingDialog("Restaurando modelo...", "Cargando modelo predeterminado");
+            showLoadingDialog(LanguageManager.getInstance().getString("restoring_model"),
+                              LanguageManager.getInstance().getString("loading_default_model"));
             Executors.newSingleThreadExecutor().execute(() -> {
                 try {
-                    UserDataManager userDataManager = (UserDataManager) getApplicationContext();
                     userDataManager.clearPackage();
                     presenter.reloadPackage();
                     runOnUiThread(() -> {
-                        updatePackageUI();
-                        Toast.makeText(this, "Paquete predeterminado restaurado", Toast.LENGTH_SHORT).show();
+                        updateSettingsUI();
+                        Toast.makeText(this, LanguageManager.getInstance().getString("package_restored_toast"), Toast.LENGTH_SHORT).show();
                     });
                 } finally {
                     hideLoadingDialog();
@@ -866,6 +896,19 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     }
 
     public native String stringFromJNI();
+
+    private void updateSettingsUI() {
+        LanguageManager langMgr = LanguageManager.getInstance();
+
+        binding.settingsMenuLayout.settingsTitle.setText(langMgr.getString("settings_title"));
+        binding.settingsMenuLayout.settingsContent.setText(langMgr.getString("settings_content"));
+        binding.settingsMenuLayout.tvLanguageTitle.setText(langMgr.getString("current_language"));
+        binding.settingsMenuLayout.btnChangeLanguage.setText(langMgr.getString("btn_change_language"));
+        binding.settingsMenuLayout.btnImportModel.setText(langMgr.getString("btn_import_package"));
+        binding.settingsMenuLayout.btnBackSettings.setText(langMgr.getString("btn_back"));
+
+        updatePackageUI();
+    }
 
     private void updatePackageUI() {
         UserDataManager udm = (UserDataManager) getApplicationContext();

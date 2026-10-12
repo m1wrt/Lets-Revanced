@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Lets</string>
+    <string name="settings_title">AJUSTES Y CONFIGURACIÓN</string>
+    <string name="settings_content">Aquí podrás administrar el idioma de la app e importar paquetes de lenguaje e IA (.zip).</string>
+    <string name="language_section_title">IDIOMA DE LA APP</string>
+    <string name="current_language">Idioma actual: Español</string>
+    <string name="btn_change_language">CAMBIAR A INGLÉS</string>
+    <string name="btn_import_package">IMPORTAR PAQUETE (.ZIP)</string>
+    <string name="btn_back">VOLVER</string>
 </resources>
