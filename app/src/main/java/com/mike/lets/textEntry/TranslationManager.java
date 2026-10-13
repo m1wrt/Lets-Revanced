@@ -92,7 +92,8 @@ public class TranslationManager {
     }
 
     private String getMlKitLanguage(String language) {
-        if (Objects.equals(language, "Spanish")) return TranslateLanguage.SPANISH;
+        if ("Spanish".equalsIgnoreCase(language) || "es".equalsIgnoreCase(language)) return TranslateLanguage.SPANISH;
+        if ("English".equalsIgnoreCase(language) || "en".equalsIgnoreCase(language)) return TranslateLanguage.ENGLISH;
         return null;
     }
 

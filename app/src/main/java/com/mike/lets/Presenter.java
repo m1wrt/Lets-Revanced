@@ -270,10 +270,25 @@ public class Presenter implements ContractInterface.Presenter {
         textEntryManager.loadModel(applicationContext, path);
     }
 
+    public boolean isLlmModelLoading() {
+        return textEntryManager.isModelLoading();
+    }
+
     @Override
     public void reloadPackage() {
         menuManager.loadAppMenus(applicationContext);
         textEntryManager.reloadPackage(applicationContext);
+    }
+
+    @Override
+    public void setGazeCooldownMs(int cooldownMs) {
+        userDataManager.setGazeCooldownMs(cooldownMs);
+        textEntryManager.setGazeCooldownMs(cooldownMs);
+    }
+
+    @Override
+    public int getGazeCooldownMs() {
+        return userDataManager.getGazeCooldownMs();
     }
 
     public MenuManager getMenuManager() {
@@ -410,20 +425,7 @@ public class Presenter implements ContractInterface.Presenter {
             }
 
             String llmResponse = textEntryManager.getLlmPrediction();
-            if (llmResponse != null && !llmResponse.isEmpty()) {
-                appliveData.llmResponse = llmResponse;
-            } else if (!predictions.isEmpty()) {
-                // Fallback to dictionary predictions if LLM is empty
-                int pageSize = appliveData.isWordMode ? 3 : 4;
-                int start = appliveData.predictionPage * pageSize;
-                StringBuilder sb = new StringBuilder("Next: ");
-                for (int i = 0; i < Math.min(predictions.size() - start, 5); i++) {
-                    sb.append(predictions.get(start + i)).append(" ");
-                }
-                appliveData.llmResponse = sb.toString().trim();
-            } else {
-                appliveData.llmResponse = "";
-            }
+            appliveData.llmResponse = llmResponse != null ? llmResponse : "";
         }
         
         mainView.updateLiveData(appliveData); // display the gaze data and testing mats

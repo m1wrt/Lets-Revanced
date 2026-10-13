@@ -24,12 +24,20 @@ public class TextEntryManager {
     public int wordIndex = -1;
     public int predictionPage = 0;
 
-    // Control unificado de tiempo/delay (1 segundo para TODAS las acciones)
+    // Control unificado de tiempo/delay dinámico
     private final java.util.Map<Integer, Long> lastActionTimestamps = new java.util.HashMap<>();
-    private static final long ACTION_COOLDOWN_MS = 1000L; // 1 segundo (1000 ms) para todas las acciones
+    private int gazeCooldownMs = 1000;
+
+    public void setGazeCooldownMs(int cooldownMs) {
+        this.gazeCooldownMs = cooldownMs;
+    }
+
+    public int getGazeCooldownMs() {
+        return gazeCooldownMs;
+    }
 
     private long getCooldownForType(int gazeType) {
-        return ACTION_COOLDOWN_MS;
+        return gazeCooldownMs;
     }
 
     public void initialize(android.content.Context context, String contextText) {
@@ -37,6 +45,7 @@ public class TextEntryManager {
         
         UserDataManager userDataManager = (UserDataManager) context.getApplicationContext();
         this.currentLanguage = userDataManager.getLanguage();
+        this.gazeCooldownMs = userDataManager.getGazeCooldownMs();
         
         String wordListPath = userDataManager.getPackageWordListPath();
         blurryInput.initialize(context, contextText, wordListPath);
@@ -57,6 +66,7 @@ public class TextEntryManager {
     public void reloadPackage(android.content.Context context) {
         UserDataManager userDataManager = (UserDataManager) context.getApplicationContext();
         this.currentLanguage = userDataManager.getLanguage();
+        this.gazeCooldownMs = userDataManager.getGazeCooldownMs();
 
         String wordListPath = userDataManager.getPackageWordListPath();
         blurryInput.initialize(context, this.conversationContext, wordListPath);
@@ -75,10 +85,18 @@ public class TextEntryManager {
     }
 
     public void loadModel(android.content.Context context, String modelPath) {
+        String resolved = llmClient.resolveModelPath(context, modelPath);
+        if (resolved == null) {
+            Log.w("TextEntryManager", "No se encontró el archivo del modelo .gguf: " + modelPath);
+            llmPrediction = "Sin modelo LLM cargado. Importa un paquete (.zip) en Ajustes.";
+            return;
+        }
+
         llmClient.initialize(context, modelPath, new LlamaCppClient.LLMCallback() {
             @Override
             public void onSuccess(String prediction) {
                 Log.d("TextEntryManager", "LLM Initialized with: " + modelPath);
+                llmPrediction = "";
                 if (!currentSentence.isEmpty()) {
                     triggerLLM();
                 }
@@ -87,7 +105,7 @@ public class TextEntryManager {
             @Override
             public void onError(String error) {
                 Log.e("TextEntryManager", "LLM Init Error: " + error);
-                llmPrediction = "Error de modelo: " + error;
+                llmPrediction = error;
             }
         });
     }
@@ -137,6 +155,8 @@ public class TextEntryManager {
         // 6, 7, 1, 2 are letter groups
         if (gazeType == 6 || gazeType == 7 || gazeType == 1 || gazeType == 2) {
             blurryInput.addGaze(gazeType);
+            this.llmPrediction = "";
+            this.lastLlmInput = "";
             updatePredictions();
             
             // Paging for group UVWXYZ (2)
@@ -159,6 +179,8 @@ public class TextEntryManager {
             } else {
                 blurryInput.deleteLast();
             }
+            this.llmPrediction = "";
+            this.lastLlmInput = "";
             updatePredictions();
         }
         return 0;
@@ -223,7 +245,7 @@ public class TextEntryManager {
     }
 
     private void updateLiveWordTranslation() {
-        if (currentPredictions.isEmpty() || "Spanish".equalsIgnoreCase(currentLanguage)) {
+        if (currentPredictions.isEmpty() || "Spanish".equalsIgnoreCase(currentLanguage) || "English".equalsIgnoreCase(currentLanguage)) {
             translatedWord = "";
             return;
         }
@@ -279,7 +301,7 @@ public class TextEntryManager {
     }
 
     private void updateLiveSentenceTranslation() {
-        if (currentSentence.isEmpty() || "Spanish".equalsIgnoreCase(currentLanguage)) {
+        if (currentSentence.isEmpty() || "Spanish".equalsIgnoreCase(currentLanguage) || "English".equalsIgnoreCase(currentLanguage)) {
             translatedSentence = "";
             return;
         }
@@ -296,7 +318,7 @@ public class TextEntryManager {
     }
 
     private void triggerLLM() {
-        // Solo procesamos palabras reales (currentSentence), ignoramos los rangos de letras [A-F...]
+        // Solo procesamos palabras reales (currentSentence), ignoramos los rangos de letras
         final String keywords = currentSentence.trim();
         Log.d("TextEntryManager", "triggerLLM called with keywords: '" + keywords + "'");
 
@@ -316,7 +338,13 @@ public class TextEntryManager {
             return;
         }
 
-        // Traducir keywords al español antes de procesar si el idioma no es español
+        // Si el idioma es Español o Inglés, procesar directamente sin traducción MLKit
+        if ("English".equalsIgnoreCase(currentLanguage) || "Spanish".equalsIgnoreCase(currentLanguage)) {
+            processWithLLM(conversationContext, keywords, keywords);
+            return;
+        }
+
+        // Traducir keywords al español antes de procesar si es otro idioma
         translationManager.translateToSpanish(keywords, new TranslationManager.TranslationCallback() {
             @Override
             public void onSuccess(String spanishKeywords) {
@@ -358,7 +386,7 @@ public class TextEntryManager {
             public void onPartial(String chunk) {
                 if (chunk == null || chunk.isEmpty()) return;
 
-                if (!"Spanish".equalsIgnoreCase(currentLanguage)) {
+                if (!"Spanish".equalsIgnoreCase(currentLanguage) && !"English".equalsIgnoreCase(currentLanguage)) {
                     translationManager.translateFromSpanish(chunk, new TranslationManager.TranslationCallback() {
                         @Override
                         public void onSuccess(String translatedChunk) {
@@ -377,22 +405,23 @@ public class TextEntryManager {
 
             @Override
             public void onSuccess(String prediction) {
-                // ESTO DEBE SER RETIRADO CUANDO HAGA MODELOS DE OTROS IDIOMAS
-                //! Limpiar "oracion:" antes de traducir para evitar que ML Kit traduzca el prefijo
                 String cleanedSpanish = prediction.replaceAll("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*)", "").trim();
 
-                // Traducir de vuelta al idioma original si no es español
-                translationManager.translateFromSpanish(cleanedSpanish, new TranslationManager.TranslationCallback() {
-                    @Override
-                    public void onSuccess(String translatedPrediction) {
-                        setLlmPrediction(translatedPrediction);
-                    }
+                if (!"Spanish".equalsIgnoreCase(currentLanguage) && !"English".equalsIgnoreCase(currentLanguage)) {
+                    translationManager.translateFromSpanish(cleanedSpanish, new TranslationManager.TranslationCallback() {
+                        @Override
+                        public void onSuccess(String translatedPrediction) {
+                            setLlmPrediction(translatedPrediction);
+                        }
 
-                    @Override
-                    public void onError(Exception e) {
-                        setLlmPrediction(prediction);
-                    }
-                });
+                        @Override
+                        public void onError(Exception e) {
+                            setLlmPrediction(prediction);
+                        }
+                    });
+                } else {
+                    setLlmPrediction(cleanedSpanish);
+                }
             }
 
             @Override
@@ -413,6 +442,8 @@ public class TextEntryManager {
             cleaned = cleaned.substring(3);
         }
         cleaned = cleaned.replaceAll("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*)", "");
+        cleaned = cleaned.replaceAll("\\[.*?\\]|\\([^)]*\\)", "");
+        cleaned = cleaned.replaceAll("[\\[\\]()]", "");
         this.llmPrediction = cleaned;
     }
 
@@ -428,13 +459,17 @@ public class TextEntryManager {
         }
 
         // Eliminar "oracion:", "Oración:", etc. al inicio si el modelo lo incluye
-        cleaned = cleaned.replaceAll("(?i)^(oraci[oó]n:?\\s*)", "");
+        cleaned = cleaned.replaceAll("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*)", "");
+        cleaned = cleaned.replaceAll("\\[.*?\\]|\\([^)]*\\)", "");
+        cleaned = cleaned.replaceAll("[\\[\\]()]", "");
 
         this.llmPrediction = cleaned.trim();
     }
 
     public String getCurrentText() {
-        return currentSentence + (letterModeUI ? " " + blurryInput.getInputLog() : "");
+        String raw = currentSentence + (letterModeUI ? " " + blurryInput.getInputLog() : "");
+        String cleaned = raw.replaceAll("\\[.*?\\]|\\([^)]*\\)", "").replaceAll("[\\[\\]()]", "");
+        return cleaned.trim();
     }
     
     public String getLlmPrediction() {
@@ -466,6 +501,10 @@ public class TextEntryManager {
         wordIndex = -1;
         justSelectedWord = true; // Forza la limpieza de contexto en MainActivity
         lastActionTimestamps.clear();
+    }
+
+    public boolean isModelLoading() {
+        return llmClient.isInitializing() || (!llmClient.isReady() && llmPrediction.toLowerCase().contains("cargando"));
     }
 
     public void release() {

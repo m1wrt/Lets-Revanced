@@ -51,8 +51,11 @@ public interface ContractInterface {
         void updateContext(String context);
         void setLlmPrediction(String prediction);
         void loadLlmModel(String path);
+        boolean isLlmModelLoading();
         void reloadPackage();
         void setLanguage(String language);
         void clearSelection();
+        void setGazeCooldownMs(int cooldownMs);
+        int getGazeCooldownMs();
     }
 }

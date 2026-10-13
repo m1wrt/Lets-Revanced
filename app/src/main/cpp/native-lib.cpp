@@ -5,6 +5,10 @@
 #include <chrono>
 #include <android/log.h>
 #include <mutex>
+#include <cerrno>
+#include <cstring>
+#include <thread>
+#include <algorithm>
 #include "llama.h"
 
 #define TAG "LlamaCppNative"
@@ -53,13 +57,70 @@ extern "C" JNIEXPORT jlong JNICALL
 Java_com_mike_lets_textEntry_LlamaCppClient_nativeInit(JNIEnv* env, jobject, jstring modelPath) {
     std::lock_guard<std::mutex> lock(g_llm_mutex);
 
+    if (!modelPath) {
+        LOGE("modelPath jstring is null");
+        return 0;
+    }
+
     const char* path = env->GetStringUTFChars(modelPath, nullptr);
+    if (!path || strlen(path) == 0) {
+        LOGE("modelPath string is empty");
+        if (path) env->ReleaseStringUTFChars(modelPath, path);
+        return 0;
+    }
+
+    LOGD("Attempting to load llama.cpp model from path: %s", path);
+
+    // Verify file accessibility and GGUF magic header in native C++
+    FILE* f = fopen(path, "rb");
+    if (!f) {
+        LOGE("Cannot open file at path '%s': %s (errno %d)", path, strerror(errno), errno);
+        env->ReleaseStringUTFChars(modelPath, path);
+        return 0;
+    }
+
+    uint32_t magic = 0;
+    if (fread(&magic, sizeof(uint32_t), 1, f) == 1) {
+        // GGUF magic bytes: 'G' 'G' 'U' 'F' -> 0x46554747 in little endian
+        if (magic != 0x46554747) {
+            LOGE("File '%s' is not a valid GGUF model! Magic bytes: 0x%08X (expected 0x46554747 'GGUF')", path, magic);
+            fclose(f);
+            env->ReleaseStringUTFChars(modelPath, path);
+            return 0;
+        }
+    } else {
+        LOGE("Failed to read header magic bytes from '%s'", path);
+        fclose(f);
+        env->ReleaseStringUTFChars(modelPath, path);
+        return 0;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fclose(f);
+    LOGD("Valid GGUF header confirmed for '%s', size: %ld bytes", path, fsize);
+
+    if (fsize <= 1024) {
+        LOGE("Model file is too small or corrupt: %s (%ld bytes)", path, fsize);
+        env->ReleaseStringUTFChars(modelPath, path);
+        return 0;
+    }
 
     llama_model_params model_params = llama_model_default_params();
+    // Force CPU execution on Android to prevent GPU offloading crashes or driver incompatibilities
+    model_params.n_gpu_layers = 0;
+
     llama_model * model = llama_model_load_from_file(path, model_params);
 
+    // Fallback: If default load mode failed, retry with LLAMA_LOAD_MODE_NONE (no mmap)
     if (!model) {
-        LOGE("Failed to load model: %s", path);
+        LOGE("Primary model load failed for '%s'. Retrying with load_mode = LLAMA_LOAD_MODE_NONE...", path);
+        model_params.load_mode = LLAMA_LOAD_MODE_NONE;
+        model = llama_model_load_from_file(path, model_params);
+    }
+
+    if (!model) {
+        LOGE("Failed to load llama model from file: %s", path);
         env->ReleaseStringUTFChars(modelPath, path);
         return 0;
     }
@@ -67,12 +128,16 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeInit(JNIEnv* env, jobject, jst
     llama_context_params ctx_params = llama_context_default_params();
     ctx_params.n_ctx = 512;
     ctx_params.n_batch = 512;
-    ctx_params.n_threads = 4;
-    ctx_params.n_threads_batch = 4;
+    ctx_params.n_ubatch = 512;
+
+    unsigned int num_cpus = std::thread::hardware_concurrency();
+    int threads = std::min(4, std::max(1, num_cpus > 2 ? static_cast<int>(num_cpus - 1) : 1));
+    ctx_params.n_threads = threads;
+    ctx_params.n_threads_batch = threads;
 
     llama_context * ctx = llama_init_from_model(model, ctx_params);
     if (!ctx) {
-        LOGE("Failed to create context");
+        LOGE("Failed to create llama context from model: %s", path);
         llama_model_free(model);
         env->ReleaseStringUTFChars(modelPath, path);
         return 0;
@@ -87,17 +152,35 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeInit(JNIEnv* env, jobject, jst
     llama_sampler_chain_add(state->smpl, llama_sampler_init_greedy());
 
     env->ReleaseStringUTFChars(modelPath, path);
-    LOGD("Llama initialized successfully");
+    LOGD("Llama initialized successfully for path: %s", path);
     return reinterpret_cast<jlong>(state);
 }
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, jobject, jlong ptr, jstring prompt) {
+extern "C" JNIEXPORT void JNICALL
+Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletionStream(
+        JNIEnv* env, jobject, jlong ptr, jstring prompt, jobject callback) {
     // Lock the mutex to prevent concurrent inference
     std::lock_guard<std::mutex> lock(g_llm_mutex);
 
     auto* state = reinterpret_cast<LlamaState*>(ptr);
-    if (!state || !state->ctx) return env->NewStringUTF("");
+    if (!state || !state->ctx) {
+        if (callback) {
+            jclass cbClass = env->GetObjectClass(callback);
+            jmethodID onErrorId = env->GetMethodID(cbClass, "onError", "(Ljava/lang/String;)V");
+            if (onErrorId) {
+                jstring jerr = env->NewStringUTF("State or context null");
+                env->CallVoidMethod(callback, onErrorId, jerr);
+                env->DeleteLocalRef(jerr);
+            }
+            env->DeleteLocalRef(cbClass);
+        }
+        return;
+    }
+
+    jclass cbClass = env->GetObjectClass(callback);
+    jmethodID onPartialId = env->GetMethodID(cbClass, "onPartial", "(Ljava/lang/String;)V");
+    jmethodID onSuccessId = env->GetMethodID(cbClass, "onSuccess", "(Ljava/lang/String;)V");
+    jmethodID onErrorId = env->GetMethodID(cbClass, "onError", "(Ljava/lang/String;)V");
 
     auto t_start = std::chrono::high_resolution_clock::now();
 
@@ -124,19 +207,37 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
     int n_tokens = llama_tokenize(vocab, prompt_str.c_str(), (int)prompt_str.length(), tokens.data(), (int)tokens.size(), true, true);
     if (n_tokens < 0) {
         LOGE("llama_tokenize failed with code: %d", n_tokens);
-        return env->NewStringUTF("");
+        if (onErrorId) {
+            jstring jerr = env->NewStringUTF("Tokenization failed");
+            env->CallVoidMethod(callback, onErrorId, jerr);
+            env->DeleteLocalRef(jerr);
+        }
+        env->DeleteLocalRef(cbClass);
+        return;
     }
     tokens.resize(n_tokens);
 
-    if (n_tokens <= 0) return env->NewStringUTF("");
-
-    llama_batch batch = llama_batch_get_one(tokens.data(), tokens.size());
-    if (llama_decode(state->ctx, batch) != 0) {
-        LOGE("LLM Decode failed");
-        return env->NewStringUTF("Error: decode failed");
+    if (n_tokens <= 0) {
+        if (onErrorId) {
+            jstring jerr = env->NewStringUTF("Empty prompt tokens");
+            env->CallVoidMethod(callback, onErrorId, jerr);
+            env->DeleteLocalRef(jerr);
+        }
+        env->DeleteLocalRef(cbClass);
+        return;
     }
 
-    auto t_prompt = std::chrono::high_resolution_clock::now();
+    llama_batch batch = llama_batch_get_one(tokens.data(), static_cast<int32_t>(tokens.size()));
+    if (llama_decode(state->ctx, batch) != 0) {
+        LOGE("LLM Decode failed");
+        if (onErrorId) {
+            jstring jerr = env->NewStringUTF("LLM Decode failed");
+            env->CallVoidMethod(callback, onErrorId, jerr);
+            env->DeleteLocalRef(jerr);
+        }
+        env->DeleteLocalRef(cbClass);
+        return;
+    }
 
     std::string response;
     int n_predict = 64; // Exactamente 64 max_new_tokens como en el script de entrenamiento
@@ -151,6 +252,13 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
         if (n > 0) {
             std::string piece(buf, n);
             response.append(piece);
+
+            // Stream chunk immediately to Java UI
+            if (onPartialId) {
+                jstring jpiece = env->NewStringUTF(piece.c_str());
+                env->CallVoidMethod(callback, onPartialId, jpiece);
+                env->DeleteLocalRef(jpiece);
+            }
 
             // Stop sequences: ### or special tags or double-newline
             if (response.find("###") != std::string::npos ||
@@ -175,7 +283,7 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
     if (pos != std::string::npos) {
         response = response.substr(0, pos);
     }
-    pos = response.find("<");
+    pos = response.find('<');
     if (pos != std::string::npos) {
         response = response.substr(0, pos);
     }
@@ -197,9 +305,15 @@ Java_com_mike_lets_textEntry_LlamaCppClient_nativeGetCompletion(JNIEnv* env, job
     auto t_end = std::chrono::high_resolution_clock::now();
     double ms_total = std::chrono::duration<double, std::milli>(t_end - t_start).count();
 
-    LOGD("LLM Inference completed in %.2fms", ms_total);
+    LOGD("LLM Stream Inference completed in %.2fms", ms_total);
 
-    return env->NewStringUTF(response.c_str());
+    if (onSuccessId) {
+        jstring jfinal = env->NewStringUTF(response.c_str());
+        env->CallVoidMethod(callback, onSuccessId, jfinal);
+        env->DeleteLocalRef(jfinal);
+    }
+
+    env->DeleteLocalRef(cbClass);
 }
 
 extern "C" JNIEXPORT void JNICALL

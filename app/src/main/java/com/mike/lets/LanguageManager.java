@@ -24,15 +24,15 @@ public class LanguageManager {
     static {
         // Español
         SPANISH_STRINGS.put("settings_title", "AJUSTES Y CONFIGURACIÓN");
-        SPANISH_STRINGS.put("settings_content", "Aquí podrás administrar el idioma de la app e importar paquetes de lenguaje e IA (.zip).");
+        SPANISH_STRINGS.put("settings_content", "Aquí podrás administrar el idioma de la app e importar paquetes de lenguaje e IA .zip.");
         SPANISH_STRINGS.put("language_section_title", "IDIOMA DE LA APP");
         SPANISH_STRINGS.put("current_language", "Idioma actual: Español");
         SPANISH_STRINGS.put("btn_change_language", "CAMBIAR A INGLÉS");
-        SPANISH_STRINGS.put("btn_import_package", "IMPORTAR PAQUETE (.ZIP)");
+        SPANISH_STRINGS.put("btn_import_package", "IMPORTAR PAQUETE ZIP");
         SPANISH_STRINGS.put("btn_clear_package", "X");
         SPANISH_STRINGS.put("btn_back", "VOLVER");
         SPANISH_STRINGS.put("model_status_prefix", "Modelo: ");
-        SPANISH_STRINGS.put("model_default", "Predeterminado (gemma3-1b.gguf)");
+        SPANISH_STRINGS.put("model_default", "Predeterminado gemma3-1b.gguf");
         SPANISH_STRINGS.put("restoring_model", "Restaurando modelo...");
         SPANISH_STRINGS.put("loading_default_model", "Cargando modelo predeterminado");
         SPANISH_STRINGS.put("package_restored_toast", "Paquete predeterminado restaurado");
@@ -40,15 +40,15 @@ public class LanguageManager {
 
         // Inglés
         ENGLISH_STRINGS.put("settings_title", "SETTINGS & CONFIGURATION");
-        ENGLISH_STRINGS.put("settings_content", "Here you can manage the app language and import language and AI packages (.zip).");
+        ENGLISH_STRINGS.put("settings_content", "Here you can manage the app language and import language and AI packages .zip.");
         ENGLISH_STRINGS.put("language_section_title", "APP LANGUAGE");
         ENGLISH_STRINGS.put("current_language", "Current language: English");
         ENGLISH_STRINGS.put("btn_change_language", "SWITCH TO SPANISH");
-        ENGLISH_STRINGS.put("btn_import_package", "IMPORT PACKAGE (.ZIP)");
+        ENGLISH_STRINGS.put("btn_import_package", "IMPORT PACKAGE ZIP");
         ENGLISH_STRINGS.put("btn_clear_package", "X");
         ENGLISH_STRINGS.put("btn_back", "BACK");
         ENGLISH_STRINGS.put("model_status_prefix", "Model: ");
-        ENGLISH_STRINGS.put("model_default", "Default (gemma3-1b.gguf)");
+        ENGLISH_STRINGS.put("model_default", "Default gemma3-1b.gguf");
         ENGLISH_STRINGS.put("restoring_model", "Restoring model...");
         ENGLISH_STRINGS.put("loading_default_model", "Loading default model");
         ENGLISH_STRINGS.put("package_restored_toast", "Default package restored");

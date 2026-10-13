@@ -353,6 +353,8 @@ object LlmRuntimeManager {
         val fin = out.indexOf("<end_of_turn>")
         if (fin >= 0) out = out.substring(0, fin)
         out = out.replace(Regex("(?i)^(next:?\\s*|next\\s+words:?\\s*|oraci[oó]n:?\\s*|respuesta:?\\s*|output:?\\s*|result:?\\s*)"), "")
+        out = out.replace(Regex("\\[.*?\\]|\\([^)]*\\)"), "")
+        out = out.replace(Regex("[\\[\\]()]"), "")
         return out.trim()
     }
 

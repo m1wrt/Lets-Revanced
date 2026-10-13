@@ -246,32 +246,66 @@
             android:maxLines="3"
             app:layout_constraintTop_toBottomOf="@id/action_buttons" />
 
-        <!-- LLM Area -->
-        <TextView
-            android:id="@+id/llm_display"
+        <!-- LLM Area Container -->
+        <FrameLayout
+            android:id="@+id/llm_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="8dp"
-            android:background="@drawable/llm_area_background"
-            android:padding="8dp"
-            android:text="LLM: 26W40A IS NOW HERE!!"
-            android:textColor="@color/white"
-            android:textSize="16sp"
             android:layout_marginBottom="8dp"
+            android:background="@drawable/llm_area_background"
             app:layout_constraintBottom_toTopOf="@+id/context_area"
-            app:layout_constraintTop_toBottomOf="@id/text_input_display" />
+            app:layout_constraintTop_toBottomOf="@id/text_input_display">
 
-        <ImageButton
-            android:id="@+id/btn_adjust_llm"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_manage"
-            android:contentDescription="Adjust LLM"
-            app:layout_constraintTop_toTopOf="@id/llm_display"
-            app:layout_constraintEnd_toEndOf="@id/llm_display" />
+            <TextView
+                android:id="@+id/llm_display"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:text="LLM: ..."
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <!-- Animación de carga en el medio del campo LLM -->
+            <LinearLayout
+                android:id="@+id/llm_loading_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <ProgressBar
+                    android:id="@+id/llm_loading_progress"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:indeterminate="true"
+                    android:indeterminateTint="@color/white" />
+
+                <TextView
+                    android:id="@+id/llm_loading_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="Cargando modelo"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_adjust_llm"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Adjust LLM"
+                android:src="@android:drawable/ic_menu_manage" />
+        </FrameLayout>
 
         <!-- Context Area -->
         <LinearLayout

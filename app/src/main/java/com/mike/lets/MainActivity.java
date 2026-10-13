@@ -67,6 +67,78 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
     private android.app.AlertDialog popupDialog;
     private android.app.AlertDialog loadingDialog;
     private android.view.View popupView;
+    private boolean isLlmLoadingShowing = false;
+    private final android.text.SpannableStringBuilder llmSpannableBuilder = new android.text.SpannableStringBuilder();
+    private String lastRawLlm = "";
+
+    private static class AlphaSpan extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance {
+        private int alpha;
+
+        public AlphaSpan(int alpha) {
+            this.alpha = alpha;
+        }
+
+        public void setAlpha(int alpha) {
+            this.alpha = alpha;
+        }
+
+        @Override
+        public void updateDrawState(android.text.TextPaint tp) {
+            tp.setAlpha(alpha);
+        }
+    }
+
+    private void updateLlmStreamDisplay(String rawLlmInput, TextView textView) {
+        String targetLlm = rawLlmInput != null ? rawLlmInput : "";
+
+        if (targetLlm.isEmpty() || lastRawLlm.isEmpty() || !targetLlm.startsWith(lastRawLlm)) {
+            llmSpannableBuilder.clear();
+            llmSpannableBuilder.append("LLM: ");
+            if (!targetLlm.isEmpty()) {
+                int start = llmSpannableBuilder.length();
+                llmSpannableBuilder.append(targetLlm);
+                int end = llmSpannableBuilder.length();
+
+                AlphaSpan span = new AlphaSpan(0);
+                llmSpannableBuilder.setSpan(span, start, end, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                textView.setText(llmSpannableBuilder, TextView.BufferType.SPANNABLE);
+
+                android.animation.ValueAnimator animator = android.animation.ValueAnimator.ofInt(0, 255);
+                animator.setDuration(330);
+                animator.addUpdateListener(anim -> {
+                    span.setAlpha((Integer) anim.getAnimatedValue());
+                    textView.invalidate();
+                });
+                animator.start();
+            } else {
+                textView.setText(llmSpannableBuilder, TextView.BufferType.SPANNABLE);
+            }
+            lastRawLlm = targetLlm;
+            return;
+        }
+
+        if (targetLlm.length() > lastRawLlm.length()) {
+            String newChunk = targetLlm.substring(lastRawLlm.length());
+            int start = llmSpannableBuilder.length();
+            llmSpannableBuilder.append(newChunk);
+            int end = llmSpannableBuilder.length();
+
+            AlphaSpan span = new AlphaSpan(0);
+            llmSpannableBuilder.setSpan(span, start, end, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            textView.setText(llmSpannableBuilder, TextView.BufferType.SPANNABLE);
+
+            android.animation.ValueAnimator animator = android.animation.ValueAnimator.ofInt(0, 255);
+            animator.setDuration(330);
+            animator.addUpdateListener(anim -> {
+                span.setAlpha((Integer) anim.getAnimatedValue());
+                textView.invalidate();
+            });
+            animator.start();
+
+            lastRawLlm = targetLlm;
+        }
+    }
+
     private final com.mike.lets.textEntry.FastActionsManager fastActionsManager = new com.mike.lets.textEntry.FastActionsManager();
 
     private void showLoadingDialog(String title, String subtitle) {
@@ -254,6 +326,26 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                     hideLoadingDialog();
                 }
             });
+        });
+
+        binding.settingsMenuLayout.seekBarGazeCooldown.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    int ms = Math.max(200, progress);
+                    double sec = ms / 1000.0;
+                    binding.settingsMenuLayout.tvGazeCooldownTitle.setText(
+                        String.format(java.util.Locale.US, "Tiempo de Detección Ocular: %d ms (%.1f s)", ms, sec)
+                    );
+                    presenter.setGazeCooldownMs(ms);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(android.widget.SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(android.widget.SeekBar seekBar) {}
         });
 
         binding.toolsMenuLayout.getRoot().setOnClickListener(v -> {
@@ -514,16 +606,37 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
 
                     // Update Main Menu content
                     if (binding.mainMenuLayout.getRoot().getVisibility() == View.VISIBLE) {
-                        String display = "Text: " + appLiveData.currentText;
-                        if (appLiveData.translatedWord != null && !appLiveData.translatedWord.isEmpty()) {
-                            display += " [" + appLiveData.translatedWord + "]";
-                        }
-                        if (appLiveData.translatedSentence != null && !appLiveData.translatedSentence.isEmpty()) {
-                            display += "\n(Tr: " + appLiveData.translatedSentence + ")";
-                        }
+                        String rawText = appLiveData.currentText != null ? appLiveData.currentText : "";
+                        rawText = rawText.replaceAll("\\[.*?\\]|\\([^)]*\\)", "").replaceAll("[\\[\\]()]", "").trim();
+                        String display = "Text: " + rawText;
                         binding.mainMenuLayout.textInputDisplay.setText(display);
                         
-                        binding.mainMenuLayout.llmDisplay.setText("LLM: " + appLiveData.llmResponse);
+                        String rawLlm = appLiveData.llmResponse != null ? appLiveData.llmResponse : "";
+                        rawLlm = rawLlm.replaceAll("\\[.*?\\]|\\([^)]*\\)", "").replaceAll("[\\[\\]()]", "").trim();
+
+                        boolean isLoading = presenter.isLlmModelLoading() || rawLlm.toLowerCase().contains("cargando");
+                        if (isLoading) {
+                            if (!isLlmLoadingShowing) {
+                                isLlmLoadingShowing = true;
+                                lastRawLlm = "";
+                                llmSpannableBuilder.clear();
+                                binding.mainMenuLayout.llmDisplay.setVisibility(View.INVISIBLE);
+                                binding.mainMenuLayout.llmLoadingContainer.setVisibility(View.VISIBLE);
+                                binding.mainMenuLayout.llmLoadingContainer.setAlpha(0f);
+                                binding.mainMenuLayout.llmLoadingContainer.animate()
+                                        .alpha(1f)
+                                        .setDuration(330)
+                                        .setListener(null);
+                            }
+                        } else {
+                            if (isLlmLoadingShowing) {
+                                isLlmLoadingShowing = false;
+                                binding.mainMenuLayout.llmLoadingContainer.setVisibility(View.GONE);
+                                binding.mainMenuLayout.llmDisplay.setVisibility(View.VISIBLE);
+                                binding.mainMenuLayout.llmDisplay.setAlpha(1f);
+                            }
+                            updateLlmStreamDisplay(rawLlm, binding.mainMenuLayout.llmDisplay);
+                        }
                         
                         String[] groups = {"ABCDEF", "GHIJKLM", "NOPQRST", "UVWXYZ"};
                         String[] words = {"NADA", "NADA", "NADA", "NADA"};
@@ -730,9 +843,12 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
             popupView = getLayoutInflater().inflate(R.layout.popup_completo, null);
             android.widget.TextView contentTv = popupView.findViewById(R.id.popup_content_text);
             
-            String fullText = "Texto: " + userText;
-            if (llmText != null && !llmText.isEmpty()) {
-                fullText += "\n\nLLM: " + llmText;
+            String cleanUser = userText != null ? userText.replaceAll("\\[.*?\\]|\\([^)]*\\)", "").replaceAll("[\\[\\]()]", "").trim() : "";
+            String cleanLlm = llmText != null ? llmText.replaceAll("\\[.*?\\]|\\([^)]*\\)", "").replaceAll("[\\[\\]()]", "").trim() : "";
+
+            String fullText = "Texto: " + cleanUser;
+            if (!cleanLlm.isEmpty()) {
+                fullText += "\n\nLLM: " + cleanLlm;
             }
             contentTv.setText(fullText);
 
@@ -907,6 +1023,13 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.settingsMenuLayout.btnImportModel.setText(langMgr.getString("btn_import_package"));
         binding.settingsMenuLayout.btnBackSettings.setText(langMgr.getString("btn_back"));
 
+        int cooldownMs = presenter.getGazeCooldownMs();
+        double cooldownSec = cooldownMs / 1000.0;
+        binding.settingsMenuLayout.tvGazeCooldownTitle.setText(
+            String.format(java.util.Locale.US, "Tiempo de Detección Ocular: %d ms (%.1f s)", cooldownMs, cooldownSec)
+        );
+        binding.settingsMenuLayout.seekBarGazeCooldown.setProgress(cooldownMs);
+
         updatePackageUI();
     }
 
@@ -921,12 +1044,14 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
                            (ver != null && !ver.isEmpty() ? " v" + ver : " v1.0");
         String descText = "Descripción: " + (desc != null && !desc.isEmpty() ? desc : "null");
         
-        String modelName = "Predeterminado (gemma3-1b.gguf)";
+        String modelName = "Sin modelo cargado";
+        boolean modelExists = false;
         if (modelPath != null && !modelPath.isEmpty()) {
             File f = new File(modelPath);
-            if (f.exists()) {
+            if (f.exists() && f.length() > 1024) {
                 long sizeMb = f.length() / (1024 * 1024);
                 modelName = f.getName() + " (" + sizeMb + " MB)";
+                modelExists = true;
             } else {
                 modelName = "NO ENCONTRADO (" + f.getName() + ")";
             }
@@ -935,6 +1060,11 @@ public class MainActivity extends AppCompatActivity implements ContractInterface
         binding.settingsMenuLayout.tvPackageTitle.setText(titleText);
         binding.settingsMenuLayout.tvPackageDescription.setText(descText);
         binding.settingsMenuLayout.tvModelStatus.setText("Modelo: " + modelName);
+        if (modelExists) {
+            binding.settingsMenuLayout.tvModelStatus.setTextColor(getColor(R.color.dark_gray));
+        } else {
+            binding.settingsMenuLayout.tvModelStatus.setTextColor(getColor(R.color.red));
+        }
     }
 
     private void processImportedPackage(Uri uri) {

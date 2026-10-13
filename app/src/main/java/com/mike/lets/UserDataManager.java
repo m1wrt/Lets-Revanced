@@ -56,6 +56,7 @@ public class UserDataManager extends Application {
     private String packageWordListPath = "";
     private String packageModelPath = "";
     private String packageFastActionsPath = "";
+    private int gazeCooldownMs = 1000;
 
     private Bitmap[] leftCalibrationData;
     private Bitmap[] rightCalibrationData;
@@ -86,6 +87,7 @@ public class UserDataManager extends Application {
         defaultSettings.put("PackageWordListPath", "");
         defaultSettings.put("PackageModelPath", "");
         defaultSettings.put("PackageFastActionsPath", "");
+        defaultSettings.put("GazeCooldownMs", "1000");
     }
 
 
@@ -109,6 +111,7 @@ public class UserDataManager extends Application {
         packageWordListPath = getString("PackageWordListPath");
         packageModelPath = getString("PackageModelPath");
         packageFastActionsPath = getString("PackageFastActionsPath");
+        gazeCooldownMs = Integer.parseInt(getString("GazeCooldownMs"));
 
         // get calibration files
         if (getCalibrationFiles(mContext, leftEyeFileNames) != null) {
@@ -384,6 +387,12 @@ public class UserDataManager extends Application {
     public void setPackageFastActionsPath(String path) {
         this.packageFastActionsPath = path;
         setString("PackageFastActionsPath", path);
+    }
+
+    public int getGazeCooldownMs() { return gazeCooldownMs; }
+    public void setGazeCooldownMs(int gazeCooldownMs) {
+        this.gazeCooldownMs = gazeCooldownMs;
+        setString("GazeCooldownMs", Integer.toString(gazeCooldownMs));
     }
 
     public void clearPackage() {
