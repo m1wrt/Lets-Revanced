@@ -1,0 +1,37 @@
+name: Generador de APKs de Prueba
+
+# Configurado para ejecutarse SOLO de forma manual (workflow_dispatch)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Descarga el código de la rama actual en el servidor de GitHub
+    - name: Descargar codigo del repositorio
+      uses: actions/checkout@v4
+
+    # 2. Configura Java (Se usa JDK 17, el estándar de las últimas versiones de Android Studio)
+    - name: Configurar Entorno Java JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    # 3. Le otorga permisos de ejecución al sistema de compilación de Android (Gradle)
+    - name: Otorgar permisos de ejecucion a Gradle
+      run: chmod +x ./gradlew
+
+    # 4. Ejecuta la compilación del APK en modo Debug (Pruebas rápidas sin firmas pesadas)
+    - name: Compilar APK (assembleDebug)
+      run: ./gradlew assembleDebug
+
+    # 5. Toma el APK resultante y lo sube a la web de GitHub para que lo descargues
+    - name: Subir APK generado a GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: apkasito-de-pruebas
+        path: app/build/outputs/apk/debug/app-debug.apk
